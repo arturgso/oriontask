@@ -1,5 +1,7 @@
 package br.com.oriontask.backend.service;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import br.com.oriontask.backend.dto.EditUserDTO;
@@ -30,6 +32,12 @@ public class UsersService {
         user = repository.save(user);
 
         return createResponseDTO(user);
+    }
+
+    public UserResponseDTO list(String id) {
+        return createResponseDTO(
+                repository.findById(UUID.fromString(id))
+                        .orElseThrow(() -> new RuntimeException("User not found")));
     }
 
     private UserResponseDTO createResponseDTO(Users user) {
