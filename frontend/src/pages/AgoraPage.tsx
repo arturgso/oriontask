@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
+import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
 import { Zap } from 'lucide-react';
@@ -12,6 +13,7 @@ export function AgoraPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOverflow, setShowOverflow] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = useStore((state) => state.user);
   const hydrated = useStore((state) => state.hydrated);
   const fillNowWithNext = useStore((state) => state.fillNowWithNext);
@@ -85,11 +87,13 @@ export function AgoraPage() {
   if (loading) {
     return (
       <div className={Styles.page}>
-        <header className={Styles.pageHeader}>
-          <h1 className={Styles.headerTitle}>Orion Task</h1>
-        </header>
+        <Header
+          title="Orion Task"
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        />
         <main className={Styles.main}>
-          <Sidebar />
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <section className={Styles.content}>
             <p className={Styles.loading}>Carregando...</p>
           </section>
@@ -100,13 +104,14 @@ export function AgoraPage() {
 
   return (
     <div className={Styles.page}>
-      <header className={Styles.pageHeader}>
-        <h1 className={Styles.headerTitle}>Orion Task</h1>
-        <p className={Styles.headerSubtitle}>Gerenciador de tarefas focado em clareza</p>
-      </header>
+      <Header
+        title="Orion Task"
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
 
       <main className={Styles.main}>
-        <Sidebar />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <section className={Styles.content}>
           <div className={Styles.header}>
@@ -155,9 +160,6 @@ export function AgoraPage() {
 
 const Styles = {
   page: 'min-h-screen flex flex-col bg-gray-100',
-  pageHeader: 'bg-gray-800 text-white p-3 md:p-4',
-  headerTitle: 'text-lg md:text-xl font-bold',
-  headerSubtitle: 'text-xs md:text-sm text-gray-300',
   main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
   content: 'flex-1 p-3 md:p-4 bg-white md:border-l border-gray-300',
   header: 'flex items-center gap-2 mb-2',

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Plus, ArrowRight } from 'lucide-react';
 import { useStore } from '../state/store';
+import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
 
@@ -17,6 +18,7 @@ export function DharmasPage() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#3B82F6');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -66,15 +68,14 @@ export function DharmasPage() {
 
   return (
     <div className={Styles.page}>
-      <header className={Styles.header}>
-        <div>
-          <h1 className={Styles.title}>Orion Task</h1>
-          <p className={Styles.subtitle}>Gerenciador de tarefas focado em clareza</p>
-        </div>
-      </header>
+      <Header
+        title="Orion Task"
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
 
       <main className={Styles.main}>
-        <Sidebar />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <section className={Styles.content}>
           <h2 className={Styles.pageTitle}>Meus Dharmas</h2>
@@ -173,9 +174,6 @@ export function DharmasPage() {
 
 const Styles = {
   page: 'min-h-screen flex flex-col bg-gray-100',
-  header: 'bg-gray-800 text-white p-3 md:p-4',
-  title: 'text-lg md:text-xl font-bold',
-  subtitle: 'text-xs md:text-sm text-gray-300',
   main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
   content: 'flex-1 p-3 md:p-4 bg-white md:border-l border-gray-300 pb-20 md:pb-4',
   pageTitle: 'text-base md:text-lg font-bold mb-1',

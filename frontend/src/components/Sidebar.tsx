@@ -1,10 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 
-export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const dharmas = useStore((state) => state.dharmas);
   const logout = useStore((state) => state.logout);
@@ -18,25 +21,16 @@ export function Sidebar() {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    setIsOpen(false);
+    onClose();
   };
 
   return (
     <>
-      {/* Botão hambúrguer - visível apenas em mobile */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-16 left-3 z-40 p-2 hover:bg-gray-300 rounded transition-colors"
-        aria-label="Abrir menu"
-      >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       {/* Overlay - visível quando menu está aberto em mobile */}
       {isOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/30 z-30 top-16"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
         />
       )}
 

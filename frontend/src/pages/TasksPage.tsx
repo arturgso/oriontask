@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
+import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
@@ -17,6 +18,7 @@ export function TasksPage() {
   const [karmaType, setKarmaType] = useState<KarmaType>(KarmaType.ENERGY);
   const [effortLevel, setEffortLevel] = useState<EffortLevel>(EffortLevel.LOW);
   const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const hydrated = useStore((state) => state.hydrated);
   const dharmas = useStore((state) => state.dharmas);
@@ -96,13 +98,14 @@ export function TasksPage() {
 
   return (
     <div className={Styles.page}>
-      <header className={Styles.pageHeader}>
-        <h1 className={Styles.headerTitle}>Orion Task</h1>
-        <p className={Styles.headerSubtitle}>Gerenciador de tarefas focado em clareza</p>
-      </header>
+      <Header
+        title="Orion Task"
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
 
       <main className={Styles.main}>
-        <Sidebar />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <section className={Styles.content}>
           <div className={Styles.header}>
@@ -236,9 +239,6 @@ export function TasksPage() {
 
 const Styles = {
   page: 'min-h-screen flex flex-col bg-gray-100',
-  pageHeader: 'bg-gray-800 text-white p-3 md:p-4',
-  headerTitle: 'text-lg md:text-xl font-bold',
-  headerSubtitle: 'text-xs md:text-sm text-gray-300',
   main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
   content: 'flex-1 p-3 md:p-4 bg-white md:border-l border-gray-300',
   header: 'mb-3 md:mb-4',
