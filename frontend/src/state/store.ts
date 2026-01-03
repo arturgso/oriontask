@@ -24,7 +24,7 @@ interface AppState {
   deleteTask: (taskId: number) => Promise<void>;
 }
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>((set) => ({
   user: null,
   dharmas: [],
   tasks: [],
@@ -44,7 +44,7 @@ export const useStore = create<AppState>((set, get) => ({
       try {
         const user = await usersApi.get(userId);
         set({ user });
-      } catch (error) {
+      } catch {
         localStorage.removeItem('userId');
         set({ user: null });
       }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
@@ -18,7 +18,6 @@ export function TasksPage() {
   const [effortLevel, setEffortLevel] = useState<EffortLevel>(EffortLevel.LOW);
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
   const dharmas = useStore((state) => state.dharmas);
   const dharma = dharmas.find((d) => d.id === Number(dharmaId));
 

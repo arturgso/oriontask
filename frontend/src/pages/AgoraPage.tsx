@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
@@ -11,8 +10,6 @@ import { TaskStatus, type Task } from '../types';
 export function AgoraPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const navigate = useNavigate();
   const user = useStore((state) => state.user);
 
   useEffect(() => {

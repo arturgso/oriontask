@@ -12,7 +12,6 @@ export function DharmasPage() {
   const fetchDharmas = useStore((state) => state.fetchDharmas);
   const createDharma = useStore((state) => state.createDharma);
   const deleteDharma = useStore((state) => state.deleteDharma);
-  const logout = useStore((state) => state.logout);
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
