@@ -1,4 +1,4 @@
-package br.com.oriontask.enums;
+package br.com.oriontask.backend.enums;
 
 public enum EffortLevel {
     LOW,

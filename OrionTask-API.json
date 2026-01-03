@@ -106,9 +106,9 @@
       "_id": "req_create_task",
       "_type": "request",
       "parentId": "fld_task",
-      "name": "Create Task - Nova Tarefa (Placeholder)",
+      "name": "Create Task - Nova Tarefa",
       "method": "POST",
-      "url": "{{ BASE_URL }}/tasks/create",
+      "url": "{{ BASE_URL }}/tasks/1/create",
       "headers": [
         {
           "name": "Content-Type",
@@ -117,9 +117,133 @@
       ],
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"dharmaId\": 1,\n  \"title\": \"Beber água ao acordar\",\n  \"description\": \"500ml logo pela manhã\",\n  \"karmaType\": \"ENERGY\",\n  \"effortLevel\": \"LOW\"\n}"
+        "text": "{\n  \"title\": \"Beber água ao acordar\",\n  \"description\": \"500ml logo pela manhã\",\n  \"karmaType\": \"ENERGY\",\n  \"effortLevel\": \"LOW\"\n}"
       },
-      "description": "Criar uma nova Task (tarefa). NOTA: Este endpoint ainda não foi implementado"
+      "description": "Criar uma nova Task vinculada a um Dharma (usar dharmaId na URL)"
+    },
+    {
+      "_id": "req_edit_task",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Edit Task - Editar Tarefa",
+      "method": "PATCH",
+      "url": "{{ BASE_URL }}/tasks/edit/1",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Beber 1L de água ao acordar\",\n  \"description\": \"1 litro logo pela manhã\",\n  \"karmaType\": \"ENERGY\",\n  \"effortLevel\": \"LOW\"\n}"
+      },
+      "description": "Editar uma Task existente (não funciona para tasks DONE)"
+    },
+    {
+      "_id": "req_move_to_now",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Move to NOW - Mover para Agora",
+      "method": "PATCH",
+      "url": "{{ BASE_URL }}/tasks/1/move-to-now",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Mover uma Task para o status NOW (máximo 5 por usuário)"
+    },
+    {
+      "_id": "req_change_status",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Change Status - Mudar Status",
+      "method": "PATCH",
+      "url": "{{ BASE_URL }}/tasks/1/change-status?status=NEXT",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Mudar o status de uma Task (NOW, NEXT, WAITING). Valores: NOW, NEXT, WAITING"
+    },
+    {
+      "_id": "req_mark_done",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Mark Done - Marcar como Concluída",
+      "method": "PATCH",
+      "url": "{{ BASE_URL }}/tasks/1/mark-done",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Marcar uma Task como DONE. Preenche automaticamente o completedAt"
+    },
+    {
+      "_id": "req_get_tasks_by_dharma",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Get Tasks by Dharma - Listar por Dharma",
+      "method": "GET",
+      "url": "{{ BASE_URL }}/tasks/dharma/1",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Listar todas as Tasks de um Dharma específico"
+    },
+    {
+      "_id": "req_get_tasks_by_dharma_status",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Get Tasks by Dharma and Status",
+      "method": "GET",
+      "url": "{{ BASE_URL }}/tasks/dharma/1/status/NOW",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Listar Tasks de um Dharma filtradas por Status (NOW, NEXT, WAITING, DONE)"
+    },
+    {
+      "_id": "req_get_tasks_by_user_status",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Get Tasks by User and Status",
+      "method": "GET",
+      "url": "{{ BASE_URL }}/tasks/user/{{ USER_ID }}/status/NOW",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Listar todas as Tasks de um usuário filtradas por Status (útil para ver todas as NOW)"
+    },
+    {
+      "_id": "req_delete_task",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Delete Task - Deletar Tarefa",
+      "method": "DELETE",
+      "url": "{{ BASE_URL }}/tasks/1",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Deletar uma Task (não funciona para tasks DONE - histórico)"
     }
   ]
 }
