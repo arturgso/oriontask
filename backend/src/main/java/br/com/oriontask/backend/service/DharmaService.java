@@ -9,6 +9,8 @@ import br.com.oriontask.backend.model.Dharma;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.DharmaRepository;
 import br.com.oriontask.backend.repository.UsersRepository;
+import br.com.oriontask.backend.utils.ColorGenerator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,12 +31,28 @@ public class DharmaService {
             throw new IllegalStateException("Maximum number of dharmas reached for this user");
         }
 
+        String color = createDTO.color() != null ? createDTO.color() : ColorGenerator.generateRandomColor();
+
         Dharma dharma = Dharma.builder()
             .user(user)
             .name(createDTO.name())
             .description(createDTO.description())
-            .color(createDTO.color())
+            .color(color)
             .build();
+
+        dharma = repository.save(dharma);
+        return dharma;
+    }
+
+    @Transactional
+    public Dharma updateDharma(EditDharmaDTO editDTO, Long dharmaId) {
+        Dharma dharma = repository.findById(dharmaId)
+            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
+
+        dharma.setName(editDTO.name());
+        dharma.setDescription(editDTO.description());
+        dharma.setColor(editDTO.color());
+        dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
         dharma = repository.save(dharma);
         return dharma;

@@ -1,6 +1,7 @@
 package br.com.oriontask.backend.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,5 +24,11 @@ public class DharmaController {
     public ResponseEntity<Dharma> createDharma(@RequestBody EditDharmaDTO createDTO, @PathVariable String userId) {
         Dharma dharma = dharmaService.create(createDTO, userId);
         return ResponseEntity.ok(dharma);
+    }
+
+    @PatchMapping("/edit/{dharmaId}")
+    public ResponseEntity<Dharma> editDharma(@RequestBody EditDharmaDTO editDTO, @PathVariable Long dharmaId) {
+        Dharma updatedDharma = dharmaService.updateDharma(editDTO, dharmaId);
+        return ResponseEntity.ok(updatedDharma);
     }
 }
