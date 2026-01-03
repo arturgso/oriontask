@@ -83,16 +83,20 @@ export function DharmasPage() {
 
           <div className={Styles.grid}>
         {dharmas.map((dharma) => (
-          <div key={dharma.id} className={Styles.dharmaItem}>
-            <div 
-              onClick={() => navigate(`/tasks/${dharma.id}`)}
-              className={Styles.dharmaContent}
-            >
+          <div 
+            key={dharma.id} 
+            onClick={() => navigate(`/tasks/${dharma.id}`)}
+            className={Styles.dharmaItem}
+          >
+            <div className={Styles.dharmaContent}>
               <span style={{ backgroundColor: dharma.color }} className={Styles.colorDot} />
               <span className={Styles.dharmaName}>{dharma.name}</span>
             </div>
             <button
-              onClick={() => handleDelete(dharma.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(dharma.id);
+              }}
               className={Styles.deleteBtn}
               title="Remover Dharma"
             >
@@ -179,8 +183,8 @@ const Styles = {
   pageTitle: 'text-base md:text-lg font-bold mb-1',
   pageSubtitle: 'text-xs md:text-sm text-gray-600 mb-4',
   grid: 'space-y-2 mb-4',
-  dharmaItem: 'flex flex-col md:flex-row items-start md:items-center justify-between bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 gap-2 rounded transition-colors',
-  dharmaContent: 'flex items-center gap-2 md:gap-3 flex-1 cursor-pointer w-full',
+  dharmaItem: 'flex flex-col md:flex-row items-start md:items-center justify-between bg-white border border-gray-300 p-2 md:p-3 hover:bg-gray-50 gap-2 rounded transition-colors cursor-pointer',
+  dharmaContent: 'flex items-center gap-2 md:gap-3 flex-1',
   colorDot: 'w-3 md:w-4 h-3 md:h-4 rounded-full flex-shrink-0',
   dharmaName: 'text-xs md:text-sm text-gray-800 truncate',
   deleteBtn: 'text-gray-600 hover:text-red-600 px-2 md:px-3 py-1.5 md:py-2 text-xs border border-gray-300 rounded flex items-center gap-1 hover:bg-red-50 transition-colors whitespace-nowrap',
