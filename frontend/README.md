@@ -1,73 +1,92 @@
-# React + TypeScript + Vite
+# OrionTask Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend da aplicação OrionTask construído com React, TypeScript, Tailwind CSS e Vite.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS 3.4.7** - Styling
+- **Vite** - Build tool
+- **React Router DOM** - Routing
+- **Zustand** - State management
+- **Lucide React** - Icons
+- **React Hot Toast** - Notifications
 
-## React Compiler
+## Filosofia
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Este frontend segue princípios de design para TDAH:
+- **Máximo 5 itens** por tela principal
+- **Texto grande e claro** (frases até 8 palavras)
+- **Botão único** por ação principal
+- **Feedback imediato** ao interagir
+- **Fundo neutro** com destaque apenas no item ativo
+- **Animações discretas** (<200ms)
 
-## Expanding the ESLint configuration
+## Estrutura
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── api/          # Cliente REST e endpoints
+├── components/   # Componentes reutilizáveis
+├── pages/        # Páginas principais
+├── state/        # Zustand store
+└── types/        # TypeScript types
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Rotas
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `/` - Login/Signup
+- `/dharmas` - Lista de Dharmas (áreas de vida)
+- `/tasks/:dharmaId` - Tasks de um Dharma específico
+- `/agora` - Visualização de até 5 tasks para ação imediata
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Desenvolvimento
+
+```bash
+# Instalar dependências
+yarn install
+
+# Rodar em dev
+yarn dev
+
+# Build para produção
+yarn build
+
+# Preview do build
+yarn preview
 ```
+
+## API
+
+O frontend se comunica com o backend em `http://localhost:8080/api/v1`.
+
+Configure o backend antes de rodar o frontend.
+
+## Padrão de Componentes
+
+Todos os componentes seguem este padrão com const `Styles` no final:
+
+```typescript
+export function MeuComponente() {
+  return (
+    <div className={Styles.container}>
+      <h1 className={Styles.title}>Título</h1>
+    </div>
+  );
+}
+
+const Styles = {
+  container: 'classe-tailwind aqui',
+  title: 'outra-classe',
+};
+```
+
+## Limitações Intencionais
+
+- Sem sub-tasks
+- Sem datas de vencimento
+- Sem notificações push (no MVP)
+- Sem modo offline (no MVP)
+- Máximo 8 Dharmas por usuário
+- Máximo 5 Tasks em "Agora"
