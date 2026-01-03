@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usersApi } from '../api';
 import { useStore } from '../state/store';
 import toast from 'react-hot-toast';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, LogIn, UserPlus } from 'lucide-react';
 
 export function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
@@ -90,7 +90,12 @@ export function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading} className={Styles.button}>
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Entrando...' : (
+                <span className={Styles.buttonContent}>
+                  <LogIn size={16} />
+                  Entrar
+                </span>
+              )}
             </button>
           </form>
         ) : (
@@ -132,7 +137,12 @@ export function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading} className={Styles.button}>
-              {loading ? 'Criando...' : 'Criar conta'}
+              {loading ? 'Criando...' : (
+                <span className={Styles.buttonContent}>
+                  <UserPlus size={16} />
+                  Criar conta
+                </span>
+              )}
             </button>
           </form>
         )}
@@ -150,11 +160,12 @@ const Styles = {
   subtitle: 'text-sm text-gray-600',
   tabs: 'flex gap-2 mb-6',
   tab: (active: boolean) =>
-    `flex-1 py-2 font-medium ${active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`,
+    `flex-1 py-3 font-semibold rounded ${active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`,
   form: 'space-y-4',
   field: 'space-y-1',
   label: 'block text-sm font-semibold',
   input: 'w-full px-2 py-2 border border-gray-400 focus:outline-none focus:border-gray-600',
   hint: 'text-xs text-gray-500',
-  button: 'w-full bg-gray-800 text-white py-2 font-semibold hover:bg-gray-700 disabled:opacity-50',
+  button: 'w-full bg-gray-800 text-white py-3 font-semibold hover:bg-gray-700 disabled:opacity-50 rounded flex items-center justify-center',
+  buttonContent: 'flex items-center gap-2',
 };

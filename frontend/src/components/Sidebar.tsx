@@ -54,12 +54,12 @@ export function Sidebar() {
 }
 
 const Styles = {
-  sidebar: 'w-56 bg-gray-200 p-4 flex flex-col h-full',
+  sidebar: 'w-56 bg-gray-200 p-5 flex flex-col h-full',
   section: 'mb-6',
   sectionTitle: 'block mb-2 text-sm font-bold',
   list: 'space-y-1',
-  listItem: 'text-sm py-1 px-2 hover:bg-gray-300 cursor-pointer flex items-center gap-2',
-  addItem: 'text-gray-600 border-t border-gray-400 mt-2 pt-2',
+  listItem: 'text-sm py-2 px-3 hover:bg-gray-300 cursor-pointer flex items-center gap-2 rounded',
+  addItem: 'text-gray-700 border-t border-gray-400 mt-2 pt-2 font-semibold',
   dot: 'w-3 h-3 rounded-full flex-shrink-0',
-  logoutButton: 'mt-auto flex items-center gap-2 text-sm px-2 py-1 hover:bg-gray-300 w-full text-left',
+  logoutButton: 'mt-auto flex items-center gap-2 text-sm px-3 py-2 hover:bg-gray-300 w-full text-left rounded font-semibold',
 };

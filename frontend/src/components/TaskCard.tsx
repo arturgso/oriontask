@@ -1,7 +1,7 @@
 import { TaskStatus, type Task } from '../types';
 import { KarmaBadge } from './KarmaBadge';
 import { EffortTag } from './EffortTag';
-import { Trash2 } from 'lucide-react';
+import { Trash2, MoveRight, Clock, Check } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
@@ -30,26 +30,46 @@ export function TaskCard({ task, onComplete, onMove, onDelete }: TaskCardProps) 
       {!isDone && (
         <div className={Styles.actions}>
           {task.status !== TaskStatus.NOW && onMove && (
-            <button onClick={() => onMove(TaskStatus.NOW)} className={Styles.button + ' ' + Styles.moveButton} title="Mover para Agora">
-              ⏩
+            <button
+              onClick={() => onMove(TaskStatus.NOW)}
+              className={Styles.button + ' ' + Styles.moveButton}
+              title="Mover para Agora"
+            >
+              <MoveRight size={14} />
+              <span>Agora</span>
             </button>
           )}
 
           {task.status === TaskStatus.NOW && onMove && (
-            <button onClick={() => onMove(TaskStatus.NEXT)} className={Styles.button + ' ' + Styles.moveButton} title="Mover para Depois">
-              ⏳
+            <button
+              onClick={() => onMove(TaskStatus.NEXT)}
+              className={Styles.button + ' ' + Styles.moveButton}
+              title="Mover para Depois"
+            >
+              <Clock size={14} />
+              <span>Depois</span>
             </button>
           )}
 
           {onComplete && (
-            <button onClick={onComplete} className={Styles.button + ' ' + Styles.completeButton} title="Concluir">
-              ✔
+            <button
+              onClick={onComplete}
+              className={Styles.button + ' ' + Styles.completeButton}
+              title="Concluir"
+            >
+              <Check size={14} />
+              <span>Concluir</span>
             </button>
           )}
 
           {onDelete && (
-            <button onClick={onDelete} className={Styles.button + ' ' + Styles.deleteButton} title="Remover">
+            <button
+              onClick={onDelete}
+              className={Styles.button + ' ' + Styles.deleteButton}
+              title="Remover"
+            >
               <Trash2 size={14} />
+              <span>Remover</span>
             </button>
           )}
         </div>
@@ -65,8 +85,8 @@ const Styles = {
   title: (isDone: boolean) => `text-sm ${isDone ? 'line-through text-gray-400' : 'text-gray-900'}`,
   description: 'text-xs text-gray-600 mt-1',
   badges: 'flex gap-1 mt-1',
-  actions: 'flex gap-1 flex-shrink-0',
-  button: 'px-2 py-1 text-xs border border-gray-300',
+  actions: 'flex gap-2 flex-shrink-0',
+  button: 'px-3 py-2 text-sm border border-gray-300 rounded flex items-center gap-1.5 hover:bg-gray-100',
   moveButton: 'hover:bg-gray-100',
   completeButton: 'hover:bg-gray-100',
   deleteButton: 'hover:bg-red-50 hover:border-red-300 hover:text-red-600',
