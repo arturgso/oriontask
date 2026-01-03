@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun } from 'lucide-react';
+import { LogOut, Moon, Sun, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export function Sidebar() {
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const dharmas = useStore((state) => state.dharmas);
   const logout = useStore((state) => state.logout);
@@ -14,49 +16,89 @@ export function Sidebar() {
     navigate('/');
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsOpen(false);
+  };
+
   return (
-    <aside className={Styles.sidebar}>
-      <div className={Styles.section}>
-        <strong className={Styles.sectionTitle}>Dharmas</strong>
-        <ul className={Styles.list}>
-          {dharmas.map((dharma) => (
+    <>
+      {/* Botão hambúrguer - visível apenas em mobile */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed top-16 left-3 z-40 p-2 hover:bg-gray-300 rounded transition-colors"
+        aria-label="Abrir menu"
+      >
+        {isOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {/* Overlay - visível quando menu está aberto em mobile */}
+      {isOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/30 z-30 top-16"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`${Styles.sidebar} ${
+          isOpen
+            ? 'fixed left-0 top-16 h-[calc(100vh-4rem)] z-40 md:relative md:top-0 md:h-full'
+            : 'hidden md:flex'
+        }`}
+      >
+        <div className={Styles.section}>
+          <strong className={Styles.sectionTitle}>Dharmas</strong>
+          <ul className={Styles.list}>
+            {dharmas.map((dharma) => (
+              <li
+                key={dharma.id}
+                onClick={() => handleNavigation(`/tasks/${dharma.id}`)}
+                className={Styles.listItem}
+              >
+                <span style={{ backgroundColor: dharma.color }} className={Styles.dot} />
+                {dharma.name}
+              </li>
+            ))}
             <li
-              key={dharma.id}
-              onClick={() => navigate(`/tasks/${dharma.id}`)}
+              onClick={() => handleNavigation('/dharmas')}
+              className={Styles.listItem + ' ' + Styles.addItem}
+            >
+              + Gerenciar Dharmas
+            </li>
+          </ul>
+        </div>
+
+        <div className={Styles.section}>
+          <strong className={Styles.sectionTitle}>Navegação</strong>
+          <ul className={Styles.list}>
+            <li
+              onClick={() => handleNavigation('/agora')}
               className={Styles.listItem}
             >
-              <span style={{ backgroundColor: dharma.color }} className={Styles.dot} />
-              {dharma.name}
+              ⚡ Agora
             </li>
-          ))}
-          <li onClick={() => navigate('/dharmas')} className={Styles.listItem + ' ' + Styles.addItem}>
-            + Gerenciar Dharmas
-          </li>
-        </ul>
-      </div>
+            <li
+              onClick={() => handleNavigation('/dharmas')}
+              className={Styles.listItem}
+            >
+              📋 Todos os Dharmas
+            </li>
+          </ul>
+        </div>
 
-      <div className={Styles.section}>
-        <strong className={Styles.sectionTitle}>Navegação</strong>
-        <ul className={Styles.list}>
-          <li onClick={() => navigate('/agora')} className={Styles.listItem}>
-            ⚡ Agora
-          </li>
-          <li onClick={() => navigate('/dharmas')} className={Styles.listItem}>
-            📋 Todos os Dharmas
-          </li>
-        </ul>
-      </div>
+        <button onClick={toggleTheme} className={Styles.themeButton}>
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+        </button>
 
-      <button onClick={toggleTheme} className={Styles.themeButton}>
-        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-      </button>
-
-      <button onClick={handleLogout} className={Styles.logoutButton}>
-        <LogOut size={16} />
-        Sair
-      </button>
-    </aside>
+        <button onClick={handleLogout} className={Styles.logoutButton}>
+          <LogOut size={16} />
+          Sair
+        </button>
+      </aside>
+    </>
   );
 }
 
