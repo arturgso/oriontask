@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 export function DharmasPage() {
   const navigate = useNavigate();
   const user = useStore((state) => state.user);
+  const hydrated = useStore((state) => state.hydrated);
   const dharmas = useStore((state) => state.dharmas);
   const fetchDharmas = useStore((state) => state.fetchDharmas);
   const createDharma = useStore((state) => state.createDharma);
@@ -18,12 +19,14 @@ export function DharmasPage() {
   const [color, setColor] = useState('#3B82F6');
 
   useEffect(() => {
+    if (!hydrated) return;
+
     if (!user) {
       navigate('/');
       return;
     }
     fetchDharmas(user.id);
-  }, [user, fetchDharmas, navigate]);
+  }, [user, hydrated, fetchDharmas, navigate]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

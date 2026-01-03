@@ -18,15 +18,17 @@ export function TasksPage() {
   const [effortLevel, setEffortLevel] = useState<EffortLevel>(EffortLevel.LOW);
   const [loading, setLoading] = useState(false);
 
+  const hydrated = useStore((state) => state.hydrated);
   const dharmas = useStore((state) => state.dharmas);
   const dharma = dharmas.find((d) => d.id === Number(dharmaId));
 
   useEffect(() => {
+    if (!hydrated) return;
     if (dharmaId) {
       loadTasks();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dharmaId]);
+  }, [dharmaId, hydrated]);
 
   const loadTasks = async () => {
     try {

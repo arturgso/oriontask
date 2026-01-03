@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 
 export function Sidebar() {
   const navigate = useNavigate();
   const dharmas = useStore((state) => state.dharmas);
   const logout = useStore((state) => state.logout);
+  const theme = useStore((state) => state.theme);
+  const toggleTheme = useStore((state) => state.toggleTheme);
 
   const handleLogout = () => {
     logout();
@@ -45,6 +47,11 @@ export function Sidebar() {
         </ul>
       </div>
 
+      <button onClick={toggleTheme} className={Styles.themeButton}>
+        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+      </button>
+
       <button onClick={handleLogout} className={Styles.logoutButton}>
         <LogOut size={16} />
         Sair
@@ -61,5 +68,6 @@ const Styles = {
   listItem: 'text-sm py-2 px-3 hover:bg-gray-300 cursor-pointer flex items-center gap-2 rounded',
   addItem: 'text-gray-700 border-t border-gray-400 mt-2 pt-2 font-semibold',
   dot: 'w-3 h-3 rounded-full flex-shrink-0',
+  themeButton: 'mb-2 flex items-center gap-2 text-sm px-3 py-2 hover:bg-gray-300 w-full text-left rounded font-semibold',
   logoutButton: 'mt-auto flex items-center gap-2 text-sm px-3 py-2 hover:bg-gray-300 w-full text-left rounded font-semibold',
 };

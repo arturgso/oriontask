@@ -13,17 +13,20 @@ export function AgoraPage() {
   const [loading, setLoading] = useState(true);
   const [showOverflow, setShowOverflow] = useState(false);
   const user = useStore((state) => state.user);
+  const hydrated = useStore((state) => state.hydrated);
   const fillNowWithNext = useStore((state) => state.fillNowWithNext);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!hydrated) return;
+
     if (!user) {
       navigate('/login');
       return;
     }
     loadNowTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, hydrated]);
 
   const loadNowTasks = async () => {
     if (!user) return;

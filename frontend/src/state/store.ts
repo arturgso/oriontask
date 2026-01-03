@@ -6,8 +6,12 @@ interface AppState {
   user: User | null;
   dharmas: Dharma[];
   tasks: Task[];
+  theme: 'light' | 'dark';
+  hydrated: boolean;
   setUser: (user: User | null) => void;
   loadUserFromStorage: () => Promise<void>;
+  loadTheme: () => void;
+  toggleTheme: () => void;
   logout: () => void;
   
   // Dharma actions
@@ -29,6 +33,8 @@ export const useStore = create<AppState>((set) => ({
   user: null,
   dharmas: [],
   tasks: [],
+  theme: 'light',
+  hydrated: false,
   
   setUser: (user) => {
     set({ user });
@@ -50,6 +56,22 @@ export const useStore = create<AppState>((set) => ({
         set({ user: null });
       }
     }
+    set({ hydrated: true });
+  },
+
+  loadTheme: () => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || saved === 'light') {
+      set({ theme: saved });
+    }
+  },
+
+  toggleTheme: () => {
+    set((state) => {
+      const next = state.theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', next);
+      return { theme: next };
+    });
   },
   
   logout: () => {

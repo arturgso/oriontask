@@ -9,11 +9,23 @@ import { AgoraPage } from './pages/AgoraPage';
 
 function App() {
   const loadUserFromStorage = useStore((state) => state.loadUserFromStorage);
+  const loadTheme = useStore((state) => state.loadTheme);
+  const theme = useStore((state) => state.theme);
+  const hydrated = useStore((state) => state.hydrated);
 
   useEffect(() => {
+    loadTheme();
     loadUserFromStorage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  if (!hydrated) {
+    return null;
+  }
 
   return (
     <Router>

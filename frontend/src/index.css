@@ -3,15 +3,64 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-base: #f9fafb;
+    --bg-card: #ffffff;
+    --text-primary: #0f172a;
+    --text-muted: #4b5563;
+    --border-color: #d1d5db;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --bg-base: #0f172a;
+    --bg-card: #111827;
+    --text-primary: #e5e7eb;
+    --text-muted: #9ca3af;
+    --border-color: #1f2937;
+  }
+
   * {
     @apply box-border;
   }
 
   body {
-    @apply m-0 bg-neutral-50 text-neutral-900 font-sans antialiased;
+    @apply m-0 font-sans antialiased;
+    background: var(--bg-base);
+    color: var(--text-primary);
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
   }
 }
+
+/* Dark mode overrides for common Tailwind utility classes used in the UI */
+:root[data-theme='dark'] .bg-white { background-color: var(--bg-card) !important; }
+:root[data-theme='dark'] .bg-gray-100 { background-color: #0f172a !important; }
+:root[data-theme='dark'] .bg-gray-200 { background-color: #111827 !important; }
+:root[data-theme='dark'] .bg-gray-300 { background-color: #1f2937 !important; }
+:root[data-theme='dark'] .bg-gray-800 { background-color: #0b1220 !important; }
+
+:root[data-theme='dark'] .text-gray-900, 
+:root[data-theme='dark'] .text-gray-800, 
+:root[data-theme='dark'] .text-gray-700 { color: var(--text-primary) !important; }
+
+:root[data-theme='dark'] .text-gray-600 { color: #cbd5e1 !important; }
+:root[data-theme='dark'] .text-gray-500 { color: #9ca3af !important; }
+:root[data-theme='dark'] .text-gray-400 { color: #94a3b8 !important; }
+:root[data-theme='dark'] .text-gray-300 { color: #cbd5e1 !important; }
+
+:root[data-theme='dark'] .border-gray-300 { border-color: var(--border-color) !important; }
+:root[data-theme='dark'] .border-gray-400 { border-color: #1f2937 !important; }
+
+:root[data-theme='dark'] .hover\:bg-gray-50:hover { background-color: #111827 !important; }
+:root[data-theme='dark'] .hover\:bg-gray-100:hover { background-color: #1f2937 !important; }
+:root[data-theme='dark'] .hover\:bg-gray-300:hover { background-color: #1f2937 !important; }
+:root[data-theme='dark'] .hover\:bg-gray-700:hover { background-color: #0f172a !important; }
+:root[data-theme='dark'] .hover\:bg-red-50:hover { background-color: #2f0a0a !important; }
+
+/* Buttons: keep strong contrast in dark mode */
+:root[data-theme='dark'] button.bg-gray-800 { background-color: #e6cc00 !important; color: #111827 !important; }
+:root[data-theme='dark'] button.hover\:bg-gray-700:hover { background-color: #d1b300 !important; color: #111827 !important; }
+:root[data-theme='dark'] button.text-white { color: #111827 !important; }
