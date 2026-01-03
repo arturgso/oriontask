@@ -1,5 +1,6 @@
 package br.com.oriontask.backend.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -23,6 +24,11 @@ public class DharmaService {
    private final TasksRepository tasksRepository;
 
     private static final int MAX_DHARMAS_PER_USER = 8;
+
+    public List<Dharma> getDharmasByUser(String userId) {
+        UUID userUuid = UUID.fromString(userId);
+        return repository.findByUserId(userUuid);
+    }
 
     public Dharma create(EditDharmaDTO createDTO, String userId) {
         Users user = uRepository.findById(UUID.fromString(userId))

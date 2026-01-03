@@ -21,4 +21,9 @@ public class UsersController {
     public ResponseEntity<UserResponseDTO> list(@PathVariable String id) {
         return new ResponseEntity<>(service.list(id), HttpStatus.OK);
     }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UserResponseDTO> getByUsername(@PathVariable String username) {
+        return new ResponseEntity<>(service.getByUsername(username), HttpStatus.OK);
+    }
 }

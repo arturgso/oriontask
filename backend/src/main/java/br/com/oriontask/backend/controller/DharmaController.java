@@ -1,7 +1,10 @@
 package br.com.oriontask.backend.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +23,12 @@ import lombok.RequiredArgsConstructor;
 public class DharmaController {
    
     private final DharmaService dharmaService;
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Dharma>> getDharmasByUser(@PathVariable String userId) {
+        List<Dharma> dharmas = dharmaService.getDharmasByUser(userId);
+        return ResponseEntity.ok(dharmas);
+    }
 
     @PostMapping("/{userId}/create")
     public ResponseEntity<Dharma> createDharma(@RequestBody EditDharmaDTO createDTO, @PathVariable String userId) {

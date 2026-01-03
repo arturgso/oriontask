@@ -40,6 +40,12 @@ public class UsersService {
                         .orElseThrow(() -> new RuntimeException("User not found")));
     }
 
+    public UserResponseDTO getByUsername(String username) {
+        return createResponseDTO(
+                repository.findByUsername(username)
+                        .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado")));
+    }
+
     private UserResponseDTO createResponseDTO(Users user) {
         return new UserResponseDTO(
                 user.getId(),
