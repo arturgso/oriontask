@@ -152,20 +152,20 @@ export function LoginPage() {
 }
 
 const Styles = {
-  container: 'min-h-screen flex items-center justify-center bg-gray-100 p-4',
-  card: 'bg-white border border-gray-400 p-8 w-full max-w-md',
+  container: 'min-h-screen flex items-center justify-center bg-gray-100 p-3 md:p-4',
+  card: 'bg-white border border-gray-400 p-4 md:p-8 w-full max-w-sm',
   header: 'text-center mb-6',
-  icon: 'mx-auto mb-3',
-  title: 'text-2xl font-bold mb-2',
-  subtitle: 'text-sm text-gray-600',
+  icon: 'mx-auto mb-2 md:mb-3 w-10 md:w-12 h-10 md:h-12 text-gray-800',
+  title: 'text-xl md:text-2xl font-bold mb-1 md:mb-2',
+  subtitle: 'text-xs md:text-sm text-gray-600',
   tabs: 'flex gap-2 mb-6',
   tab: (active: boolean) =>
-    `flex-1 py-3 font-semibold rounded ${active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`,
+    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`,
   form: 'space-y-4',
   field: 'space-y-1',
-  label: 'block text-sm font-semibold',
-  input: 'w-full px-2 py-2 border border-gray-400 focus:outline-none focus:border-gray-600',
+  label: 'block text-xs md:text-sm font-semibold',
+  input: 'w-full px-2 py-1.5 md:py-2 border border-gray-400 focus:outline-none focus:border-gray-600 text-sm rounded',
   hint: 'text-xs text-gray-500',
-  button: 'w-full bg-gray-800 text-white py-3 font-semibold hover:bg-gray-700 disabled:opacity-50 rounded flex items-center justify-center',
+  button: 'w-full bg-gray-800 text-white py-2.5 md:py-3 font-semibold hover:bg-gray-700 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
   buttonContent: 'flex items-center gap-2',
 };
