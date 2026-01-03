@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { User, Dharma, Task, CreateDharmaDTO, CreateTaskDTO } from '../types';
+import type { User, Dharma, Task, CreateDharmaDTO, CreateTaskDTO, TaskStatus } from '../types';
 import { usersApi, dharmaApi, tasksApi } from '../api';
 
 interface AppState {
@@ -24,7 +24,7 @@ interface AppState {
   createTask: (dharmaId: number, dto: CreateTaskDTO) => Promise<void>;
   moveTaskToNow: (taskId: number) => Promise<void>;
   fillNowWithNext: (userId: string) => Promise<Task[]>;
-  changeTaskStatus: (taskId: number, status: string) => Promise<void>;
+  changeTaskStatus: (taskId: number, status: TaskStatus) => Promise<void>;
   markTaskDone: (taskId: number) => Promise<void>;
   deleteTask: (taskId: number) => Promise<void>;
 }
@@ -173,7 +173,7 @@ export const useStore = create<AppState>((set) => ({
     }
   },
 
-  changeTaskStatus: async (taskId: number, status: string) => {
+  changeTaskStatus: async (taskId: number, status: TaskStatus) => {
     try {
       const updatedTask = await tasksApi.changeStatus(taskId, status);
       set((state) => ({
