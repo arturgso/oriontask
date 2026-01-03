@@ -5,9 +5,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import br.com.oriontask.backend.dto.EditDharmaDTO;
+import br.com.oriontask.backend.enums.TaskStatus;
 import br.com.oriontask.backend.model.Dharma;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.DharmaRepository;
+import br.com.oriontask.backend.repository.TasksRepository;
 import br.com.oriontask.backend.repository.UsersRepository;
 import br.com.oriontask.backend.utils.ColorGenerator;
 import jakarta.transaction.Transactional;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class DharmaService {
    private final DharmaRepository repository; 
    private final UsersRepository   uRepository;
+   private final TasksRepository tasksRepository;
 
     private static final int MAX_DHARMAS_PER_USER = 8;
 
@@ -56,5 +59,22 @@ public class DharmaService {
 
         dharma = repository.save(dharma);
         return dharma;
+    }
+
+    @Transactional
+    public void deleteDharma(Long dharmaId) {
+        Dharma dharma = repository.findById(dharmaId)
+            .orElseThrow(() -> new IllegalArgumentException("Dharma não encontrado"));
+
+        // Verifica se há tasks ativas (não concluídas)
+        long activeTasksCount = tasksRepository.findByDharmaId(dharmaId).stream()
+            .filter(task -> task.getStatus() != TaskStatus.DONE)
+            .count();
+
+        if (activeTasksCount > 0) {
+            throw new IllegalStateException("Não é possível deletar Dharma com tasks ativas. Complete ou mova as tasks primeiro.");
+        }
+
+        repository.delete(dharma);
     }
 }

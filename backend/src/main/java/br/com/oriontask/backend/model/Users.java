@@ -6,11 +6,14 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +32,14 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+
+    @Size(min = 3, max = 50, message = "Name deve ter entre 3 e 50 caracteres")
+    @Column(nullable = false)
     private String name;
+
+    @Size(min = 3, max = 20, message = "Username deve ter entre 3 e 20 caracteres")
+    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username só pode conter letras, números e underscore")
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Builder.Default
