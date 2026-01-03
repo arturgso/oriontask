@@ -42,7 +42,8 @@ function App() {
         }}
       />
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/agora" replace />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/dharmas" element={<DharmasPage />} />
         <Route path="/tasks/:dharmaId" element={<TasksPage />} />
         <Route path="/agora" element={<AgoraPage />} />

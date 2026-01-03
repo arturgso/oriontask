@@ -19,6 +19,7 @@ interface AppState {
   fetchTasks: (dharmaId: number) => Promise<void>;
   createTask: (dharmaId: number, dto: CreateTaskDTO) => Promise<void>;
   moveTaskToNow: (taskId: number) => Promise<void>;
+  fillNowWithNext: (userId: string) => Promise<Task[]>;
   changeTaskStatus: (taskId: number, status: string) => Promise<void>;
   markTaskDone: (taskId: number) => Promise<void>;
   deleteTask: (taskId: number) => Promise<void>;
@@ -117,6 +118,35 @@ export const useStore = create<AppState>((set) => ({
       }));
     } catch (error) {
       console.error('Failed to move task to now:', error);
+      throw error;
+    }
+  },
+
+  fillNowWithNext: async (userId: string) => {
+    try {
+      // Fetch current NOW and NEXT tasks for the user; prioritize NEXT oldest first
+      const now = await tasksApi.getByUserAndStatus(userId, 'NOW' as TaskStatus);
+      const next = await tasksApi.getByUserAndStatus(userId, 'NEXT' as TaskStatus);
+
+      if (now.length >= 5) {
+        set({ tasks: now });
+        return now;
+      }
+
+      const needed = 5 - now.length;
+      const candidates = next.slice(0, needed);
+
+      const promoted: Task[] = [];
+      for (const t of candidates) {
+        const updated = await tasksApi.changeStatus(t.id, 'NOW' as TaskStatus);
+        promoted.push(updated);
+      }
+
+      const combined = [...now, ...promoted];
+      set({ tasks: combined });
+      return combined;
+    } catch (error) {
+      console.error('Failed to fill NOW with NEXT:', error);
       throw error;
     }
   },

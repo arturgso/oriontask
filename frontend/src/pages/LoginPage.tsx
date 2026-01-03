@@ -21,7 +21,7 @@ export function LoginPage() {
       const user = await usersApi.getByUsername(username);
       setUser(user);
       toast.success(`Bem-vindo de volta, ${user.name}!`);
-      navigate('/dharmas');
+      navigate('/agora');
     } catch {
       toast.error('Usuário não encontrado');
     } finally {
@@ -37,7 +37,7 @@ export function LoginPage() {
       const user = await usersApi.signup({ name, username });
       setUser(user);
       toast.success(`Bem-vindo, ${user.name}!`);
-      navigate('/dharmas');
+      navigate('/agora');
     } catch {
       toast.error('Erro ao criar usuário. Username pode já existir.');
     } finally {

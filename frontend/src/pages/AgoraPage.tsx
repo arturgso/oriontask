@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
@@ -10,12 +11,17 @@ import { TaskStatus, type Task } from '../types';
 export function AgoraPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showOverflow, setShowOverflow] = useState(false);
   const user = useStore((state) => state.user);
+  const fillNowWithNext = useStore((state) => state.fillNowWithNext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      loadNowTasks();
+    if (!user) {
+      navigate('/login');
+      return;
     }
+    loadNowTasks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -24,13 +30,21 @@ export function AgoraPage() {
 
     try {
       const data = await tasksApi.getByUserAndStatus(user.id, TaskStatus.NOW);
-      setTasks(data);
+      if (data.length < 5) {
+        const filled = await fillNowWithNext(user.id);
+        setTasks(filled);
+      } else {
+        setTasks(data);
+      }
     } catch {
       toast.error('Erro ao carregar tasks');
     } finally {
       setLoading(false);
     }
   };
+
+  const primaryTasks = tasks.slice(0, 5);
+  const overflowTasks = tasks.slice(5, 8);
 
   const handleComplete = async (taskId: number) => {
     try {
@@ -106,7 +120,7 @@ export function AgoraPage() {
           </div>
 
           <div className={Styles.taskList}>
-        {tasks.map((task) => (
+        {(showOverflow ? tasks : primaryTasks).map((task) => (
           <TaskCard
             key={task.id}
             task={task}
@@ -115,6 +129,12 @@ export function AgoraPage() {
           />
         ))}
       </div>
+
+      {!showOverflow && overflowTasks.length > 0 && (
+        <button className={Styles.showMore} onClick={() => setShowOverflow(true)}>
+          Mostrar mais ({overflowTasks.length})
+        </button>
+      )}
 
       {tasks.length === 0 && (
         <div className={Styles.empty}>
@@ -144,6 +164,7 @@ const Styles = {
   counter: 'bg-gray-100 border border-gray-300 p-3 mb-4',
   counterText: 'text-sm font-semibold',
   taskList: 'space-y-2',
+  showMore: 'mt-3 px-4 py-2 border border-gray-300 hover:bg-gray-100 text-sm rounded',
   empty: 'text-center py-8 text-gray-500',
   emptyText: 'text-sm font-semibold mb-1',
   emptyHint: 'text-xs text-gray-400',
