@@ -53,16 +53,13 @@ export function TasksPage() {
         karmaType, 
         effortLevel 
       };
-      console.log('Criando task com dados:', data);
       const task = await tasksApi.create(Number(dharmaId), data);
-      console.log('Task criada:', task);
       setTasks([...tasks, task]);
       toast.success('Task criada!');
       setShowForm(false);
       setTitle('');
       setDescription('');
     } catch (error) {
-      console.error('Erro ao criar task:', error);
       toast.error(`Erro ao criar task: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setLoading(false);

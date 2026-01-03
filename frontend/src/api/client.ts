@@ -6,9 +6,12 @@ interface ApiError {
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  
   if (!response.ok) {
+    console.error(`API Error ${response.status}:`, text);
     const error: ApiError = {
-      message: await response.text(),
+      message: text || `Erro ${response.status}`,
       status: response.status,
     };
     throw error;
@@ -18,41 +21,71 @@ async function handleResponse<T>(response: Response): Promise<T> {
     return null as T;
   }
 
-  return response.json();
+  if (!text) {
+    throw new Error('Resposta vazia do servidor');
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error('Erro ao parsear JSON:', text);
+    throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
+  }
 }
 
 export const api = {
   async get<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`);
-    return handleResponse<T>(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`);
+      return handleResponse<T>(response);
+    } catch (error) {
+      console.error(`GET ${endpoint}:`, error);
+      throw error;
+    }
   },
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    return handleResponse<T>(response);
+    try {
+      console.log(`POST ${endpoint} com dados:`, data);
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      return handleResponse<T>(response);
+    } catch (error) {
+      console.error(`POST ${endpoint}:`, error);
+      throw error;
+    }
   },
 
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      return handleResponse<T>(response);
+    } catch (error) {
+      console.error(`PATCH ${endpoint}:`, error);
+      throw error;
+    }
   },
 
   async delete<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'DELETE',
-    });
-    return handleResponse<T>(response);
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'DELETE',
+      });
+      return handleResponse<T>(response);
+    } catch (error) {
+      console.error(`DELETE ${endpoint}:`, error);
+      throw error;
+    }
   },
 };
