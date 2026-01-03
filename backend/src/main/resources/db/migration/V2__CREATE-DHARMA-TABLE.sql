@@ -1,5 +1,5 @@
 create table tab_dharma (
-    id bigint primary key,  
+    id bigserial primary key,  
     user_id UUID not null,
     name varchar(20) not null unique,
     description text,

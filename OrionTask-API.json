@@ -1,0 +1,125 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-01-03T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2024.1.0",
+  "resources": [
+    {
+      "_id": "wrk_oriontask",
+      "_type": "workspace",
+      "name": "OrionTask API",
+      "description": "API para gerenciar Dharmas, Tasks e Usuários do OrionTask",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_oriontask",
+      "name": "Base Environment",
+      "data": {
+        "BASE_URL": "http://localhost:8080/api/v1",
+        "USER_ID": "550e8400-e29b-41d4-a716-446655440000"
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_oriontask",
+      "name": "Auth",
+      "description": "Endpoints de autenticação e criação de usuário"
+    },
+    {
+      "_id": "req_signup",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Signup - Criar Novo Usuário",
+      "method": "POST",
+      "url": "{{ BASE_URL }}/auth/signup",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"João Silva\",\n  \"username\": \"joao_silva\"\n}"
+      },
+      "description": "Criar um novo usuário no sistema"
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "parentId": "wrk_oriontask",
+      "name": "Users",
+      "description": "Endpoints de usuários"
+    },
+    {
+      "_id": "req_get_user",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get User - Buscar Usuário",
+      "method": "GET",
+      "url": "{{ BASE_URL }}/users/{{ USER_ID }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Buscar informações de um usuário específico pelo ID"
+    },
+    {
+      "_id": "fld_dharma",
+      "_type": "request_group",
+      "parentId": "wrk_oriontask",
+      "name": "Dharma",
+      "description": "Endpoints para gerenciar Dharmas (áreas de vida)"
+    },
+    {
+      "_id": "req_create_dharma",
+      "_type": "request",
+      "parentId": "fld_dharma",
+      "name": "Create Dharma - Novo Propósito",
+      "method": "POST",
+      "url": "{{ BASE_URL }}/dharma/{{ USER_ID }}/create",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Saúde\",\n  \"description\": \"Cuidar do corpo e da mente\",\n  \"color\": \"#4CAF50\"\n}"
+      },
+      "description": "Criar um novo Dharma (propósito de vida) para um usuário"
+    },
+    {
+      "_id": "fld_task",
+      "_type": "request_group",
+      "parentId": "wrk_oriontask",
+      "name": "Tasks",
+      "description": "Endpoints para gerenciar Tasks (tarefas)"
+    },
+    {
+      "_id": "req_create_task",
+      "_type": "request",
+      "parentId": "fld_task",
+      "name": "Create Task - Nova Tarefa (Placeholder)",
+      "method": "POST",
+      "url": "{{ BASE_URL }}/tasks/create",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"dharmaId\": 1,\n  \"title\": \"Beber água ao acordar\",\n  \"description\": \"500ml logo pela manhã\",\n  \"karmaType\": \"ENERGY\",\n  \"effortLevel\": \"LOW\"\n}"
+      },
+      "description": "Criar uma nova Task (tarefa). NOTA: Este endpoint ainda não foi implementado"
+    }
+  ]
+}
