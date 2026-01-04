@@ -88,6 +88,9 @@ public class DharmaService {
             throw new IllegalStateException("Não é possível deletar Dharma com tasks ativas. Complete ou mova as tasks primeiro.");
         }
 
+        repository.delete(dharma);
+    }
+
     @Transactional
     public Dharma toggleHidden(Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
@@ -105,8 +108,5 @@ public class DharmaService {
         tasksRepository.saveAll(tasks);
         
         return repository.save(dharma);
-    }
-
-        repository.delete(dharma);
     }
 }
