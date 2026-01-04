@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import type { Dharma } from '../types';
 
@@ -12,12 +12,6 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
   const [name, setName] = useState(dharma.name);
   const [description, setDescription] = useState(dharma.description || '');
   const [color, setColor] = useState(dharma.color);
-
-  useEffect(() => {
-    setName(dharma.name);
-    setDescription(dharma.description || '');
-    setColor(dharma.color);
-  }, [dharma]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
