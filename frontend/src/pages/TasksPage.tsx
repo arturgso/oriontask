@@ -225,6 +225,18 @@ export function TasksPage() {
               </select>
             </div>
 
+            {dharma?.hidden && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded p-3 text-xs md:text-sm">
+                <p className="text-purple-800 dark:text-purple-300 font-medium flex items-center gap-2">
+                  <span>🔒</span>
+                  <span>Tarefa privada (herda do Dharma)</span>
+                </p>
+                <p className="text-purple-600 dark:text-purple-400 text-xs mt-1">
+                  Esta tarefa será ocultada junto com o Dharma "{dharma.name}"
+                </p>
+              </div>
+            )}
+
             <div className={Styles.formActions}>
               <button type="button" onClick={() => setShowForm(false)} className={Styles.cancelButton}>
                 Cancelar

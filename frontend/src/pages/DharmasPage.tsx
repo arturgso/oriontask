@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, ArrowRight } from 'lucide-react';
+import { Trash2, Plus, ArrowRight, Edit, Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../state/store';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
+import { DharmaEditModal } from '../components/DharmaEditModal';
 import toast from 'react-hot-toast';
 
 export function DharmasPage() {
@@ -13,9 +14,12 @@ export function DharmasPage() {
   const dharmas = useStore((state) => state.dharmas);
   const fetchDharmas = useStore((state) => state.fetchDharmas);
   const createDharma = useStore((state) => state.createDharma);
+  const updateDharma = useStore((state) => state.updateDharma);
+  const toggleDharmaHidden = useStore((state) => state.toggleDharmaHidden);
   const deleteDharma = useStore((state) => state.deleteDharma);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingDharma, setEditingDharma] = useState<typeof dharmas[0] | null>(null);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#3B82F6');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +59,17 @@ export function DharmasPage() {
     toast.success('Dharma removido');
   };
 
+  const handleEdit = async (data: { name: string; description?: string; color: string }) => {
+    if (!editingDharma) return;
+    await updateDharma(editingDharma.id, data);
+    toast.success('Dharma atualizado');
+  };
+
+  const handleToggleHidden = async (id: number, currentHidden: boolean) => {
+    await toggleDharmaHidden(id);
+    toast.success(currentHidden ? 'Dharma visível' : 'Dharma oculto');
+  };
+
   const suggestedColors = [
     '#3B82F6',
     '#10B981',
@@ -86,23 +101,48 @@ export function DharmasPage() {
           <div 
             key={dharma.id} 
             onClick={() => navigate(`/tasks/${dharma.id}`)}
-            className={Styles.dharmaItem}
+            className={`${Styles.dharmaItem} ${dharma.hidden ? 'opacity-60' : ''}`}
           >
             <div className={Styles.dharmaContent}>
               <span style={{ backgroundColor: dharma.color }} className={Styles.colorDot} />
               <span className={Styles.dharmaName}>{dharma.name}</span>
+              {dharma.hidden && <EyeOff size={14} className="text-gray-500 ml-2" />}
             </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(dharma.id);
-              }}
-              className={Styles.deleteBtn}
-              title="Remover Dharma"
-            >
-              <Trash2 size={14} />
-              <span>Remover</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingDharma(dharma);
+                }}
+                className={Styles.editBtn}
+                title="Editar Dharma"
+              >
+                <Edit size={14} />
+                <span className="hidden md:inline">Editar</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleHidden(dharma.id, dharma.hidden);
+                }}
+                className={Styles.toggleBtn}
+                title={dharma.hidden ? 'Tornar visível' : 'Ocultar'}
+              >
+                {dharma.hidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                <span className="hidden md:inline">{dharma.hidden ? 'Mostrar' : 'Ocultar'}</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(dharma.id);
+                }}
+                className={Styles.deleteBtn}
+                title="Remover Dharma"
+              >
+                <Trash2 size={14} />
+                <span className="hidden md:inline">Remover</span>
+              </button>
+            </div>
           </div>
         ))}
 
@@ -170,6 +210,14 @@ export function DharmasPage() {
         <ArrowRight size={16} />
         <span>Ver Agora</span>
       </button>
+
+      {editingDharma && (
+        <DharmaEditModal
+          dharma={editingDharma}
+          onClose={() => setEditingDharma(null)}
+          onSave={handleEdit}
+        />
+      )}
         </section>
       </main>
     </div>
@@ -187,6 +235,8 @@ const Styles = {
   dharmaContent: 'flex items-center gap-2 md:gap-3 flex-1',
   colorDot: 'w-3 md:w-4 h-3 md:h-4 rounded-full flex-shrink-0',
   dharmaName: 'text-xs md:text-sm text-gray-800 truncate',
+  editBtn: 'text-gray-600 hover:text-blue-600 px-2 md:px-3 py-1.5 md:py-2 text-xs border border-gray-300 rounded flex items-center gap-1 hover:bg-blue-50 transition-colors whitespace-nowrap',
+  toggleBtn: 'text-gray-600 hover:text-purple-600 px-2 md:px-3 py-1.5 md:py-2 text-xs border border-gray-300 rounded flex items-center gap-1 hover:bg-purple-50 transition-colors whitespace-nowrap',
   deleteBtn: 'text-gray-600 hover:text-red-600 px-2 md:px-3 py-1.5 md:py-2 text-xs border border-gray-300 rounded flex items-center gap-1 hover:bg-red-50 transition-colors whitespace-nowrap',
   addButton: 'w-full border-2 border-dashed border-gray-400 p-2 md:p-3 text-xs md:text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-500 flex items-center justify-center gap-2 font-medium transition-colors',
   modal: 'fixed inset-0 bg-black/30 flex items-center justify-center p-3 md:p-4 z-50',

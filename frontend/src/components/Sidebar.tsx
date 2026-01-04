@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun } from 'lucide-react';
+import { LogOut, Moon, Sun, Eye, EyeOff } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,6 +14,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const logout = useStore((state) => state.logout);
   const theme = useStore((state) => state.theme);
   const toggleTheme = useStore((state) => state.toggleTheme);
+  const showHidden = useStore((state) => state.showHidden);
+  const toggleShowHidden = useStore((state) => state.toggleShowHidden);
+  const loadShowHidden = useStore((state) => state.loadShowHidden);
+
+  useEffect(() => {
+    loadShowHidden();
+  }, [loadShowHidden]);
 
   const handleLogout = () => {
     logout();
@@ -49,10 +57,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <li
                 key={dharma.id}
                 onClick={() => handleNavigation(`/tasks/${dharma.id}`)}
-                className={Styles.listItem}
+                className={`${Styles.listItem} ${dharma.hidden ? 'opacity-50' : ''}`}
               >
                 <span style={{ backgroundColor: dharma.color }} className={Styles.dot} />
                 {dharma.name}
+                {dharma.hidden && <EyeOff size={14} className="ml-auto text-gray-500" />}
               </li>
             ))}
             <li
@@ -81,6 +90,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </li>
           </ul>
         </div>
+
+        <button onClick={toggleShowHidden} className={Styles.themeButton}>
+          {showHidden ? <Eye size={16} /> : <EyeOff size={16} />}
+          {showHidden ? 'Ocultar privados' : 'Mostrar privados'}
+        </button>
 
         <button onClick={toggleTheme} className={Styles.themeButton}>
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}

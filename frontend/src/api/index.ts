@@ -16,11 +16,14 @@ export const usersApi = {
 };
 
 export const dharmaApi = {
-  getByUser: (userId: string) => api.get<Dharma[]>(`/dharma/user/${userId}`),
+  getByUser: (userId: string, includeHidden: boolean = false) => 
+    api.get<Dharma[]>(`/dharma/user/${userId}?includeHidden=${includeHidden}`),
   create: (userId: string, data: CreateDharmaDTO) =>
     api.post<Dharma>(`/dharma/${userId}/create`, data),
   update: (dharmaId: number, data: CreateDharmaDTO) =>
     api.patch<Dharma>(`/dharma/edit/${dharmaId}`, data),
+  toggleHidden: (dharmaId: number) =>
+    api.patch<Dharma>(`/dharma/${dharmaId}/toggle-hidden`),
   delete: (dharmaId: number) => api.delete<void>(`/dharma/${dharmaId}`),
 };
 

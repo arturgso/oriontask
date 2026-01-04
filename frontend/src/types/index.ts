@@ -12,6 +12,7 @@ export interface Dharma {
   name: string;
   description: string | null;
   color: string;
+  hidden: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,6 +25,7 @@ export interface Task {
   karmaType: KarmaType;
   effortLevel: EffortLevel;
   status: TaskStatus;
+  hidden: boolean;
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -65,6 +67,7 @@ export interface CreateDharmaDTO {
   name: string;
   description?: string;
   color?: string;
+  hidden?: boolean;
 }
 
 export interface CreateTaskDTO {

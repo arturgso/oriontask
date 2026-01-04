@@ -7,16 +7,21 @@ interface AppState {
   dharmas: Dharma[];
   tasks: Task[];
   theme: 'light' | 'dark';
+  showHidden: boolean;
   hydrated: boolean;
   setUser: (user: User | null) => void;
   loadUserFromStorage: () => Promise<void>;
   loadTheme: () => void;
   toggleTheme: () => void;
+  loadShowHidden: () => void;
+  toggleShowHidden: () => Promise<void>;
   logout: () => void;
   
   // Dharma actions
   fetchDharmas: (userId: string) => Promise<void>;
   createDharma: (userId: string, dto: CreateDharmaDTO) => Promise<void>;
+  updateDharma: (dharmaId: number, dto: CreateDharmaDTO) => Promise<void>;
+  toggleDharmaHidden: (dharmaId: number) => Promise<void>;
   deleteDharma: (dharmaId: number) => Promise<void>;
   
   // Task actions
@@ -29,11 +34,12 @@ interface AppState {
   deleteTask: (taskId: number) => Promise<void>;
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set, get) => ({
   user: null,
   dharmas: [],
   tasks: [],
   theme: 'light',
+  showHidden: false,
   hydrated: false,
   
   setUser: (user) => {
@@ -73,6 +79,25 @@ export const useStore = create<AppState>((set) => ({
       return { theme: next };
     });
   },
+
+  loadShowHidden: () => {
+    const saved = localStorage.getItem('showHidden');
+    if (saved === 'true' || saved === 'false') {
+      set({ showHidden: saved === 'true' });
+    }
+  },
+
+  toggleShowHidden: async () => {
+    const state = get();
+    const next = !state.showHidden;
+    localStorage.setItem('showHidden', String(next));
+    set({ showHidden: next });
+    
+    // Refetch dharmas with new showHidden value
+    if (state.user) {
+      await get().fetchDharmas(state.user.id);
+    }
+  },
   
   logout: () => {
     localStorage.removeItem('userId');
@@ -82,7 +107,8 @@ export const useStore = create<AppState>((set) => ({
   // Dharma actions
   fetchDharmas: async (userId: string) => {
     try {
-      const dharmas = await dharmaApi.getByUser(userId);
+      const state = get();
+      const dharmas = await dharmaApi.getByUser(userId, state.showHidden);
       set({ dharmas });
     } catch (error) {
       console.error('Failed to fetch dharmas:', error);
@@ -95,6 +121,33 @@ export const useStore = create<AppState>((set) => ({
       set((state) => ({ dharmas: [...state.dharmas, newDharma] }));
     } catch (error) {
       console.error('Failed to create dharma:', error);
+      throw error;
+    }
+  },
+
+  updateDharma: async (dharmaId: number, dto: CreateDharmaDTO) => {
+    try {
+      const updatedDharma = await dharmaApi.update(dharmaId, dto);
+      set((state) => ({
+        dharmas: state.dharmas.map((d) => (d.id === dharmaId ? updatedDharma : d)),
+      }));
+    } catch (error) {
+      console.error('Failed to update dharma:', error);
+      throw error;
+    }
+  },
+
+  toggleDharmaHidden: async (dharmaId: number) => {
+    try {
+      const updatedDharma = await dharmaApi.toggleHidden(dharmaId);
+      set((state) => ({
+        dharmas: state.dharmas.map((d) => (d.id === dharmaId ? updatedDharma : d)),
+        tasks: state.tasks.map((t) => 
+          t.dharma.id === dharmaId ? { ...t, hidden: updatedDharma.hidden, dharma: updatedDharma } : t
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to toggle dharma hidden:', error);
       throw error;
     }
   },
