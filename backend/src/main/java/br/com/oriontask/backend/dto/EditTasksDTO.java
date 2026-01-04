@@ -7,7 +7,8 @@ public record EditTasksDTO(
     String title,
     String description,
     KarmaType karmaType,
-    EffortLevel effortLevel
+    EffortLevel effortLevel,
+    Boolean hidden
 ) {
     
 }
