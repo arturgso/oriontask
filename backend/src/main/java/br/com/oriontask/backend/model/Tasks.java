@@ -56,6 +56,9 @@ public class Tasks {
     private TaskStatus status;
 
     @Builder.Default
+    private Boolean hidden = false;
+
+    @Builder.Default
     private Timestamp completedAt = null;
 
     @Builder.Default

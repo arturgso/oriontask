@@ -45,6 +45,9 @@ public class Dharma {
     private String color;
 
     @Builder.Default
+    private Boolean hidden = false;
+
+    @Builder.Default
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
 
     @Builder.Default
