@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.oriontask.backend.dto.EditDharmaDTO;
@@ -25,8 +26,10 @@ public class DharmaController {
     private final DharmaService dharmaService;
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Dharma>> getDharmasByUser(@PathVariable String userId) {
-        List<Dharma> dharmas = dharmaService.getDharmasByUser(userId);
+    public ResponseEntity<List<Dharma>> getDharmasByUser(
+            @PathVariable String userId,
+            @RequestParam(required = false, defaultValue = "false") boolean includeHidden) {
+        List<Dharma> dharmas = dharmaService.getDharmasByUser(userId, includeHidden);
         return ResponseEntity.ok(dharmas);
     }
 
@@ -46,5 +49,11 @@ public class DharmaController {
     public ResponseEntity<Void> deleteDharma(@PathVariable Long dharmaId) {
         dharmaService.deleteDharma(dharmaId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{dharmaId}/toggle-hidden")
+    public ResponseEntity<Dharma> toggleHidden(@PathVariable Long dharmaId) {
+        Dharma updatedDharma = dharmaService.toggleHidden(dharmaId);
+        return ResponseEntity.ok(updatedDharma);
     }
 }
