@@ -25,9 +25,12 @@ public class DharmaService {
 
     private static final int MAX_DHARMAS_PER_USER = 8;
 
-    public List<Dharma> getDharmasByUser(String userId) {
+    public List<Dharma> getDharmasByUser(String userId, boolean includeHidden) {
         UUID userUuid = UUID.fromString(userId);
-        return repository.findByUserId(userUuid);
+        if (includeHidden) {
+            return repository.findByUserId(userUuid);
+        }
+        return repository.findByUserIdAndHiddenFalse(userUuid);
     }
 
     public Dharma create(EditDharmaDTO createDTO, String userId) {
@@ -47,6 +50,7 @@ public class DharmaService {
             .name(createDTO.name())
             .description(createDTO.description())
             .color(color)
+            .hidden(createDTO.hidden() != null ? createDTO.hidden() : false)
             .build();
 
         dharma = repository.save(dharma);
@@ -61,6 +65,9 @@ public class DharmaService {
         dharma.setName(editDTO.name());
         dharma.setDescription(editDTO.description());
         dharma.setColor(editDTO.color());
+        if (editDTO.hidden() != null) {
+            dharma.setHidden(editDTO.hidden());
+        }
         dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
         dharma = repository.save(dharma);
@@ -80,6 +87,25 @@ public class DharmaService {
         if (activeTasksCount > 0) {
             throw new IllegalStateException("Não é possível deletar Dharma com tasks ativas. Complete ou mova as tasks primeiro.");
         }
+
+    @Transactional
+    public Dharma toggleHidden(Long dharmaId) {
+        Dharma dharma = repository.findById(dharmaId)
+            .orElseThrow(() -> new IllegalArgumentException("Dharma não encontrado"));
+        
+        dharma.setHidden(!dharma.getHidden());
+        dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        
+        // Atualizar todas as tasks do dharma para herdar o estado hidden
+        var tasks = tasksRepository.findByDharmaId(dharmaId);
+        tasks.forEach(task -> {
+            task.setHidden(dharma.getHidden());
+            task.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+        });
+        tasksRepository.saveAll(tasks);
+        
+        return repository.save(dharma);
+    }
 
         repository.delete(dharma);
     }

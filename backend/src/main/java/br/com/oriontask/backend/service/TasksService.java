@@ -34,6 +34,7 @@ public class TasksService {
             .description(createDTO.description())
             .karmaType(createDTO.karmaType())
             .effortLevel(createDTO.effortLevel())
+            .hidden(dharma.getHidden())  // Herda hidden do dharma
             .status(TaskStatus.NEXT)
             .build();
 
@@ -53,6 +54,9 @@ public class TasksService {
         task.setDescription(editDTO.description());
         task.setKarmaType(editDTO.karmaType());
         task.setEffortLevel(editDTO.effortLevel());
+        if (editDTO.hidden() != null) {
+            task.setHidden(editDTO.hidden());
+        }
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         return repository.save(task);
@@ -133,7 +137,10 @@ public class TasksService {
     }
 
     public List<Tasks> getTasksByUserAndStatus(String userId, TaskStatus status) {
-        return repository.findByDharmaUserIdAndStatus(UUID.fromString(userId), status);
+        return repository.findByDharmaUserIdAndStatus(UUID.fromString(userId), status)
+            .stream()
+            .filter(task -> !task.getHidden())
+            .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional
