@@ -24,6 +24,14 @@
   - Enforces UI limits (show ≤5 in Agora, indicate hidden, concise texts).
   - Stores: `userId`, `theme`, `showHidden` in localStorage.
   - Calls REST API at `/api/v1`.
+  - Theme system:
+    - Uses CSS variables for colors (defined in `index.css`).
+    - Supports light/dark modes via `data-theme` attribute.
+    - Logo SVGs invert automatically in dark mode (except dharma colors).
+  - Style pattern:
+    - All components use `Styles` const objects for className definitions.
+    - No hardcoded colors (bg-gray, text-white, etc.) - always use theme variables.
+    - Theme colors: `bg-base`, `bg-card`, `bg-surface`, `text-primary`, `text-muted`, `primary`, `accent`.
 
 - API Service (Backend)
   - Spring Boot 3 + PostgreSQL.

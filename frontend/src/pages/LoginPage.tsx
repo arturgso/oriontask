@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usersApi } from '../api';
 import { useStore } from '../state/store';
 import toast from 'react-hot-toast';
-import { User as UserIcon, LogIn, UserPlus } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 
 export function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
@@ -49,7 +49,7 @@ export function LoginPage() {
     <div className={Styles.container}>
       <div className={Styles.card}>
         <div className={Styles.header}>
-          <UserIcon size={48} className={Styles.icon} />
+          <img src="/logo.svg" alt="OrionTask Logo" className={Styles.icon} />
           <h1 className={Styles.title}>OrionTask</h1>
           <p className={Styles.subtitle}>Tarefas com propósito</p>
         </div>
@@ -152,20 +152,20 @@ export function LoginPage() {
 }
 
 const Styles = {
-  container: 'min-h-screen flex items-center justify-center bg-gray-100 p-3 md:p-4',
-  card: 'bg-white border border-gray-400 p-4 md:p-8 w-full max-w-sm',
+  container: 'min-h-screen flex items-center justify-center bg-base p-3 md:p-4',
+  card: 'bg-card border border-surface p-4 md:p-8 w-full max-w-sm rounded-lg',
   header: 'text-center mb-6',
-  icon: 'mx-auto mb-2 md:mb-3 w-10 md:w-12 h-10 md:h-12 text-gray-800',
-  title: 'text-xl md:text-2xl font-bold mb-1 md:mb-2',
-  subtitle: 'text-xs md:text-sm text-gray-600',
+  icon: 'mx-auto mb-2 md:mb-3 w-12 md:w-16 h-12 md:h-16',
+  title: 'text-xl md:text-2xl font-bold mb-1 md:mb-2 text-text-primary',
+  subtitle: 'text-xs md:text-sm text-text-muted',
   tabs: 'flex gap-2 mb-6',
   tab: (active: boolean) =>
-    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`,
+    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-primary text-text-primary' : 'bg-surface text-text-muted hover:bg-surface/80'}`,
   form: 'space-y-4',
   field: 'space-y-1',
-  label: 'block text-xs md:text-sm font-semibold',
-  input: 'w-full px-2 py-1.5 md:py-2 border border-gray-400 focus:outline-none focus:border-gray-600 text-sm rounded',
-  hint: 'text-xs text-gray-500',
-  button: 'w-full bg-gray-800 text-white py-2.5 md:py-3 font-semibold hover:bg-gray-700 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
+  label: 'block text-xs md:text-sm font-semibold text-text-primary',
+  input: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-primary text-sm rounded text-text-primary',
+  hint: 'text-xs text-text-muted',
+  button: 'w-full bg-primary text-text-primary py-2.5 md:py-3 font-semibold hover:bg-primary/80 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
   buttonContent: 'flex items-center gap-2',
 };
