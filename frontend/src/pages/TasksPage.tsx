@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
-import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
@@ -103,12 +102,6 @@ export function TasksPage() {
 
   return (
     <div className={Styles.page}>
-      <Header
-        title="Orion Task"
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-      />
-
       <main className={Styles.main}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         

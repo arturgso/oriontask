@@ -83,12 +83,6 @@ export function DharmasPage() {
 
   return (
     <div className={Styles.page}>
-      <Header
-        title="Orion Task"
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-      />
-
       <main className={Styles.main}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         

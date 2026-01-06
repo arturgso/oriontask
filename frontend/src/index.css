@@ -4,63 +4,49 @@
 
 @layer base {
   :root {
-    --bg-base: #f9fafb;
-    --bg-card: #ffffff;
-    --text-primary: #0f172a;
-    --text-muted: #4b5563;
-    --border-color: #d1d5db;
-  }
-
-  :root[data-theme='dark'] {
     color-scheme: dark;
-    --bg-base: #0f172a;
-    --bg-card: #111827;
-    --text-primary: #e5e7eb;
-    --text-muted: #9ca3af;
-    --border-color: #1f2937;
+
+    /* Backgrounds */
+    --bg-base: 11 15 26;    /* #0B0F1A Cosmic Dark */
+    --bg-card: 17 24 39;    /* #111827 Slightly lifted surface */
+    --bg-surface: 30 35 51; /* #1E2333 Borders / dividers */
+
+    /* Brand */
+    --color-primary: 47 128 237; /* #2F80ED Orbit Blue */
+    --color-accent: 242 201 76;  /* #F2C94C Solar Core */
+
+    /* Text */
+    --text-primary: 237 237 237; /* #EDEDED Stellar White */
+    --text-muted: 154 160 178;   /* #9AA0B2 Nebula Gray */
+
+    /* Borders */
+    --border-color: 30 35 51;    /* #1E2333 */
   }
 
-  * {
+  /* (Opcional) modo claro no futuro */
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --bg-base: 247 248 252;  /* #F7F8FC */
+    --bg-card: 255 255 255;  /* #FFFFFF */
+    --bg-surface: 229 231 235;/* #E5E7EB */
+
+    --text-primary: 26 26 26; /* #1A1A1A */
+    --text-muted: 75 85 99;   /* #4B5563 */
+
+    --border-color: 209 213 219; /* #D1D5DB */
+  }
+
+  *,
+  *::before,
+  *::after {
     @apply box-border;
   }
 
   body {
-    @apply m-0 font-sans antialiased;
-    background: var(--bg-base);
-    color: var(--text-primary);
+    @apply m-0 font-sans antialiased bg-base text-text-primary;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+    @apply font-bold text-text-primary;
   }
 }
-
-/* Dark mode overrides for common Tailwind utility classes used in the UI */
-:root[data-theme='dark'] .bg-white { background-color: var(--bg-card) !important; }
-:root[data-theme='dark'] .bg-gray-100 { background-color: #0f172a !important; }
-:root[data-theme='dark'] .bg-gray-200 { background-color: #111827 !important; }
-:root[data-theme='dark'] .bg-gray-300 { background-color: #1f2937 !important; }
-:root[data-theme='dark'] .bg-gray-800 { background-color: #0b1220 !important; }
-
-:root[data-theme='dark'] .text-gray-900, 
-:root[data-theme='dark'] .text-gray-800, 
-:root[data-theme='dark'] .text-gray-700 { color: var(--text-primary) !important; }
-
-:root[data-theme='dark'] .text-gray-600 { color: #cbd5e1 !important; }
-:root[data-theme='dark'] .text-gray-500 { color: #9ca3af !important; }
-:root[data-theme='dark'] .text-gray-400 { color: #94a3b8 !important; }
-:root[data-theme='dark'] .text-gray-300 { color: #cbd5e1 !important; }
-
-:root[data-theme='dark'] .border-gray-300 { border-color: var(--border-color) !important; }
-:root[data-theme='dark'] .border-gray-400 { border-color: #1f2937 !important; }
-
-:root[data-theme='dark'] .hover\:bg-gray-50:hover { background-color: #111827 !important; }
-:root[data-theme='dark'] .hover\:bg-gray-100:hover { background-color: #1f2937 !important; }
-:root[data-theme='dark'] .hover\:bg-gray-300:hover { background-color: #1f2937 !important; }
-:root[data-theme='dark'] .hover\:bg-gray-700:hover { background-color: #0f172a !important; }
-:root[data-theme='dark'] .hover\:bg-red-50:hover { background-color: #2f0a0a !important; }
-
-/* Buttons: keep strong contrast in dark mode */
-:root[data-theme='dark'] button.bg-gray-800 { background-color: #e6cc00 !important; color: #111827 !important; }
-:root[data-theme='dark'] button.hover\:bg-gray-700:hover { background-color: #d1b300 !important; color: #111827 !important; }
-:root[data-theme='dark'] button.text-white { color: #111827 !important; }

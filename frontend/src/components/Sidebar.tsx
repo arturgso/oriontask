@@ -3,7 +3,7 @@ import { useStore } from '../state/store';
 import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Dharma } from '../types';
-import axios from 'axios';
+import { api } from '../api/client';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,8 +36,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const fetchDharmas = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/v1/dharma/user/${userId}`);
-        setDharmas(response.data);
+        const response = await api.get<Dharma[]>(`/dharma/user/${userId}`);
+        setDharmas(response);
 
       } catch (error) {
         console.error('Error fetching dharmas:', error);
@@ -53,7 +53,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Overlay - visível quando menu está aberto em mobile */}
       {isOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/30 z-30 top-16"
@@ -62,13 +61,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
       <aside className='bg-card flex flex-col justify-between h-screen border-r border-surface'>
         <div className='flex flex-col p-6'>
-          {/* Logo/Título */}
           <div className='flex items-center gap-3 mb-8'>
             <img src="/logo.svg" alt="Orion Task Logo" className='h-8 w-8' />
             <h1 className='text-text-primary text-xl font-bold'>Orion Task</h1>
           </div>
           
-          {/* Seção Dharmas */}
           <div className='mb-8'>
             <h2 className='text-xs text-text-muted uppercase tracking-wider mb-3 font-semibold'>Dharmas</h2>
             <ul className='flex flex-col gap-2'>
@@ -97,7 +94,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
           </div>
 
-          {/* Seção Navegação */}
           <div>
             <h2 className='text-xs text-text-muted uppercase tracking-wider mb-3 font-semibold'>Navegação</h2>
             <div className='flex flex-col gap-1'>
@@ -119,7 +115,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* Rodapé */}
         <div className='border-t border-surface p-6 flex flex-col gap-1'>
           <button 
             className='flex items-center gap-3 px-2 py-2 text-sm text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-md transition-colors'

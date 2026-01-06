@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { tasksApi } from '../api';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
-import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
 import { Zap } from 'lucide-react';
@@ -87,11 +86,6 @@ export function AgoraPage() {
   if (loading) {
     return (
       <div className={Styles.page}>
-        <Header
-          title="Orion Task"
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        />
         <main className={Styles.main}>
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <section className={Styles.content}>
@@ -104,12 +98,6 @@ export function AgoraPage() {
 
   return (
     <div className={Styles.page}>
-      <Header
-        title="Orion Task"
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-      />
-
       <main className={Styles.main}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
