@@ -33,12 +33,12 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Size(min = 3, max = 50, message = "Name deve ter entre 3 e 50 caracteres")
+    @Size(min = 3, max = 50, message = "Name must be between 3 and 50 characters")
     @Column(nullable = false)
     private String name;
 
-    @Size(min = 3, max = 20, message = "Username deve ter entre 3 e 20 caracteres")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username só pode conter letras, números e underscore")
+    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username may only contain letters, numbers, and underscore")
     @Column(nullable = false, unique = true)
     private String username;
 

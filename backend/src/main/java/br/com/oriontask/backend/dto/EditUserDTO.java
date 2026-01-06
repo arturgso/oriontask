@@ -2,6 +2,6 @@ package br.com.oriontask.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record EditUserDTO(@NotBlank(message = "Nome é obrigatório") String name,
-                @NotBlank(message = "username é obrigatório") String username) {
+public record EditUserDTO(@NotBlank(message = "Name is required") String name,
+                @NotBlank(message = "Username is required") String username) {
 }

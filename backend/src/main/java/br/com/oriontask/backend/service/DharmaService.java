@@ -35,7 +35,7 @@ public class DharmaService {
 
     public Dharma create(EditDharmaDTO createDTO, String userId) {
         Users user = uRepository.findById(UUID.fromString(userId))
-            .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long dharmaCount = repository.countByUser(user);
 
@@ -77,15 +77,15 @@ public class DharmaService {
     @Transactional
     public void deleteDharma(Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
-        // Verifica se há tasks ativas (não concluídas)
+        // Check for active (non-completed) tasks before deleting
         long activeTasksCount = tasksRepository.findByDharmaId(dharmaId).stream()
             .filter(task -> task.getStatus() != TaskStatus.DONE)
             .count();
 
         if (activeTasksCount > 0) {
-            throw new IllegalStateException("Não é possível deletar Dharma com tasks ativas. Complete ou mova as tasks primeiro.");
+            throw new IllegalStateException("Cannot delete Dharma with active tasks. Complete or move tasks first.");
         }
 
         repository.delete(dharma);
@@ -94,12 +94,12 @@ public class DharmaService {
     @Transactional
     public Dharma toggleHidden(Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
         
         dharma.setHidden(!dharma.getHidden());
         dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         
-        // Atualizar todas as tasks do dharma para herdar o estado hidden
+        // Update all tasks of the dharma to inherit the hidden state
         var tasks = tasksRepository.findByDharmaId(dharmaId);
         tasks.forEach(task -> {
             task.setHidden(dharma.getHidden());

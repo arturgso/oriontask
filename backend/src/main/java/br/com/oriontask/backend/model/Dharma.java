@@ -35,13 +35,13 @@ public class Dharma {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @Length(min = 3, max = 20, message = "O nome deve ter entre 3 e 20 caracteres")
+    @Length(min = 3, max = 20, message = "Name must be between 3 and 20 characters")
     private String name;
 
-    @Length(max = 100, message = "A descrição deve ter no máximo 100 caracteres")
+    @Length(max = 100, message = "Description must be at most 100 characters")
     private String description;
 
-    @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", message = "A cor deve estar no formato hexadecimal, por exemplo, #FFFFFF")
+    @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", message = "Color must be hexadecimal, e.g., #FFFFFF")
     private String color;
 
     @Builder.Default

@@ -21,7 +21,7 @@ public class UsersService {
     @Transactional
     public UserResponseDTO create(EditUserDTO createDTO) {
         repository.findByUsername(createDTO.username()).ifPresent(user -> {
-            throw new IllegalArgumentException("Username indisponível");
+            throw new IllegalArgumentException("Username unavailable");
         });
 
         Users user = Users.builder()
@@ -43,7 +43,7 @@ public class UsersService {
     public UserResponseDTO getByUsername(String username) {
         return createResponseDTO(
                 repository.findByUsername(username)
-                        .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado")));
+                .orElseThrow(() -> new IllegalArgumentException("User not found")));
     }
 
     private UserResponseDTO createResponseDTO(Users user) {

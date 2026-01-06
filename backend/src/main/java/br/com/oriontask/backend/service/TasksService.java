@@ -26,7 +26,7 @@ public class TasksService {
 
     public Tasks create(EditTasksDTO createDTO, Long dharmaId) {
         Dharma dharma = dharmaRepository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma não encontrado"));
+            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         Tasks task = Tasks.builder()
             .dharma(dharma)
@@ -34,7 +34,7 @@ public class TasksService {
             .description(createDTO.description())
             .karmaType(createDTO.karmaType())
             .effortLevel(createDTO.effortLevel())
-            .hidden(dharma.getHidden())  // Herda hidden do dharma
+            .hidden(dharma.getHidden())  // Inherit hidden flag from parent dharma
             .status(TaskStatus.NEXT)
             .build();
 
@@ -44,10 +44,10 @@ public class TasksService {
     @Transactional
     public Tasks updateTask(EditTasksDTO editDTO, Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task não encontrada"));
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
-            throw new IllegalStateException("Tasks concluídas não podem ser editadas");
+            throw new IllegalStateException("Completed tasks cannot be edited");
         }
 
         task.setTitle(editDTO.title());
@@ -65,10 +65,10 @@ public class TasksService {
     @Transactional
     public Tasks moveToNow(Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task não encontrada"));
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
-            throw new IllegalStateException("Tasks concluídas não podem mudar de status");
+            throw new IllegalStateException("Completed tasks cannot change status");
         }
 
         Long nowCount = repository.countByDharmaUserIdAndStatus(
@@ -77,7 +77,7 @@ public class TasksService {
         );
 
         if (nowCount >= MAX_NOW_TASKS) {
-            throw new IllegalStateException("Máximo de 5 tasks em NOW atingido");
+            throw new IllegalStateException("Maximum of 5 tasks in NOW reached");
         }
 
         task.setStatus(TaskStatus.NOW);
@@ -89,10 +89,10 @@ public class TasksService {
     @Transactional
     public Tasks changeStatus(Long taskId, TaskStatus newStatus) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task não encontrada"));
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
-            throw new IllegalStateException("Tasks concluídas não podem mudar de status");
+            throw new IllegalStateException("Completed tasks cannot change status");
         }
 
         if (newStatus == TaskStatus.NOW) {
@@ -102,7 +102,7 @@ public class TasksService {
             );
 
             if (nowCount >= MAX_NOW_TASKS) {
-                throw new IllegalStateException("Máximo de 5 tasks em NOW atingido");
+                throw new IllegalStateException("Maximum of 5 tasks in NOW reached");
             }
         }
 
@@ -115,10 +115,10 @@ public class TasksService {
     @Transactional
     public Tasks markAsDone(Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task não encontrada"));
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
-            throw new IllegalStateException("Task já está concluída");
+            throw new IllegalStateException("Task is already completed");
         }
 
         task.setStatus(TaskStatus.DONE);
@@ -146,10 +146,10 @@ public class TasksService {
     @Transactional
     public void deleteTask(Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task não encontrada"));
+            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
-            throw new IllegalStateException("Tasks concluídas não podem ser deletadas (histórico)");
+            throw new IllegalStateException("Completed tasks cannot be deleted (history)");
         }
 
         repository.delete(task);
