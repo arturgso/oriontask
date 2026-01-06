@@ -45,16 +45,16 @@ src/
 
 ```bash
 # Instalar dependências
-yarn install
+npm install
 
 # Rodar em dev
-yarn dev
+npm run dev
 
 # Build para produção
-yarn build
+npm run build
 
 # Preview do build
-yarn preview
+npm run preview
 ```
 
 ## API
