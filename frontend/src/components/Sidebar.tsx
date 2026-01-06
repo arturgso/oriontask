@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun, Eye, EyeOff } from 'lucide-react';
-import { useEffect } from 'react';
+import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { Dharma } from '../types';
+import axios from 'axios';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,13 +12,15 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
-  const dharmas = useStore((state) => state.dharmas);
+  const [dharmas, setDharmas] = useState<Dharma[]>([]);
   const logout = useStore((state) => state.logout);
   const theme = useStore((state) => state.theme);
   const toggleTheme = useStore((state) => state.toggleTheme);
   const showHidden = useStore((state) => state.showHidden);
   const toggleShowHidden = useStore((state) => state.toggleShowHidden);
   const loadShowHidden = useStore((state) => state.loadShowHidden);
+
+  const userId = useStore((state) => state.user?.id);
 
   useEffect(() => {
     loadShowHidden();
@@ -26,6 +30,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     logout();
     navigate('/');
   };
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchDharmas = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8080/api/v1/dharma/user/${userId}`);
+        setDharmas(response.data);
+
+      } catch (error) {
+        console.error('Error fetching dharmas:', error);
+      }
+    }
+    fetchDharmas();
+  }, [userId, showHidden])
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -41,83 +60,90 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           onClick={onClose}
         />
       )}
+      <aside className='bg-card flex flex-col justify-between h-screen border-r border-surface'>
+        <div className='flex flex-col p-6'>
+          {/* Logo/Título */}
+          <div className='flex items-center gap-3 mb-8'>
+            <img src="/logo.svg" alt="Orion Task Logo" className='h-8 w-8' />
+            <h1 className='text-text-primary text-xl font-bold'>Orion Task</h1>
+          </div>
+          
+          {/* Seção Dharmas */}
+          <div className='mb-8'>
+            <h2 className='text-xs text-text-muted uppercase tracking-wider mb-3 font-semibold'>Dharmas</h2>
+            <ul className='flex flex-col gap-2'>
+              {dharmas
+                .filter((dharma) => (showHidden ? true : !dharma.hidden))
+                .map((dharma) => (
+                  <li
+                    key={dharma.id}
+                    className='cursor-pointer hover:bg-surface/50 rounded-md px-2 py-1.5 flex items-center gap-2 text-text-primary text-sm transition-colors'
+                    onClick={() => handleNavigation(`/tasks/${dharma.id}`)}
+                  >
+                    <div 
+                      className='h-2.5 w-2.5 rounded-full flex-shrink-0' 
+                      style={{ backgroundColor: dharma.color }}
+                    />
+                    <span>{dharma.name}</span>
+                  </li>
+                ))}
+            </ul>
+            <button 
+              className='flex items-center gap-2 mt-3 text-sm text-text-muted hover:text-text-primary transition-colors px-2 py-1.5'
+              onClick={() => handleNavigation('/manage-dharmas')}
+            >
+              <Plus size={16} />
+              <span>Gerenciar Dharmas</span>
+            </button>
+          </div>
 
-      {/* Sidebar */}
-      <aside
-        className={`${Styles.sidebar} ${
-          isOpen
-            ? 'fixed left-0 top-16 h-[calc(100vh-4rem)] z-40 md:relative md:top-0 md:h-full'
-            : 'hidden md:flex'
-        }`}
-      >
-        <div className={Styles.section}>
-          <strong className={Styles.sectionTitle}>Dharmas</strong>
-          <ul className={Styles.list}>
-            {dharmas.map((dharma) => (
-              <li
-                key={dharma.id}
-                onClick={() => handleNavigation(`/tasks/${dharma.id}`)}
-                className={`${Styles.listItem} ${dharma.hidden ? 'opacity-50' : ''}`}
+          {/* Seção Navegação */}
+          <div>
+            <h2 className='text-xs text-text-muted uppercase tracking-wider mb-3 font-semibold'>Navegação</h2>
+            <div className='flex flex-col gap-1'>
+              <button 
+                className='flex items-center gap-3 px-2 py-2 text-sm text-text-primary hover:bg-surface/50 rounded-md transition-colors'
+                onClick={() => handleNavigation('/agora')}
               >
-                <span style={{ backgroundColor: dharma.color }} className={Styles.dot} />
-                {dharma.name}
-                {dharma.hidden && <EyeOff size={14} className="ml-auto text-gray-500" />}
-              </li>
-            ))}
-            <li
-              onClick={() => handleNavigation('/dharmas')}
-              className={Styles.listItem + ' ' + Styles.addItem}
-            >
-              + Gerenciar Dharmas
-            </li>
-          </ul>
+                <Zap size={18} />
+                <span>Agora</span>
+              </button>
+              <button 
+                className='flex items-center gap-3 px-2 py-2 text-sm text-text-primary hover:bg-surface/50 rounded-md transition-colors'
+                onClick={() => handleNavigation('/dharmas')}
+              >
+                <List size={18} />
+                <span>Todos os Dharmas</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className={Styles.section}>
-          <strong className={Styles.sectionTitle}>Navegação</strong>
-          <ul className={Styles.list}>
-            <li
-              onClick={() => handleNavigation('/agora')}
-              className={Styles.listItem}
-            >
-              ⚡ Agora
-            </li>
-            <li
-              onClick={() => handleNavigation('/dharmas')}
-              className={Styles.listItem}
-            >
-              📋 Todos os Dharmas
-            </li>
-          </ul>
+        {/* Rodapé */}
+        <div className='border-t border-surface p-6 flex flex-col gap-1'>
+          <button 
+            className='flex items-center gap-3 px-2 py-2 text-sm text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-md transition-colors'
+            onClick={toggleShowHidden}
+          >
+            {showHidden ? <EyeOff size={18} /> : <Eye size={18} />}
+            <span>Ocultar privados</span>
+          </button>
+          <button 
+            className='flex items-center gap-3 px-2 py-2 text-sm text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-md transition-colors'
+            onClick={toggleTheme}
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            <span>Modo escuro</span>
+          </button>
+          <button 
+            className='flex items-center gap-3 px-2 py-2 text-sm text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-md transition-colors'
+            onClick={handleLogout}
+          >
+            <LogOut size={18} />
+            <span>Sair</span>
+          </button>
         </div>
-
-        <button onClick={toggleShowHidden} className={Styles.themeButton}>
-          {showHidden ? <Eye size={16} /> : <EyeOff size={16} />}
-          {showHidden ? 'Ocultar privados' : 'Mostrar privados'}
-        </button>
-
-        <button onClick={toggleTheme} className={Styles.themeButton}>
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-        </button>
-
-        <button onClick={handleLogout} className={Styles.logoutButton}>
-          <LogOut size={16} />
-          Sair
-        </button>
       </aside>
     </>
   );
 }
-
-const Styles = {
-  sidebar: 'w-full md:w-56 bg-gray-200 p-3 md:p-5 flex flex-col h-auto md:h-full md:border-r border-gray-300',
-  section: 'mb-4 md:mb-6',
-  sectionTitle: 'block mb-2 text-xs md:text-sm font-bold',
-  list: 'space-y-1',
-  listItem: 'text-xs md:text-sm py-2 px-3 hover:bg-gray-300 cursor-pointer flex items-center gap-2 rounded transition-colors',
-  addItem: 'text-gray-700 border-t border-gray-400 mt-2 pt-2 font-semibold',
-  dot: 'w-2.5 md:w-3 h-2.5 md:h-3 rounded-full flex-shrink-0',
-  themeButton: 'mb-2 flex items-center gap-2 text-xs md:text-sm px-3 py-2 hover:bg-gray-300 w-full text-left rounded font-semibold transition-colors',
-  logoutButton: 'mt-auto flex items-center gap-2 text-xs md:text-sm px-3 py-2 hover:bg-gray-300 w-full text-left rounded font-semibold transition-colors',
-};
