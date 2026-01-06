@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List } from 'lucide-react';
+import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Dharma } from '../types';
 import { api } from '../api/client';
@@ -8,9 +8,10 @@ import { api } from '../api/client';
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onToggle: () => void;
 }
 
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const [dharmas, setDharmas] = useState<Dharma[]>([]);
   const logout = useStore((state) => state.logout);
@@ -53,13 +54,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
+      {/* Mobile Header */}
+      <header className={Styles.mobileHeader}>
+        <button
+          onClick={onToggle}
+          className={Styles.hamburger}
+          aria-label="Toggle menu"
+        >
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <div className={Styles.mobileLogoContainer}>
+          <img src="/logo.svg" alt="Orion Task Logo" className={Styles.mobileLogo} />
+          <span className={Styles.mobileTitle}>Orion Task</span>
+        </div>
+      </header>
+
+      {/* Overlay */}
       {isOpen && (
         <div
           className={Styles.overlay}
           onClick={onClose}
         />
       )}
-      <aside className={Styles.sidebar}>
+
+      {/* Sidebar */}
+      <aside className={`${Styles.sidebar} ${isOpen ? Styles.sidebarOpen : Styles.sidebarClosed}`}>
         <div className={Styles.container}>
           <div className={Styles.header}>
             <img src="/logo.svg" alt="Orion Task Logo" className={Styles.logo} />
@@ -144,10 +163,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 }
 
 const Styles = {
-  overlay: 'md:hidden fixed inset-0 bg-black/30 z-30 top-16',
-  sidebar: 'bg-card flex flex-col justify-between h-screen border-r border-surface',
+  // Mobile Header
+  mobileHeader: 'md:hidden fixed top-0 left-0 right-0 z-40 bg-card border-b border-surface px-4 py-3 flex items-center justify-between',
+  hamburger: 'p-2 hover:bg-surface rounded-md transition-colors text-text-primary',
+  mobileLogoContainer: 'flex items-center gap-2',
+  mobileLogo: 'h-6 w-6',
+  mobileTitle: 'text-text-primary font-bold text-lg',
+  
+  // Overlay
+  overlay: 'md:hidden fixed inset-0 bg-black/50 z-40',
+  
+  // Sidebar
+  sidebar: 'bg-card flex flex-col justify-between h-screen border-r border-surface fixed md:static top-0 left-0 z-50 w-64 transition-transform duration-300',
+  sidebarOpen: 'translate-x-0',
+  sidebarClosed: '-translate-x-full md:translate-x-0',
+  
   container: 'flex flex-col p-6',
-  header: 'flex items-center gap-3 mb-8',
+  header: 'hidden md:flex items-center gap-3 mb-8',
   logo: 'h-8 w-8',
   title: 'text-text-primary text-xl font-bold',
   dharmasSection: 'mb-8',

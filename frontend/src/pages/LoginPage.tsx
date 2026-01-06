@@ -160,12 +160,12 @@ const Styles = {
   subtitle: 'text-xs md:text-sm text-text-muted',
   tabs: 'flex gap-2 mb-6',
   tab: (active: boolean) =>
-    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-primary text-text-primary' : 'bg-surface text-text-muted hover:bg-surface/80'}`,
+    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-accent text-text-primary' : 'bg-surface text-text-muted hover:bg-surface/80'}`,
   form: 'space-y-4',
   field: 'space-y-1',
   label: 'block text-xs md:text-sm font-semibold text-text-primary',
-  input: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-primary text-sm rounded text-text-primary',
+  input: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-accent text-sm rounded text-text-primary',
   hint: 'text-xs text-text-muted',
-  button: 'w-full bg-primary text-text-primary py-2.5 md:py-3 font-semibold hover:bg-primary/80 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
+  button: 'w-full bg-accent text-text-primary py-2.5 md:py-3 font-semibold hover:bg-accent/80 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
   buttonContent: 'flex items-center gap-2',
 };

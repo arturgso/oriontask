@@ -103,7 +103,11 @@ export function TasksPage() {
   return (
     <div className={Styles.page}>
       <main className={Styles.main}>
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
         
         <section className={Styles.content}>
           <div className={Styles.header}>
@@ -248,7 +252,7 @@ export function TasksPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base',
+  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
   main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
   content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface',
   header: 'mb-3 md:mb-4',
@@ -257,7 +261,7 @@ const Styles = {
   section: 'mb-4 md:mb-6',
   sectionHeader: 'flex flex-col md:flex-row justify-between items-start md:items-center mb-3 border-b border-surface pb-2 gap-2',
   sectionTitle: 'text-sm md:text-base font-bold text-text-primary',
-  addButton: 'px-3 md:px-4 py-2 bg-primary text-text-primary text-xs md:text-sm hover:bg-primary/80 flex items-center gap-2 rounded font-semibold transition-colors whitespace-nowrap',
+  addButton: 'px-3 md:px-4 py-2 bg-accent text-text-primary text-xs md:text-sm hover:bg-accent/80 flex items-center gap-2 rounded font-semibold transition-colors whitespace-nowrap',
   taskList: 'space-y-2 md:space-y-3',
   empty: 'text-center text-text-muted py-4 text-xs md:text-sm',
   modal: 'fixed inset-0 bg-black/30 flex items-center justify-center p-3 md:p-4 z-50',

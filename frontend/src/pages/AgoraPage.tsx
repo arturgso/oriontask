@@ -87,7 +87,11 @@ export function AgoraPage() {
     return (
       <div className={Styles.page}>
         <main className={Styles.main}>
-          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <Sidebar 
+            isOpen={sidebarOpen} 
+            onClose={() => setSidebarOpen(false)}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+          />
           <section className={Styles.content}>
             <p className={Styles.loading}>Carregando...</p>
           </section>
@@ -99,7 +103,11 @@ export function AgoraPage() {
   return (
     <div className={Styles.page}>
       <main className={Styles.main}>
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
         
         <section className={Styles.content}>
           <div className={Styles.header}>
@@ -147,7 +155,7 @@ export function AgoraPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base',
+  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
   main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
   content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface',
   header: 'flex items-center gap-2 mb-2',
