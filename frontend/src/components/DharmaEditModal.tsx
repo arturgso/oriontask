@@ -36,14 +36,14 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+      <div className="bg-card border border-surface rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-semibold text-text-primary">
             Editar Dharma
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-text-muted hover:text-text-primary"
           >
             <X size={24} />
           </button>
@@ -51,32 +51,32 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Nome
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-4 py-2 border border-surface bg-surface rounded-lg focus:ring-2 focus:ring-primary text-text-primary"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Descrição (opcional)
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-4 py-2 border border-surface bg-surface rounded-lg focus:ring-2 focus:ring-primary text-text-primary"
               rows={3}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Cor
             </label>
             <div className="flex gap-2 flex-wrap mb-3">
@@ -86,7 +86,7 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
                   type="button"
                   onClick={() => setColor(c)}
                   className={`w-10 h-10 rounded-full border-2 transition-all ${
-                    color === c ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent'
+                    color === c ? 'border-text-primary scale-110' : 'border-transparent'
                   }`}
                   style={{ backgroundColor: c }}
                 />
@@ -104,13 +104,13 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex-1 px-4 py-2 border border-surface rounded-lg text-text-primary hover:bg-surface transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 px-4 py-2 bg-primary text-text-primary rounded-lg hover:bg-primary/80 transition-colors"
             >
               Salvar
             </button>

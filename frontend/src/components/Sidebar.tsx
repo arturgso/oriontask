@@ -62,7 +62,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside className='bg-card flex flex-col justify-between h-screen border-r border-surface'>
         <div className='flex flex-col p-6'>
           <div className='flex items-center gap-3 mb-8'>
-            <img src="/logo.svg" alt="Orion Task Logo" className='h-8 w-8' />
+            <img src="/logo.svg" alt="Orion Task Logo" className='h-8 w-8 dark:invert' />
             <h1 className='text-text-primary text-xl font-bold'>Orion Task</h1>
           </div>
           

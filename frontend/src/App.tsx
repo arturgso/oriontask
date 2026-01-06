@@ -20,7 +20,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    const html = document.documentElement;
+    html.setAttribute('data-theme', theme);
   }, [theme]);
 
   if (!hydrated) {
