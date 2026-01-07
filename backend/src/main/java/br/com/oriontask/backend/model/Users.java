@@ -42,6 +42,12 @@ public class Users {
     @Column(nullable = false, unique = true)
     private String username;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @Builder.Default
     @CreationTimestamp
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
