@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
+
 import br.com.oriontask.backend.dto.EditDharmaDTO;
 import br.com.oriontask.backend.enums.TaskStatus;
 import br.com.oriontask.backend.model.Dharma;
@@ -19,9 +21,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class DharmaService {
-   private final DharmaRepository repository; 
-   private final UsersRepository   uRepository;
-   private final TasksRepository tasksRepository;
+    private final DharmaRepository repository;
+    private final UsersRepository uRepository;
+    private final TasksRepository tasksRepository;
 
     private static final int MAX_DHARMAS_PER_USER = 8;
 
@@ -35,7 +37,7 @@ public class DharmaService {
 
     public Dharma create(EditDharmaDTO createDTO, String userId) {
         Users user = uRepository.findById(UUID.fromString(userId))
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Long dharmaCount = repository.countByUser(user);
 
@@ -46,12 +48,12 @@ public class DharmaService {
         String color = createDTO.color() != null ? createDTO.color() : ColorGenerator.generateRandomColor();
 
         Dharma dharma = Dharma.builder()
-            .user(user)
-            .name(createDTO.name())
-            .description(createDTO.description())
-            .color(color)
-            .hidden(createDTO.hidden() != null ? createDTO.hidden() : false)
-            .build();
+                .user(user)
+                .name(createDTO.name())
+                .description(createDTO.description())
+                .color(color)
+                .hidden(createDTO.hidden() != null ? createDTO.hidden() : false)
+                .build();
 
         dharma = repository.save(dharma);
         return dharma;
@@ -60,7 +62,7 @@ public class DharmaService {
     @Transactional
     public Dharma updateDharma(EditDharmaDTO editDTO, Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         dharma.setName(editDTO.name());
         dharma.setDescription(editDTO.description());
@@ -77,12 +79,12 @@ public class DharmaService {
     @Transactional
     public void deleteDharma(Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         // Check for active (non-completed) tasks before deleting
-        long activeTasksCount = tasksRepository.findByDharmaId(dharmaId).stream()
-            .filter(task -> task.getStatus() != TaskStatus.DONE)
-            .count();
+        long activeTasksCount = tasksRepository.findByDharmaId(dharmaId, Pageable.unpaged()).stream()
+                .filter(task -> task.getStatus() != TaskStatus.DONE)
+                .count();
 
         if (activeTasksCount > 0) {
             throw new IllegalStateException("Cannot delete Dharma with active tasks. Complete or move tasks first.");
@@ -94,19 +96,19 @@ public class DharmaService {
     @Transactional
     public Dharma toggleHidden(Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
+
         dharma.setHidden(!dharma.getHidden());
         dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
-        
+
         // Update all tasks of the dharma to inherit the hidden state
-        var tasks = tasksRepository.findByDharmaId(dharmaId);
+        var tasks = tasksRepository.findByDharmaId(dharmaId, Pageable.unpaged());
         tasks.forEach(task -> {
             task.setHidden(dharma.getHidden());
             task.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         });
         tasksRepository.saveAll(tasks);
-        
+
         return repository.save(dharma);
     }
 }
