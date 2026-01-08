@@ -33,7 +33,8 @@ export function AgoraPage() {
     if (!user) return;
 
     try {
-      const data = await tasksApi.getByUserAndStatus(user.id, TaskStatus.NOW);
+      const pageData = await tasksApi.getByUserAndStatus(user.id, TaskStatus.NOW);
+      const data = pageData.content;
       if (data.length < 5) {
         const filled = await fillNowWithNext(user.id);
         setTasks(filled);
@@ -153,13 +154,13 @@ export function AgoraPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
-  main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
-  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface',
+  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  main: 'flex flex-row flex-1 overflow-hidden',
+  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface overflow-y-auto custom-scrollbar',
   header: 'flex items-center gap-2 mb-2',
   icon: 'text-accent w-5 md:w-6 h-5 md:h-6',
   title: 'text-stellar md:text-lg font-bold',
-  subtitle: 'text-xs md:text-sm text-nebula mb-3',
+  subtitle: 'text-sm md:text-base text-nebula mb-4',
   counter: 'bg-surface w-fit border border-surface p-2 md:p-3 mb-3 md:mb-4 rounded',
   counterText: 'text-xs md:text-sm font-semibold text-stellar',
   taskList: 'space-y-2 md:space-y-3',

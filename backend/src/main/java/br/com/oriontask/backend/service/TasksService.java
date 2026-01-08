@@ -1,9 +1,10 @@
 package br.com.oriontask.backend.service;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.oriontask.backend.dto.EditTasksDTO;
@@ -128,19 +129,16 @@ public class TasksService {
         return repository.save(task);
     }
 
-    public List<Tasks> getTasksByDharma(Long dharmaId) {
-        return repository.findByDharmaId(dharmaId);
+    public Page<Tasks> getTasksByDharma(Long dharmaId, Pageable pageable) {
+        return repository.findByDharmaId(dharmaId, pageable);
     }
 
-    public List<Tasks> getTasksByStatus(Long dharmaId, TaskStatus status) {
-        return repository.findByDharmaIdAndStatus(dharmaId, status);
+    public Page<Tasks> getTasksByStatus(Long dharmaId, TaskStatus status, Pageable pageable) {
+        return repository.findByDharmaIdAndStatus(dharmaId, status, pageable);
     }
 
-    public List<Tasks> getTasksByUserAndStatus(String userId, TaskStatus status) {
-        return repository.findByDharmaUserIdAndStatus(UUID.fromString(userId), status)
-            .stream()
-            .filter(task -> !task.getHidden())
-            .collect(java.util.stream.Collectors.toList());
+    public Page<Tasks> getTasksByUserAndStatus(String userId, TaskStatus status, Pageable pageable) {
+        return repository.findByDharmaUserIdAndStatus(UUID.fromString(userId), status, pageable);
     }
 
     @Transactional

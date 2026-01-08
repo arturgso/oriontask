@@ -9,9 +9,9 @@ import type { Profile, UpdateProfileRequest } from '../types';
 type EditingSection = 'none' | 'profile' | 'password';
 
 const Styles = {
-  page: 'min-h-screen flex bg-base pt-14 md:pt-0',
-  main: 'flex flex-1 flex-col md:flex-row',
-  content: 'flex-1 bg-card md:border-l border-surface px-4 sm:px-10 py-8',
+  page: 'h-screen flex bg-base pt-14 md:pt-0 overflow-hidden',
+  main: 'flex flex-1 flex-row overflow-hidden',
+  content: 'flex-1 bg-card md:border-l border-surface px-4 sm:px-10 py-8 overflow-y-auto custom-scrollbar',
   container: 'max-w-3xl mx-auto space-y-6',
   back: 'inline-flex items-center gap-2 text-nebula text-sm hover:text-stellar transition',
   heading: 'space-y-1',

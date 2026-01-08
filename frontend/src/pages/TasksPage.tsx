@@ -11,12 +11,15 @@ import { KarmaType, EffortLevel, TaskStatus, type Task, type CreateTaskDTO } fro
 export function TasksPage() {
   const { dharmaId } = useParams<{ dharmaId: string }>();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [karmaType, setKarmaType] = useState<KarmaType>(KarmaType.ACTION);
   const [effortLevel, setEffortLevel] = useState<EffortLevel>(EffortLevel.LOW);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const hydrated = useStore((state) => state.hydrated);
@@ -26,18 +29,37 @@ export function TasksPage() {
   useEffect(() => {
     if (!hydrated) return;
     if (dharmaId) {
-      loadTasks();
+      setPage(0);
+      setTasks([]);
+      loadTasks(0, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dharmaId, hydrated]);
 
-  const loadTasks = async () => {
+  const loadTasks = async (pageNum: number, initial: boolean = false) => {
+    if (initial) setLoading(true);
+    else setLoadingMore(true);
+
     try {
-      const data = await tasksApi.getByDharma(Number(dharmaId));
-      setTasks(data);
+      const pageData = await tasksApi.getByDharma(Number(dharmaId), pageNum, 10);
+      if (initial) {
+        setTasks(pageData.content);
+      } else {
+        setTasks((prev) => [...prev, ...pageData.content]);
+      }
+      setHasMore(!pageData.last);
     } catch {
       toast.error('Erro ao carregar tasks');
+    } finally {
+      if (initial) setLoading(false);
+      else setLoadingMore(false);
     }
+  };
+
+  const handleShowMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadTasks(nextPage);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -53,7 +75,7 @@ export function TasksPage() {
         effortLevel
       };
       const task = await tasksApi.create(Number(dharmaId), data);
-      setTasks([...tasks, task]);
+      setTasks([task, ...tasks]);
       toast.success('Task criada!');
       setShowForm(false);
       setTitle('');
@@ -148,6 +170,18 @@ export function TasksPage() {
                   <TaskCard key={task.id} task={task} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {hasMore && (
+            <div className="flex justify-center py-6">
+              <button
+                onClick={handleShowMore}
+                disabled={loadingMore}
+                className={Styles.showMoreButton}
+              >
+                {loadingMore ? 'Carregando...' : 'Mostrar mais'}
+              </button>
             </div>
           )}
 
@@ -250,9 +284,9 @@ export function TasksPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
-  main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
-  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface',
+  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  main: 'flex flex-row flex-1 overflow-hidden',
+  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface overflow-y-auto custom-scrollbar',
   header: 'mb-4 md:mb-6',
   title: 'text-lg md:text-2xl font-bold text-stellar',
   subtitle: 'text-sm md:text-base text-nebula mt-1',
@@ -272,4 +306,5 @@ const Styles = {
   formActions: 'flex gap-3 md:gap-4 mt-6 md:mt-8',
   cancelButton: 'flex-1 px-4 py-2.5 md:py-3 bg-surface hover:bg-surface/80 text-stellar font-bold text-sm transition-colors rounded-xl',
   submitButton: 'flex-1 px-4 py-2.5 md:py-3 bg-primary text-stellar hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm transition-colors rounded-xl shadow-lg',
+  showMoreButton: 'px-6 py-2.5 bg-surface border border-surface text-stellar hover:bg-surface/80 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95',
 };

@@ -223,9 +223,9 @@ export function DharmasPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
-  main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
-  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface pb-20 md:pb-4',
+  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  main: 'flex flex-row flex-1 overflow-hidden',
+  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface pb-24 md:pb-8 overflow-y-auto custom-scrollbar',
   pageTitle: 'text-base md:text-lg font-bold mb-1 text-stellar',
   pageSubtitle: 'text-xs md:text-sm text-nebula mb-4',
   grid: 'space-y-2 mb-4',
