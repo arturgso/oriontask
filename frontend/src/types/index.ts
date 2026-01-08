@@ -6,6 +6,22 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Profile {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  username?: string;
+  email?: string;
+  newPassword?: string;
+}
+
 export interface Dharma {
   id: number;
   user: User;

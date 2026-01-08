@@ -107,4 +107,18 @@ export const api = {
       throw error;
     }
   },
+
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      return handleResponse<T>(response);
+    } catch (error) {
+      console.error(`PUT ${endpoint}:`, error);
+      throw error;
+    }
+  },
 };

@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage';
 import { DharmasPage } from './pages/DharmasPage';
 import { TasksPage } from './pages/TasksPage';
 import { AgoraPage } from './pages/AgoraPage';
+import ProfilePage from './pages/ProfilePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = authService.isAuthenticated();
@@ -80,6 +81,7 @@ function App() {
         <Route path="/dharmas" element={<ProtectedRoute><DharmasPage /></ProtectedRoute>} />
         <Route path="/tasks/:dharmaId" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
         <Route path="/agora" element={<ProtectedRoute><AgoraPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
