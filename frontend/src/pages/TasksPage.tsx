@@ -14,7 +14,7 @@ export function TasksPage() {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [karmaType, setKarmaType] = useState<KarmaType>(KarmaType.ENERGY);
+  const [karmaType, setKarmaType] = useState<KarmaType>(KarmaType.ACTION);
   const [effortLevel, setEffortLevel] = useState<EffortLevel>(EffortLevel.LOW);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,11 +46,11 @@ export function TasksPage() {
 
     setLoading(true);
     try {
-      const data: CreateTaskDTO = { 
-        title, 
-        description: description || undefined, 
-        karmaType, 
-        effortLevel 
+      const data: CreateTaskDTO = {
+        title,
+        description: description || undefined,
+        karmaType,
+        effortLevel
       };
       const task = await tasksApi.create(Number(dharmaId), data);
       setTasks([...tasks, task]);
@@ -103,12 +103,12 @@ export function TasksPage() {
   return (
     <div className={Styles.page}>
       <main className={Styles.main}>
-        <Sidebar 
-          isOpen={sidebarOpen} 
+        <Sidebar
+          isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
-        
+
         <section className={Styles.content}>
           <div className={Styles.header}>
             <h2 className={Styles.title}>{dharma?.name || 'Tasks'}</h2>
@@ -116,135 +116,133 @@ export function TasksPage() {
           </div>
 
           <div className={Styles.section}>
-        <div className={Styles.sectionHeader}>
-          <h2 className={Styles.sectionTitle}>Ativas</h2>
-          <button onClick={() => setShowForm(true)} className={Styles.addButton}>
-            <Plus size={20} />
-            <span>Nova Task</span>
-          </button>
-        </div>
+            <div className={Styles.sectionHeader}>
+              <h2 className={Styles.sectionTitle}>Ativas</h2>
+              <button onClick={() => setShowForm(true)} className={Styles.addButton}>
+                <Plus size={20} />
+                <span>Nova Task</span>
+              </button>
+            </div>
 
-        <div className={Styles.taskList}>
-          {activeTasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onComplete={() => handleComplete(task.id)}
-              onMove={(status) => handleMove(task.id, status)}
-              onDelete={() => handleDelete(task.id)}
-            />
-          ))}
-          {activeTasks.length === 0 && (
-            <p className={Styles.empty}>Nenhuma task ativa</p>
-          )}
-        </div>
-      </div>
-
-      {doneTasks.length > 0 && (
-        <div className={Styles.section}>
-          <h2 className={Styles.sectionTitle}>Concluídas</h2>
-          <div className={Styles.taskList}>
-            {doneTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
+            <div className={Styles.taskList}>
+              {activeTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onComplete={() => handleComplete(task.id)}
+                  onMove={(status) => handleMove(task.id, status)}
+                  onDelete={() => handleDelete(task.id)}
+                />
+              ))}
+              {activeTasks.length === 0 && (
+                <p className={Styles.empty}>Nenhuma task ativa</p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
 
-      {showForm && (
-        <div className={Styles.modal}>
-          <form onSubmit={handleCreate} className={Styles.form}>
-            <h2 className={Styles.formTitle}>Nova Task</h2>
-
-            <div className={Styles.field}>
-              <label htmlFor="task-title" className={Styles.label}>
-                Título *
-              </label>
-              <input
-                id="task-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className={Styles.input}
-                placeholder="Beber água ao acordar"
-                required
-                minLength={5}
-                maxLength={60}
-              />
-            </div>
-
-            <div className={Styles.field}>
-              <label htmlFor="task-desc" className={Styles.label}>
-                Descrição
-              </label>
-              <input
-                id="task-desc"
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className={Styles.input}
-                placeholder="500ml logo pela manhã"
-                maxLength={200}
-              />
-            </div>
-
-            <div className={Styles.field}>
-              <label htmlFor="karma-type" className={Styles.label}>
-                Tipo de Karma *
-              </label>
-              <select
-                id="karma-type"
-                value={karmaType}
-                onChange={(e) => setKarmaType(e.target.value as KarmaType)}
-                className={Styles.select}
-              >
-                <option value={KarmaType.ENERGY}>Energia</option>
-                <option value={KarmaType.MOOD}>Humor</option>
-                <option value={KarmaType.RELATIONSHIPS}>Relações</option>
-                <option value={KarmaType.MONEY}>Dinheiro</option>
-                <option value={KarmaType.GROWTH}>Crescimento</option>
-              </select>
-            </div>
-
-            <div className={Styles.field}>
-              <label htmlFor="effort-level" className={Styles.label}>
-                Esforço Necessário *
-              </label>
-              <select
-                id="effort-level"
-                value={effortLevel}
-                onChange={(e) => setEffortLevel(e.target.value as EffortLevel)}
-                className={Styles.select}
-              >
-                <option value={EffortLevel.LOW}>Baixo (~10min)</option>
-                <option value={EffortLevel.MEDIUM}>Médio (~25min)</option>
-                <option value={EffortLevel.HIGH}>Alto (~50min)</option>
-              </select>
-            </div>
-
-            {dharma?.hidden && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded p-3 text-xs md:text-sm">
-                <p className="text-purple-800 dark:text-purple-300 font-medium flex items-center gap-2">
-                  <span>🔒</span>
-                  <span>Tarefa privada (herda do Dharma)</span>
-                </p>
-                <p className="text-purple-600 dark:text-purple-400 text-xs mt-1">
-                  Esta tarefa será ocultada junto com o Dharma "{dharma.name}"
-                </p>
+          {doneTasks.length > 0 && (
+            <div className={Styles.section}>
+              <h2 className={Styles.sectionTitle}>Concluídas</h2>
+              <div className={Styles.taskList}>
+                {doneTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
               </div>
-            )}
-
-            <div className={Styles.formActions}>
-              <button type="button" onClick={() => setShowForm(false)} className={Styles.cancelButton}>
-                Cancelar
-              </button>
-              <button type="submit" disabled={loading} className={Styles.submitButton}>
-                {loading ? 'Criando...' : 'Criar'}
-              </button>
             </div>
-          </form>
-        </div>
-      )}
+          )}
+
+          {showForm && (
+            <div className={Styles.modal}>
+              <form onSubmit={handleCreate} className={Styles.form}>
+                <h2 className={Styles.formTitle}>Nova Task</h2>
+
+                <div className={Styles.field}>
+                  <label htmlFor="task-title" className={Styles.label}>
+                    Título *
+                  </label>
+                  <input
+                    id="task-title"
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className={Styles.input}
+                    placeholder="Beber água ao acordar"
+                    required
+                    minLength={5}
+                    maxLength={60}
+                  />
+                </div>
+
+                <div className={Styles.field}>
+                  <label htmlFor="task-desc" className={Styles.label}>
+                    Descrição
+                  </label>
+                  <input
+                    id="task-desc"
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className={Styles.input}
+                    placeholder="500ml logo pela manhã"
+                    maxLength={200}
+                  />
+                </div>
+
+                <div className={Styles.field}>
+                  <label htmlFor="karma-type" className={Styles.label}>
+                    Tipo de Karma *
+                  </label>
+                  <select
+                    id="karma-type"
+                    value={karmaType}
+                    onChange={(e) => setKarmaType(e.target.value as KarmaType)}
+                    className={Styles.select}
+                  >
+                    <option value={KarmaType.ACTION}>Ação</option>
+                    <option value={KarmaType.PEOPLE}>Pessoas</option>
+                    <option value={KarmaType.THINKING}>Reflexão</option>
+                  </select>
+                </div>
+
+                <div className={Styles.field}>
+                  <label htmlFor="effort-level" className={Styles.label}>
+                    Esforço Necessário *
+                  </label>
+                  <select
+                    id="effort-level"
+                    value={effortLevel}
+                    onChange={(e) => setEffortLevel(e.target.value as EffortLevel)}
+                    className={Styles.select}
+                  >
+                    <option value={EffortLevel.LOW}>Baixo (~10min)</option>
+                    <option value={EffortLevel.MEDIUM}>Médio (~25min)</option>
+                    <option value={EffortLevel.HIGH}>Alto (~50min)</option>
+                  </select>
+                </div>
+
+                {dharma?.hidden && (
+                  <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded p-3 text-xs md:text-sm">
+                    <p className="text-purple-800 dark:text-purple-300 font-medium flex items-center gap-2">
+                      <span>🔒</span>
+                      <span>Tarefa privada (herda do Dharma)</span>
+                    </p>
+                    <p className="text-purple-600 dark:text-purple-400 text-xs mt-1">
+                      Esta tarefa será ocultada junto com o Dharma "{dharma.name}"
+                    </p>
+                  </div>
+                )}
+
+                <div className={Styles.formActions}>
+                  <button type="button" onClick={() => setShowForm(false)} className={Styles.cancelButton}>
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={loading} className={Styles.submitButton}>
+                    {loading ? 'Criando...' : 'Criar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </section>
       </main>
     </div>

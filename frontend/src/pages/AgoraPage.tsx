@@ -5,7 +5,7 @@ import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
-import { PartyPopper, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { TaskStatus, type Task } from '../types';
 
 export function AgoraPage() {
@@ -54,7 +54,7 @@ export function AgoraPage() {
     try {
       await tasksApi.markDone(taskId);
       setTasks(tasks.filter((t) => t.id !== taskId));
-      
+
       const task = tasks.find((t) => t.id === taskId);
       if (task) {
         const karmaLabels = {
@@ -85,8 +85,8 @@ export function AgoraPage() {
     return (
       <div className={Styles.page}>
         <main className={Styles.main}>
-          <Sidebar 
-            isOpen={sidebarOpen} 
+          <Sidebar
+            isOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
             onToggle={() => setSidebarOpen(!sidebarOpen)}
           />
@@ -101,12 +101,12 @@ export function AgoraPage() {
   return (
     <div className={Styles.page}>
       <main className={Styles.main}>
-        <Sidebar 
-          isOpen={sidebarOpen} 
+        <Sidebar
+          isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
-        
+
         <section className={Styles.content}>
           <div className={Styles.header}>
             <Zap size={24} className={Styles.icon} />
@@ -122,30 +122,30 @@ export function AgoraPage() {
           </div>
 
           <div className={Styles.taskList}>
-        {(showOverflow ? tasks : primaryTasks).map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onComplete={() => handleComplete(task.id)}
-            onMove={(status) => handleMove(task.id, status)}
-          />
-        ))}
-      </div>
+            {(showOverflow ? tasks : primaryTasks).map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onComplete={() => handleComplete(task.id)}
+                onMove={(status) => handleMove(task.id, status)}
+              />
+            ))}
+          </div>
 
-      {!showOverflow && overflowTasks.length > 0 && (
-        <button className={Styles.showMore} onClick={() => setShowOverflow(true)}>
-          Mostrar mais ({overflowTasks.length})
-        </button>
-      )}
+          {!showOverflow && overflowTasks.length > 0 && (
+            <button className={Styles.showMore} onClick={() => setShowOverflow(true)}>
+              Mostrar mais ({overflowTasks.length})
+            </button>
+          )}
 
-      {tasks.length === 0 && (
-        <div className={Styles.empty}>
-          <p className={Styles.emptyText}>Nenhuma task para agora</p>
-          <p className={Styles.emptyHint}>
-            Vá até seus Dharmas e mova tasks para cá
-          </p>
-        </div>
-      )}
+          {tasks.length === 0 && (
+            <div className={Styles.empty}>
+              <p className={Styles.emptyText}>Nenhuma task para agora</p>
+              <p className={Styles.emptyHint}>
+                Vá até seus Dharmas e mova tasks para cá
+              </p>
+            </div>
+          )}
         </section>
       </main>
     </div>

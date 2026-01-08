@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Plus, ArrowRight, Edit, Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../state/store';
-import { Header } from '../components/Header';
+
 import { Sidebar } from '../components/Sidebar';
 import { DharmaEditModal } from '../components/DharmaEditModal';
 import toast from 'react-hot-toast';
@@ -84,138 +84,138 @@ export function DharmasPage() {
   return (
     <div className={Styles.page}>
       <main className={Styles.main}>
-        <Sidebar 
-          isOpen={sidebarOpen} 
+        <Sidebar
+          isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
-        
+
         <section className={Styles.content}>
           <h2 className={Styles.pageTitle}>Meus Dharmas</h2>
           <p className={Styles.pageSubtitle}>Áreas de vida que importam (áximo 8)</p>
 
           <div className={Styles.grid}>
-        {dharmas.map((dharma) => (
-          <div 
-            key={dharma.id} 
-            onClick={() => navigate(`/tasks/${dharma.id}`)}
-            className={`${Styles.dharmaItem} ${dharma.hidden ? 'opacity-60' : ''}`}
-          >
-            <div className={Styles.dharmaContent}>
-              <span style={{ backgroundColor: dharma.color }} className={Styles.colorDot} />
-              <span className={Styles.dharmaName}>{dharma.name}</span>
-              {dharma.hidden && <EyeOff size={14} className="text-gray-500 ml-2" />}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingDharma(dharma);
-                }}
-                className={Styles.editBtn}
-                title="Editar Dharma"
+            {dharmas.map((dharma) => (
+              <div
+                key={dharma.id}
+                onClick={() => navigate(`/tasks/${dharma.id}`)}
+                className={`${Styles.dharmaItem} ${dharma.hidden ? 'opacity-60' : ''}`}
               >
-                <Edit size={14} />
-                <span className="hidden md:inline">Editar</span>
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleHidden(dharma.id, dharma.hidden);
-                }}
-                className={Styles.toggleBtn}
-                title={dharma.hidden ? 'Tornar visível' : 'Ocultar'}
-              >
-                {dharma.hidden ? <Eye size={14} /> : <EyeOff size={14} />}
-                <span className="hidden md:inline">{dharma.hidden ? 'Mostrar' : 'Ocultar'}</span>
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(dharma.id);
-                }}
-                className={Styles.deleteBtn}
-                title="Remover Dharma"
-              >
-                <Trash2 size={14} />
-                <span className="hidden md:inline">Remover</span>
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {dharmas.length < 8 && (
-          <button onClick={() => setShowForm(true)} className={Styles.addButton}>
-            <Plus size={16} />
-            <span>Adicionar Dharma</span>
-          </button>
-        )}
-      </div>
-
-      {showForm && (
-        <div className={Styles.modal}>
-          <form onSubmit={handleCreate} className={Styles.form}>
-            <h2 className={Styles.formTitle}>Criar Dharma</h2>
-
-            <div className={Styles.field}>
-              <label className={Styles.label}>Nome</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={Styles.input}
-                maxLength={50}
-                required
-              />
-            </div>
-
-            <div className={Styles.field}>
-              <label className={Styles.label}>Cor</label>
-              <div className={Styles.colorGrid}>
-                {suggestedColors.map((c) => (
+                <div className={Styles.dharmaContent}>
+                  <span style={{ backgroundColor: dharma.color }} className={Styles.colorDot} />
+                  <span className={Styles.dharmaName}>{dharma.name}</span>
+                  {dharma.hidden && <EyeOff size={14} className="text-gray-500 ml-2" />}
+                </div>
+                <div className="flex gap-2">
                   <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    className={Styles.colorOption}
-                    style={{
-                      backgroundColor: c,
-                      border: color === c ? '3px solid #000' : '2px solid #ddd',
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingDharma(dharma);
                     }}
-                  />
-                ))}
+                    className={Styles.editBtn}
+                    title="Editar Dharma"
+                  >
+                    <Edit size={14} />
+                    <span className="hidden md:inline">Editar</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleHidden(dharma.id, dharma.hidden);
+                    }}
+                    className={Styles.toggleBtn}
+                    title={dharma.hidden ? 'Tornar visível' : 'Ocultar'}
+                  >
+                    {dharma.hidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                    <span className="hidden md:inline">{dharma.hidden ? 'Mostrar' : 'Ocultar'}</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(dharma.id);
+                    }}
+                    className={Styles.deleteBtn}
+                    title="Remover Dharma"
+                  >
+                    <Trash2 size={14} />
+                    <span className="hidden md:inline">Remover</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            ))}
 
-            <div className={Styles.actions}>
-              <button type="submit" className={Styles.submitBtn}>
+            {dharmas.length < 8 && (
+              <button onClick={() => setShowForm(true)} className={Styles.addButton}>
                 <Plus size={16} />
-                <span>Criar Dharma</span>
+                <span>Adicionar Dharma</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className={Styles.cancelBtn}
-              >
-                Cancelar
-              </button>
+            )}
+          </div>
+
+          {showForm && (
+            <div className={Styles.modal}>
+              <form onSubmit={handleCreate} className={Styles.form}>
+                <h2 className={Styles.formTitle}>Criar Dharma</h2>
+
+                <div className={Styles.field}>
+                  <label className={Styles.label}>Nome</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={Styles.input}
+                    maxLength={50}
+                    required
+                  />
+                </div>
+
+                <div className={Styles.field}>
+                  <label className={Styles.label}>Cor</label>
+                  <div className={Styles.colorGrid}>
+                    {suggestedColors.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setColor(c)}
+                        className={Styles.colorOption}
+                        style={{
+                          backgroundColor: c,
+                          border: color === c ? '3px solid #000' : '2px solid #ddd',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className={Styles.actions}>
+                  <button type="submit" className={Styles.submitBtn}>
+                    <Plus size={16} />
+                    <span>Criar Dharma</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className={Styles.cancelBtn}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
-      )}
+          )}
 
-      <button onClick={() => navigate('/agora')} className={Styles.agoraButton}>
-        <ArrowRight size={16} />
-        <span>Ver Agora</span>
-      </button>
+          <button onClick={() => navigate('/agora')} className={Styles.agoraButton}>
+            <ArrowRight size={16} />
+            <span>Ver Agora</span>
+          </button>
 
-      {editingDharma && (
-        <DharmaEditModal
-          dharma={editingDharma}
-          onClose={() => setEditingDharma(null)}
-          onSave={handleEdit}
-        />
-      )}
+          {editingDharma && (
+            <DharmaEditModal
+              dharma={editingDharma}
+              onClose={() => setEditingDharma(null)}
+              onSave={handleEdit}
+            />
+          )}
         </section>
       </main>
     </div>
