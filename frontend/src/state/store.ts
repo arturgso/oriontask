@@ -16,14 +16,14 @@ interface AppState {
   loadShowHidden: () => void;
   toggleShowHidden: () => Promise<void>;
   logout: () => void;
-  
+
   // Dharma actions
   fetchDharmas: (userId: string) => Promise<void>;
   createDharma: (userId: string, dto: CreateDharmaDTO) => Promise<void>;
   updateDharma: (dharmaId: number, dto: CreateDharmaDTO) => Promise<void>;
   toggleDharmaHidden: (dharmaId: number) => Promise<void>;
   deleteDharma: (dharmaId: number) => Promise<void>;
-  
+
   // Task actions
   fetchTasks: (dharmaId: number) => Promise<void>;
   createTask: (dharmaId: number, dto: CreateTaskDTO) => Promise<void>;
@@ -41,7 +41,7 @@ export const useStore = create<AppState>((set, get) => ({
   theme: 'light',
   showHidden: false,
   hydrated: false,
-  
+
   setUser: (user) => {
     set({ user });
     if (user) {
@@ -50,7 +50,7 @@ export const useStore = create<AppState>((set, get) => ({
       localStorage.removeItem('userId');
     }
   },
-  
+
   loadUserFromStorage: async () => {
     const userId = localStorage.getItem('userId');
     if (userId) {
@@ -92,13 +92,13 @@ export const useStore = create<AppState>((set, get) => ({
     const next = !state.showHidden;
     localStorage.setItem('showHidden', String(next));
     set({ showHidden: next });
-    
+
     // Refetch dharmas with new showHidden value
     if (state.user) {
       await get().fetchDharmas(state.user.id);
     }
   },
-  
+
   logout: () => {
     localStorage.removeItem('userId');
     set({ user: null, dharmas: [], tasks: [] });
@@ -142,7 +142,7 @@ export const useStore = create<AppState>((set, get) => ({
       const updatedDharma = await dharmaApi.toggleHidden(dharmaId);
       set((state) => ({
         dharmas: state.dharmas.map((d) => (d.id === dharmaId ? updatedDharma : d)),
-        tasks: state.tasks.map((t) => 
+        tasks: state.tasks.map((t) =>
           t.dharma.id === dharmaId ? { ...t, hidden: updatedDharma.hidden, dharma: updatedDharma } : t
         ),
       }));
@@ -155,7 +155,7 @@ export const useStore = create<AppState>((set, get) => ({
   deleteDharma: async (dharmaId: number) => {
     try {
       await dharmaApi.delete(dharmaId);
-      set((state) => ({ 
+      set((state) => ({
         dharmas: state.dharmas.filter((d) => d.id !== dharmaId),
         tasks: state.tasks.filter((t) => t.dharma.id !== dharmaId)
       }));
@@ -168,8 +168,8 @@ export const useStore = create<AppState>((set, get) => ({
   // Task actions
   fetchTasks: async (dharmaId: number) => {
     try {
-      const tasks = await tasksApi.getByDharma(dharmaId);
-      set({ tasks });
+      const response = await tasksApi.getByDharma(dharmaId);
+      set({ tasks: response.content });
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
     }
@@ -200,8 +200,11 @@ export const useStore = create<AppState>((set, get) => ({
   fillNowWithNext: async (userId: string) => {
     try {
       // Fetch current NOW and NEXT tasks for the user; prioritize NEXT oldest first
-      const now = await tasksApi.getByUserAndStatus(userId, 'NOW' as TaskStatus);
-      const next = await tasksApi.getByUserAndStatus(userId, 'NEXT' as TaskStatus);
+      const nowResponse = await tasksApi.getByUserAndStatus(userId, 'NOW' as TaskStatus);
+      const nextResponse = await tasksApi.getByUserAndStatus(userId, 'NEXT' as TaskStatus);
+
+      const now = nowResponse.content;
+      const next = nextResponse.content;
 
       if (now.length >= 5) {
         set({ tasks: now });

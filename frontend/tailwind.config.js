@@ -15,7 +15,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        base: withOpacity('--bg-base'),
+        canvas: withOpacity('--bg-base'),
         card: withOpacity('--bg-card'),
         surface: withOpacity('--bg-surface'),
         primary: withOpacity('--color-primary'),

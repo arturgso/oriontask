@@ -154,7 +154,7 @@ export function AgoraPage() {
 }
 
 const Styles = {
-  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  page: 'h-screen flex flex-col bg-canvas pt-14 md:pt-0 overflow-hidden',
   main: 'flex flex-row flex-1 overflow-hidden',
   content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface overflow-y-auto custom-scrollbar',
   header: 'flex items-center gap-2 mb-2',

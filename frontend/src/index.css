@@ -52,7 +52,7 @@
   }
 
   body {
-    @apply m-0 font-sans antialiased bg-base text-stellar;
+    @apply m-0 font-sans antialiased bg-canvas text-stellar;
   }
 
   h1,

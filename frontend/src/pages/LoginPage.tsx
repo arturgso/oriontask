@@ -240,7 +240,7 @@ export function LoginPage() {
 }
 
 const Styles = {
-  container: 'min-h-screen flex items-center justify-center bg-base p-3 md:p-4',
+  container: 'min-h-screen flex items-center justify-center bg-canvas p-3 md:p-4',
   card: 'bg-card border border-surface p-4 md:p-8 w-full max-w-sm rounded-lg',
   header: 'text-center mb-6',
   icon: 'mx-auto mb-2 md:mb-3 w-12 md:w-16 h-12 md:h-16',

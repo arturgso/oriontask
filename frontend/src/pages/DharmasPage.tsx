@@ -223,7 +223,7 @@ export function DharmasPage() {
 }
 
 const Styles = {
-  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  page: 'h-screen flex flex-col bg-canvas pt-14 md:pt-0 overflow-hidden',
   main: 'flex flex-row flex-1 overflow-hidden',
   content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface pb-24 md:pb-8 overflow-y-auto custom-scrollbar',
   pageTitle: 'text-base md:text-lg font-bold mb-1 text-stellar',

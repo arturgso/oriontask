@@ -9,7 +9,7 @@ import type { Profile, UpdateProfileRequest } from '../types';
 type EditingSection = 'none' | 'profile' | 'password';
 
 const Styles = {
-  page: 'h-screen flex bg-base pt-14 md:pt-0 overflow-hidden',
+  page: 'h-screen flex bg-canvas pt-14 md:pt-0 overflow-hidden',
   main: 'flex flex-1 flex-row overflow-hidden',
   content: 'flex-1 bg-card md:border-l border-surface px-4 sm:px-10 py-8 overflow-y-auto custom-scrollbar',
   container: 'max-w-3xl mx-auto space-y-6',
@@ -17,7 +17,7 @@ const Styles = {
   heading: 'space-y-1',
   title: 'text-3xl font-semibold text-stellar',
   subtitle: 'text-sm text-nebula',
-  panel: 'bg-base/95 backdrop-blur rounded-3xl border border-surface shadow-lg px-6 sm:px-8 py-7 space-y-6',
+  panel: 'bg-canvas/95 backdrop-blur rounded-3xl border border-surface shadow-lg px-6 sm:px-8 py-7 space-y-6',
   hero: 'flex flex-col sm:flex-row sm:items-center gap-4',
   heroIcon: 'h-16 w-16 rounded-2xl border border-surface bg-card flex items-center justify-center text-nebula',
   heroMeta: 'flex-1',
@@ -32,13 +32,13 @@ const Styles = {
   infoLabel: 'text-xs text-nebula uppercase tracking-wide',
   infoValue: 'text-base text-stellar font-medium',
   buttonRow: 'flex flex-wrap gap-3 pt-2',
-  ghostButton: 'px-4 py-2.5 rounded-xl border border-surface text-stellar hover:bg-base/60 transition disabled:opacity-60',
+  ghostButton: 'px-4 py-2.5 rounded-xl border border-surface text-stellar hover:bg-canvas/60 transition disabled:opacity-60',
   primaryButton: 'px-4 py-2.5 rounded-xl bg-accent text-black font-semibold shadow-sm hover:opacity-90 transition disabled:opacity-60',
   editPanel: 'border border-surface rounded-2xl bg-card/80 p-5 space-y-5',
   form: 'grid gap-4 md:grid-cols-2',
   inputGroup: 'space-y-2 md:col-span-1',
   inputWrapper: 'relative flex items-center gap-3',
-  input: 'w-full px-4 py-3 rounded-xl bg-base border border-surface text-stellar focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none placeholder:text-nebula',
+  input: 'w-full px-4 py-3 rounded-xl bg-canvas border border-surface text-stellar focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none placeholder:text-nebula',
   togglePassword: 'flex items-center justify-center text-nebula hover:text-stellar transition',
   helper: 'text-xs text-nebula',
   loading: 'text-nebula text-center w-full py-10',
