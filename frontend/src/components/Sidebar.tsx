@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X } from 'lucide-react';
+import { authService } from '../services/authService';
+import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Dharma } from '../types';
 import { api } from '../api/client';
@@ -28,8 +29,9 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   }, [loadShowHidden]);
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    authService.logout(); // Limpar token
+    logout(); // Limpar store
+    navigate('/login');
   };
 
   useEffect(() => {
@@ -129,6 +131,13 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
               >
                 <List size={18} />
                 <span>Todos os Dharmas</span>
+              </button>
+              <button 
+                className={Styles.navButton}
+                onClick={() => handleNavigation('/profile')}
+              >
+                <User size={18} />
+                <span>Meu Perfil</span>
               </button>
             </div>
           </div>

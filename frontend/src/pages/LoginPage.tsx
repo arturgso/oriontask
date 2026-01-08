@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usersApi } from '../api';
+import { authService } from '../services/authService';
 import { useStore } from '../state/store';
 import toast from 'react-hot-toast';
 import { LogIn, UserPlus } from 'lucide-react';
 
 export function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
-  const [username, setUsername] = useState('');
+  const [login, setLogin] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,12 +20,18 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const user = await usersApi.getByUsername(username);
-      setUser(user);
-      toast.success(`Bem-vindo de volta, ${user.name}!`);
+      const response = await authService.login({ login, password });
+      setUser({
+        id: response.id,
+        username: response.username,
+        name: response.name,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      toast.success(`Bem-vindo de volta, ${response.name}!`);
       navigate('/agora');
-    } catch {
-      toast.error('Usuário não encontrado');
+    } catch (error: any) {
+      toast.error(error.message || 'Usuário ou senha inválidos');
     } finally {
       setLoading(false);
     }
@@ -31,15 +39,49 @@ export function LoginPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validação de senha
+    if (password.length < 8) {
+      toast.error('A senha deve ter no mínimo 8 caracteres');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      toast.error('A senha deve conter ao menos uma letra maiúscula');
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      toast.error('A senha deve conter ao menos uma letra minúscula');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      toast.error('A senha deve conter ao menos um número');
+      return;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      toast.error('A senha deve conter ao menos um caractere especial');
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const user = await usersApi.signup({ name, username });
-      setUser(user);
-      toast.success(`Bem-vindo, ${user.name}!`);
+      const response = await authService.signup({ 
+        name, 
+        username: login, 
+        email,
+        password 
+      });
+      setUser({
+        id: response.id,
+        username: response.username,
+        name: response.name,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      toast.success(`Bem-vindo, ${response.name}!`);
       navigate('/agora');
-    } catch {
-      toast.error('Erro ao criar usuário. Username pode já existir.');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao criar usuário');
     } finally {
       setLoading(false);
     }
@@ -72,20 +114,33 @@ export function LoginPage() {
         {!isSignup ? (
           <form onSubmit={handleLogin} className={Styles.form}>
             <div className={Styles.field}>
-              <label htmlFor="username" className={Styles.label}>
-                Username
+              <label htmlFor="login" className={Styles.label}>
+                Username ou Email
               </label>
               <input
-                id="username"
+                id="login"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                 className={Styles.input}
-                placeholder="joao_silva"
+                placeholder="joao_silva ou email@exemplo.com"
                 required
-                minLength={3}
-                maxLength={20}
-                pattern="[a-zA-Z0-9_]+"
+              />
+            </div>
+
+            <div className={Styles.field}>
+              <label htmlFor="password" className={Styles.label}>
+                Senha
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={Styles.input}
+                placeholder="••••••••"
+                required
+                minLength={8}
               />
             </div>
 
@@ -124,8 +179,8 @@ export function LoginPage() {
               <input
                 id="username-signup"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
                 className={Styles.input}
                 placeholder="joao_silva"
                 required
@@ -133,7 +188,40 @@ export function LoginPage() {
                 maxLength={20}
                 pattern="[a-zA-Z0-9_]+"
               />
-              <p className={Styles.hint}>Apenas letras, números e underscore</p>
+            </div>
+
+            <div className={Styles.field}>
+              <label htmlFor="email" className={Styles.label}>
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={Styles.input}
+                placeholder="joao@exemplo.com"
+                required
+              />
+            </div>
+
+            <div className={Styles.field}>
+              <label htmlFor="password-signup" className={Styles.label}>
+                Senha
+              </label>
+              <input
+                id="password-signup"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={Styles.input}
+                placeholder="••••••••"
+                required
+                minLength={8}
+              />
+              <p className={Styles.hint}>
+                Mínimo 8 caracteres, com maiúscula, minúscula, número e caractere especial
+              </p>
             </div>
 
             <button type="submit" disabled={loading} className={Styles.button}>

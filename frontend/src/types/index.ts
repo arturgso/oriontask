@@ -6,6 +6,22 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Profile {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  username?: string;
+  email?: string;
+  newPassword?: string;
+}
+
 export interface Dharma {
   id: number;
   user: User;
@@ -32,11 +48,9 @@ export interface Task {
 }
 
 export const KarmaType = {
-  ENERGY: 'ENERGY',
-  MOOD: 'MOOD',
-  RELATIONSHIPS: 'RELATIONSHIPS',
-  MONEY: 'MONEY',
-  GROWTH: 'GROWTH',
+  ACTION: 'ACTION',
+  PEOPLE: 'PEOPLE',
+  THINKING: 'THINKING',
 } as const;
 
 export type KarmaType = typeof KarmaType[keyof typeof KarmaType];

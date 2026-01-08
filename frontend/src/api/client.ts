@@ -5,10 +5,30 @@ interface ApiError {
   status: number;
 }
 
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('oriontask_token');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
   
   if (!response.ok) {
+    // Se 401, redirecionar para login
+    if (response.status === 401) {
+      localStorage.removeItem('oriontask_token');
+      localStorage.removeItem('oriontask_user');
+      window.location.href = '/login';
+    }
+    
     console.error(`API Error ${response.status}:`, text);
     const error: ApiError = {
       message: text || `Erro ${response.status}`,
@@ -36,7 +56,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export const api = {
   async get<T>(endpoint: string): Promise<T> {
     try {
-      const response = await fetch(`${BASE_URL}${endpoint}`);
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        headers: getAuthHeaders(),
+      });
       return handleResponse<T>(response);
     } catch (error) {
       console.error(`GET ${endpoint}:`, error);
@@ -49,9 +71,7 @@ export const api = {
       console.log(`POST ${endpoint} com dados:`, data);
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: data ? JSON.stringify(data) : undefined,
       });
       return handleResponse<T>(response);
@@ -65,9 +85,7 @@ export const api = {
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: data ? JSON.stringify(data) : undefined,
       });
       return handleResponse<T>(response);
@@ -81,10 +99,25 @@ export const api = {
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
       return handleResponse<T>(response);
     } catch (error) {
       console.error(`DELETE ${endpoint}:`, error);
+      throw error;
+    }
+  },
+
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      return handleResponse<T>(response);
+    } catch (error) {
+      console.error(`PUT ${endpoint}:`, error);
       throw error;
     }
   },
