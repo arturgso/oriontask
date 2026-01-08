@@ -39,7 +39,7 @@ export function LoginPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validação de senha
     if (password.length < 8) {
       toast.error('A senha deve ter no mínimo 8 caracteres');
@@ -61,15 +61,15 @@ export function LoginPage() {
       toast.error('A senha deve conter ao menos um caractere especial');
       return;
     }
-    
+
     setLoading(true);
 
     try {
-      const response = await authService.signup({ 
-        name, 
-        username: login, 
+      const response = await authService.signup({
+        name,
+        username: login,
         email,
-        password 
+        password
       });
       setUser({
         id: response.id,
@@ -244,16 +244,16 @@ const Styles = {
   card: 'bg-card border border-surface p-4 md:p-8 w-full max-w-sm rounded-lg',
   header: 'text-center mb-6',
   icon: 'mx-auto mb-2 md:mb-3 w-12 md:w-16 h-12 md:h-16',
-  title: 'text-xl md:text-2xl font-bold mb-1 md:mb-2 text-text-primary',
-  subtitle: 'text-xs md:text-sm text-text-muted',
+  title: 'text-xl md:text-2xl font-bold mb-1 md:mb-2 text-stellar',
+  subtitle: 'text-xs md:text-sm text-nebula',
   tabs: 'flex gap-2 mb-6',
   tab: (active: boolean) =>
-    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-accent text-text-primary' : 'bg-surface text-text-muted hover:bg-surface/80'}`,
+    `flex-1 py-2 md:py-3 font-semibold rounded text-xs md:text-sm transition-colors ${active ? 'bg-accent text-stellar' : 'bg-surface text-nebula hover:bg-surface/80'}`,
   form: 'space-y-4',
   field: 'space-y-1',
-  label: 'block text-xs md:text-sm font-semibold text-text-primary',
-  input: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-accent text-sm rounded text-text-primary',
-  hint: 'text-xs text-text-muted',
-  button: 'w-full bg-accent text-text-primary py-2.5 md:py-3 font-semibold hover:bg-accent/80 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
+  label: 'block text-xs md:text-sm font-semibold text-stellar',
+  input: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-accent text-sm rounded text-stellar',
+  hint: 'text-xs text-nebula',
+  button: 'w-full bg-accent text-stellar py-2.5 md:py-3 font-semibold hover:bg-accent/80 disabled:opacity-50 rounded flex items-center justify-center text-sm transition-colors',
   buttonContent: 'flex items-center gap-2',
 };

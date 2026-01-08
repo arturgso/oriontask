@@ -23,7 +23,7 @@ function App() {
 
   useEffect(() => {
     loadTheme();
-    
+
     // Carregar usuário do authService
     const user = authService.getUser();
     if (user) {
@@ -35,7 +35,7 @@ function App() {
         updatedAt: new Date().toISOString(),
       });
     }
-    
+
     loadUserFromStorage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -43,6 +43,8 @@ function App() {
   useEffect(() => {
     const html = document.documentElement;
     html.setAttribute('data-theme', theme);
+    html.classList.remove('light', 'dark');
+    html.classList.add(theme);
   }, [theme]);
 
   if (!hydrated) {
@@ -56,20 +58,21 @@ function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: '#15121E',
+            color: '#F5F5F7',
+            border: '1px solid #1F2937',
           },
           success: {
             duration: 3000,
             iconTheme: {
-              primary: '#4CAF50',
+              primary: '#8B5CF6',
               secondary: '#fff',
             },
           },
           error: {
             duration: 4000,
             iconTheme: {
-              primary: '#EF4444',
+              primary: '#F87171',
               secondary: '#fff',
             },
           },

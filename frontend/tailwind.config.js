@@ -21,11 +21,8 @@ export default {
         primary: withOpacity('--color-primary'),
         accent: withOpacity('--color-accent'),
         border: withOpacity('--border-color'),
-        text: {
-          primary: withOpacity('--text-primary'),
-          muted: withOpacity('--text-muted'),
-          secondary: withOpacity('--text-muted'),
-        },
+        stellar: withOpacity('--text-primary'),
+        nebula: withOpacity('--text-muted'),
       },
     },
   },

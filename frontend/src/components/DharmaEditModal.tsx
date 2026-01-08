@@ -38,12 +38,12 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-card border border-surface rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-text-primary">
+          <h3 className="text-xl font-semibold text-stellar">
             Editar Dharma
           </h3>
           <button
             onClick={onClose}
-            className="text-text-muted hover:text-text-primary"
+            className="text-nebula hover:text-stellar"
           >
             <X size={24} />
           </button>
@@ -51,32 +51,32 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">
+            <label className="block text-sm font-medium text-stellar mb-2">
               Nome
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-surface bg-surface rounded-lg focus:ring-2 focus:ring-primary text-text-primary"
+              className="w-full px-4 py-2 border border-surface bg-surface rounded-lg focus:ring-2 focus:ring-primary text-stellar"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">
+            <label className="block text-sm font-medium text-stellar mb-2">
               Descrição (opcional)
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-surface bg-surface rounded-lg focus:ring-2 focus:ring-primary text-text-primary"
+              className="w-full px-4 py-2 border border-surface bg-surface rounded-lg focus:ring-2 focus:ring-primary text-stellar"
               rows={3}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">
+            <label className="block text-sm font-medium text-stellar mb-2">
               Cor
             </label>
             <div className="flex gap-2 flex-wrap mb-3">
@@ -85,9 +85,8 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`w-10 h-10 rounded-full border-2 transition-all ${
-                    color === c ? 'border-text-primary scale-110' : 'border-transparent'
-                  }`}
+                  className={`w-10 h-10 rounded-full border-2 transition-all ${color === c ? 'border-stellar scale-110' : 'border-transparent'
+                    }`}
                   style={{ backgroundColor: c }}
                 />
               ))}
@@ -104,13 +103,13 @@ export function DharmaEditModal({ dharma, onClose, onSave }: DharmaEditModalProp
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-surface rounded-lg text-text-primary hover:bg-surface transition-colors"
+              className="flex-1 px-4 py-2 border border-surface rounded-lg text-stellar hover:bg-surface transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-text-primary rounded-lg hover:bg-primary/80 transition-colors"
+              className="flex-1 px-4 py-2 bg-primary text-stellar rounded-lg hover:bg-primary/80 transition-colors"
             >
               Salvar
             </button>
