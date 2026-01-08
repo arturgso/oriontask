@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { authService } from '../services/authService';
-import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X, User } from 'lucide-react';
+import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X, User, CircleHelp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Dharma } from '../types';
 import { api } from '../api/client';
+import { OnboardingModal } from './OnboardingModal';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,6 +24,17 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   const loadShowHidden = useStore((state) => state.loadShowHidden);
 
   const userId = useStore((state) => state.user?.id);
+
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('onboarding_seen');
+    if (!hasSeenOnboarding) {
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => setShowOnboarding(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     loadShowHidden();
@@ -153,6 +165,13 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
           </button>
           <button
             className={Styles.footerButton}
+            onClick={() => setShowOnboarding(true)}
+          >
+            <CircleHelp size={18} />
+            <span>Ajuda</span>
+          </button>
+          <button
+            className={Styles.footerButton}
             onClick={toggleTheme}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -167,6 +186,8 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
           </button>
         </div>
       </aside>
+
+      <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
     </>
   );
 }
