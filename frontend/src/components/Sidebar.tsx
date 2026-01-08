@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X } from 'lucide-react';
+import { LogOut, Moon, Sun, Eye, EyeOff, Plus, Zap, List, Menu, X, CircleHelp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Dharma } from '../types';
 import { api } from '../api/client';
+import { OnboardingModal } from './OnboardingModal';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,6 +23,17 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   const loadShowHidden = useStore((state) => state.loadShowHidden);
 
   const userId = useStore((state) => state.user?.id);
+
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('onboarding_seen');
+    if (!hasSeenOnboarding) {
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => setShowOnboarding(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     loadShowHidden();
@@ -84,7 +96,7 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
             <img src="/logo.svg" alt="Orion Task Logo" className={Styles.logo} />
             <h1 className={Styles.title}>Orion Task</h1>
           </div>
-          
+
           <div className={Styles.dharmasSection}>
             <h2 className={Styles.sectionTitle}>Dharmas</h2>
             <ul className={Styles.dharmaList}>
@@ -96,15 +108,15 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
                     className={Styles.dharmaItem}
                     onClick={() => handleNavigation(`/tasks/${dharma.id}`)}
                   >
-                    <div 
-                      className={Styles.dharmaColor} 
+                    <div
+                      className={Styles.dharmaColor}
                       style={{ backgroundColor: dharma.color }}
                     />
                     <span>{dharma.name}</span>
                   </li>
                 ))}
             </ul>
-            <button 
+            <button
               className={Styles.manageButton}
               onClick={() => handleNavigation('/manage-dharmas')}
             >
@@ -116,14 +128,14 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
           <div>
             <h2 className={Styles.sectionTitle}>Navegação</h2>
             <div className={Styles.navList}>
-              <button 
+              <button
                 className={Styles.navButton}
                 onClick={() => handleNavigation('/agora')}
               >
                 <Zap size={18} />
                 <span>Agora</span>
               </button>
-              <button 
+              <button
                 className={Styles.navButton}
                 onClick={() => handleNavigation('/dharmas')}
               >
@@ -135,21 +147,28 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
         </div>
 
         <div className={Styles.footer}>
-          <button 
+          <button
             className={Styles.footerButton}
             onClick={toggleShowHidden}
           >
             {showHidden ? <EyeOff size={18} /> : <Eye size={18} />}
             <span>Ocultar privados</span>
           </button>
-          <button 
+          <button
+            className={Styles.footerButton}
+            onClick={() => setShowOnboarding(true)}
+          >
+            <CircleHelp size={18} />
+            <span>Ajuda</span>
+          </button>
+          <button
             className={Styles.footerButton}
             onClick={toggleTheme}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             <span>Modo escuro</span>
           </button>
-          <button 
+          <button
             className={Styles.footerButton}
             onClick={handleLogout}
           >
@@ -158,6 +177,8 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
           </button>
         </div>
       </aside>
+
+      <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
     </>
   );
 }
@@ -169,15 +190,15 @@ const Styles = {
   mobileLogoContainer: 'flex items-center gap-2',
   mobileLogo: 'h-6 w-6',
   mobileTitle: 'text-text-primary font-bold text-lg',
-  
+
   // Overlay
   overlay: 'md:hidden fixed inset-0 bg-black/50 z-40',
-  
+
   // Sidebar
   sidebar: 'bg-card flex flex-col justify-between h-screen border-r border-surface fixed md:static top-0 left-0 z-50 w-64 transition-transform duration-300',
   sidebarOpen: 'translate-x-0',
   sidebarClosed: '-translate-x-full md:translate-x-0',
-  
+
   container: 'flex flex-col p-6',
   header: 'hidden md:flex items-center gap-3 mb-8',
   logo: 'h-8 w-8',
