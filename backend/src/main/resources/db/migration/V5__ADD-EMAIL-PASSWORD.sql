@@ -10,11 +10,11 @@ UPDATE tab_users
 SET email = username || '@local.invalid'
 WHERE email IS NULL;
 
--- 3) Create pgcrypto extension (for bcrypt) and set default password hash
+-- 3) Set default password hash
 -- Default password: ChangeMe123! (meets policy: upper, lower, number, special)
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- Pre-generated bcrypt hash to avoid pgcrypto dependency issues
 UPDATE tab_users 
-SET password_hash = crypt('ChangeMe123!', gen_salt('bf'))
+SET password_hash = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
 WHERE password_hash IS NULL;
 
 -- 4) Enforce NOT NULL and uniqueness after backfill
