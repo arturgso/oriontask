@@ -33,7 +33,8 @@ export function AgoraPage() {
     if (!user) return;
 
     try {
-      const data = await tasksApi.getByUserAndStatus(user.id, TaskStatus.NOW);
+      const pageData = await tasksApi.getByUserAndStatus(user.id, TaskStatus.NOW);
+      const data = pageData.content;
       if (data.length < 5) {
         const filled = await fillNowWithNext(user.id);
         setTasks(filled);
@@ -153,19 +154,19 @@ export function AgoraPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
-  main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
-  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface',
+  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  main: 'flex flex-row flex-1 overflow-hidden',
+  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface overflow-y-auto custom-scrollbar',
   header: 'flex items-center gap-2 mb-2',
   icon: 'text-accent w-5 md:w-6 h-5 md:h-6',
-  title: 'text-text-primary md:text-lg font-bold',
-  subtitle: 'text-xs md:text-sm text-text-muted mb-3',
+  title: 'text-stellar md:text-lg font-bold',
+  subtitle: 'text-sm md:text-base text-nebula mb-4',
   counter: 'bg-surface w-fit border border-surface p-2 md:p-3 mb-3 md:mb-4 rounded',
-  counterText: 'text-xs md:text-sm font-semibold text-text-primary',
+  counterText: 'text-xs md:text-sm font-semibold text-stellar',
   taskList: 'space-y-2 md:space-y-3',
-  showMore: 'mt-3 px-3 md:px-4 py-2 border border-surface hover:bg-surface text-xs md:text-sm rounded transition-colors text-text-primary',
-  empty: 'text-center py-6 md:py-8 text-text-muted',
+  showMore: 'mt-3 px-3 md:px-4 py-2 border border-surface hover:bg-surface text-xs md:text-sm rounded transition-colors text-stellar',
+  empty: 'text-center py-6 md:py-8 text-nebula',
   emptyText: 'text-xs md:text-sm font-semibold mb-1',
-  emptyHint: 'text-xs text-text-muted',
-  loading: 'text-center py-6 md:py-8 text-text-muted text-sm',
+  emptyHint: 'text-xs text-nebula',
+  loading: 'text-center py-6 md:py-8 text-nebula text-sm',
 };

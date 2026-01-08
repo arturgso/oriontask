@@ -2,6 +2,9 @@ package br.com.oriontask.backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,26 +63,34 @@ public class TasksController {
     }
 
     @GetMapping("/dharma/{dharmaId}")
-    public ResponseEntity<List<Tasks>> getTasksByDharma(@PathVariable Long dharmaId) {
-        List<Tasks> tasks = tasksService.getTasksByDharma(dharmaId);
+    public ResponseEntity<Page<Tasks>> getTasksByDharma(
+        @PathVariable Long dharmaId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<Tasks> tasks = tasksService.getTasksByDharma(dharmaId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/dharma/{dharmaId}/status/{status}")
-    public ResponseEntity<List<Tasks>> getTasksByDharmaAndStatus(
+    public ResponseEntity<Page<Tasks>> getTasksByDharmaAndStatus(
         @PathVariable Long dharmaId,
-        @PathVariable TaskStatus status
+        @PathVariable TaskStatus status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
     ) {
-        List<Tasks> tasks = tasksService.getTasksByStatus(dharmaId, status);
+        Page<Tasks> tasks = tasksService.getTasksByStatus(dharmaId, status, PageRequest.of(page, size, Sort.by("createdAt").descending()));
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/user/{userId}/status/{status}")
-    public ResponseEntity<List<Tasks>> getTasksByUserAndStatus(
+    public ResponseEntity<Page<Tasks>> getTasksByUserAndStatus(
         @PathVariable String userId,
-        @PathVariable TaskStatus status
+        @PathVariable TaskStatus status,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
     ) {
-        List<Tasks> tasks = tasksService.getTasksByUserAndStatus(userId, status);
+        Page<Tasks> tasks = tasksService.getTasksByUserAndStatus(userId, status, PageRequest.of(page, size, Sort.by("createdAt").descending()));
         return ResponseEntity.ok(tasks);
     }
 

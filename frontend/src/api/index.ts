@@ -7,6 +7,7 @@ import type {
   CreateDharmaDTO,
   CreateTaskDTO,
   TaskStatus,
+  Page,
 } from '../types';
 
 export const usersApi = {
@@ -16,7 +17,7 @@ export const usersApi = {
 };
 
 export const dharmaApi = {
-  getByUser: (userId: string, includeHidden: boolean = false) => 
+  getByUser: (userId: string, includeHidden: boolean = false) =>
     api.get<Dharma[]>(`/dharma/user/${userId}?includeHidden=${includeHidden}`),
   create: (userId: string, data: CreateDharmaDTO) =>
     api.post<Dharma>(`/dharma/${userId}/create`, data),
@@ -36,10 +37,11 @@ export const tasksApi = {
   changeStatus: (taskId: number, status: TaskStatus) =>
     api.patch<Task>(`/tasks/${taskId}/change-status?status=${status}`),
   markDone: (taskId: number) => api.patch<Task>(`/tasks/${taskId}/mark-done`),
-  getByDharma: (dharmaId: number) => api.get<Task[]>(`/tasks/dharma/${dharmaId}`),
-  getByDharmaAndStatus: (dharmaId: number, status: TaskStatus) =>
-    api.get<Task[]>(`/tasks/dharma/${dharmaId}/status/${status}`),
-  getByUserAndStatus: (userId: string, status: TaskStatus) =>
-    api.get<Task[]>(`/tasks/user/${userId}/status/${status}`),
+  getByDharma: (dharmaId: number, page: number = 0, size: number = 10) =>
+    api.get<Page<Task>>(`/tasks/dharma/${dharmaId}?page=${page}&size=${size}`),
+  getByDharmaAndStatus: (dharmaId: number, status: TaskStatus, page: number = 0, size: number = 10) =>
+    api.get<Page<Task>>(`/tasks/dharma/${dharmaId}/status/${status}?page=${page}&size=${size}`),
+  getByUserAndStatus: (userId: string, status: TaskStatus, page: number = 0, size: number = 10) =>
+    api.get<Page<Task>>(`/tasks/user/${userId}/status/${status}?page=${page}&size=${size}`),
   delete: (taskId: number) => api.delete<void>(`/tasks/${taskId}`),
 };

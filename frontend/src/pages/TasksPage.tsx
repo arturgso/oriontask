@@ -11,12 +11,15 @@ import { KarmaType, EffortLevel, TaskStatus, type Task, type CreateTaskDTO } fro
 export function TasksPage() {
   const { dharmaId } = useParams<{ dharmaId: string }>();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [karmaType, setKarmaType] = useState<KarmaType>(KarmaType.ACTION);
   const [effortLevel, setEffortLevel] = useState<EffortLevel>(EffortLevel.LOW);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const hydrated = useStore((state) => state.hydrated);
@@ -26,18 +29,37 @@ export function TasksPage() {
   useEffect(() => {
     if (!hydrated) return;
     if (dharmaId) {
-      loadTasks();
+      setPage(0);
+      setTasks([]);
+      loadTasks(0, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dharmaId, hydrated]);
 
-  const loadTasks = async () => {
+  const loadTasks = async (pageNum: number, initial: boolean = false) => {
+    if (initial) setLoading(true);
+    else setLoadingMore(true);
+
     try {
-      const data = await tasksApi.getByDharma(Number(dharmaId));
-      setTasks(data);
+      const pageData = await tasksApi.getByDharma(Number(dharmaId), pageNum, 10);
+      if (initial) {
+        setTasks(pageData.content);
+      } else {
+        setTasks((prev) => [...prev, ...pageData.content]);
+      }
+      setHasMore(!pageData.last);
     } catch {
       toast.error('Erro ao carregar tasks');
+    } finally {
+      if (initial) setLoading(false);
+      else setLoadingMore(false);
     }
+  };
+
+  const handleShowMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadTasks(nextPage);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -53,7 +75,7 @@ export function TasksPage() {
         effortLevel
       };
       const task = await tasksApi.create(Number(dharmaId), data);
-      setTasks([...tasks, task]);
+      setTasks([task, ...tasks]);
       toast.success('Task criada!');
       setShowForm(false);
       setTitle('');
@@ -151,6 +173,18 @@ export function TasksPage() {
             </div>
           )}
 
+          {hasMore && (
+            <div className="flex justify-center py-6">
+              <button
+                onClick={handleShowMore}
+                disabled={loadingMore}
+                className={Styles.showMoreButton}
+              >
+                {loadingMore ? 'Carregando...' : 'Mostrar mais'}
+              </button>
+            </div>
+          )}
+
           {showForm && (
             <div className={Styles.modal}>
               <form onSubmit={handleCreate} className={Styles.form}>
@@ -221,12 +255,12 @@ export function TasksPage() {
                 </div>
 
                 {dharma?.hidden && (
-                  <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded p-3 text-xs md:text-sm">
-                    <p className="text-purple-800 dark:text-purple-300 font-medium flex items-center gap-2">
+                  <div className="bg-primary/10 border border-primary/20 rounded p-3 text-xs md:text-sm">
+                    <p className="text-primary font-medium flex items-center gap-2">
                       <span>🔒</span>
                       <span>Tarefa privada (herda do Dharma)</span>
                     </p>
-                    <p className="text-purple-600 dark:text-purple-400 text-xs mt-1">
+                    <p className="text-nebula text-xs mt-1">
                       Esta tarefa será ocultada junto com o Dharma "{dharma.name}"
                     </p>
                   </div>
@@ -250,26 +284,27 @@ export function TasksPage() {
 }
 
 const Styles = {
-  page: 'min-h-screen flex flex-col bg-base pt-14 md:pt-0',
-  main: 'flex flex-col md:flex-row flex-1 gap-0 md:gap-0',
-  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface',
-  header: 'mb-3 md:mb-4',
-  title: 'text-base md:text-lg font-bold text-text-primary',
-  subtitle: 'text-xs md:text-sm text-text-muted',
-  section: 'mb-4 md:mb-6',
-  sectionHeader: 'flex flex-col md:flex-row justify-between items-start md:items-center mb-3 border-b border-surface pb-2 gap-2',
-  sectionTitle: 'text-sm md:text-base font-bold text-text-primary',
-  addButton: 'px-3 md:px-4 py-2 bg-accent text-text-primary text-xs md:text-sm hover:bg-accent/80 flex items-center gap-2 rounded font-semibold transition-colors whitespace-nowrap',
-  taskList: 'space-y-2 md:space-y-3',
-  empty: 'text-center text-text-muted py-4 text-xs md:text-sm',
-  modal: 'fixed inset-0 bg-black/30 flex items-center justify-center p-3 md:p-4 z-50',
-  form: 'bg-card border border-surface p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto',
-  formTitle: 'text-lg md:text-xl font-bold mb-4 text-text-primary',
-  field: 'mb-3',
-  label: 'block text-xs md:text-sm font-semibold mb-1 text-text-primary',
-  input: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-primary text-sm text-text-primary',
-  select: 'w-full px-2 py-1.5 md:py-2 border border-surface bg-surface focus:outline-none focus:border-primary text-sm text-text-primary',
-  formActions: 'flex gap-2 md:gap-3 mt-4 md:mt-5',
-  cancelButton: 'flex-1 px-3 md:px-4 py-2 md:py-3 bg-surface hover:bg-surface/80 text-text-primary font-semibold text-sm transition-colors',
-  submitButton: 'flex-1 px-3 md:px-4 py-2 md:py-3 bg-primary text-text-primary hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm transition-colors',
+  page: 'h-screen flex flex-col bg-base pt-14 md:pt-0 overflow-hidden',
+  main: 'flex flex-row flex-1 overflow-hidden',
+  content: 'flex-1 p-3 md:p-4 bg-card md:border-l border-surface overflow-y-auto custom-scrollbar',
+  header: 'mb-4 md:mb-6',
+  title: 'text-lg md:text-2xl font-bold text-stellar',
+  subtitle: 'text-sm md:text-base text-nebula mt-1',
+  section: 'mb-6 md:mb-8',
+  sectionHeader: 'flex flex-col md:flex-row justify-between items-start md:items-center mb-4 border-b border-surface pb-3 gap-3',
+  sectionTitle: 'text-base md:text-lg font-bold text-stellar tracking-tight',
+  addButton: 'px-4 md:px-5 py-2 md:py-2.5 bg-primary text-stellar text-xs md:text-sm hover:bg-primary/80 flex items-center gap-2 rounded-lg font-bold transition-all shadow-lg active:scale-95 whitespace-nowrap',
+  taskList: 'space-y-3 md:space-y-4',
+  empty: 'text-center text-nebula py-8 text-sm italic',
+  modal: 'fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-50',
+  form: 'bg-card border border-surface p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl',
+  formTitle: 'text-xl md:text-2xl font-bold mb-6 text-stellar',
+  field: 'mb-4',
+  label: 'block text-xs md:text-sm font-semibold mb-1.5 text-stellar',
+  input: 'w-full px-3 py-2 md:py-2.5 border border-surface bg-surface focus:outline-none focus:border-primary text-sm text-stellar rounded-xl transition-colors',
+  select: 'w-full px-3 py-2 md:py-2.5 border border-surface bg-surface focus:outline-none focus:border-primary text-sm text-stellar rounded-xl transition-colors',
+  formActions: 'flex gap-3 md:gap-4 mt-6 md:mt-8',
+  cancelButton: 'flex-1 px-4 py-2.5 md:py-3 bg-surface hover:bg-surface/80 text-stellar font-bold text-sm transition-colors rounded-xl',
+  submitButton: 'flex-1 px-4 py-2.5 md:py-3 bg-primary text-stellar hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm transition-colors rounded-xl shadow-lg',
+  showMoreButton: 'px-6 py-2.5 bg-surface border border-surface text-stellar hover:bg-surface/80 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95',
 };

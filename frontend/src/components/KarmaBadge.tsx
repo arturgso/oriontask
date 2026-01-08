@@ -8,9 +8,9 @@ interface KarmaBadgeProps {
 
 export function KarmaBadge({ type, size = 'md' }: KarmaBadgeProps) {
   const config = {
-    ACTION: { icon: Zap, label: 'Ação', color: 'bg-yellow-100 text-yellow-700' },
-    PEOPLE: { icon: Users, label: 'Pessoas', color: 'bg-blue-100 text-blue-700' },
-    THINKING: { icon: Brain, label: 'Reflexão', color: 'bg-purple-100 text-purple-700' },
+    ACTION: { icon: Zap, label: 'Ação', color: 'bg-yellow-500/20 text-yellow-400' },
+    PEOPLE: { icon: Users, label: 'Pessoas', color: 'bg-blue-500/20 text-blue-400' },
+    THINKING: { icon: Brain, label: 'Reflexão', color: 'bg-purple-500/20 text-purple-400' },
   };
 
   const { icon: Icon, label, color } = config[type];
@@ -26,7 +26,6 @@ export function KarmaBadge({ type, size = 'md' }: KarmaBadgeProps) {
 
 const Styles = {
   badge: (color: string, size: string) =>
-    `flex items-center gap-1.5 ${color} rounded-full ${
-      size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm'
+    `flex items-center gap-1.5 ${color} rounded-full ${size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm'
     } font-medium`,
 };

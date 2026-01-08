@@ -7,9 +7,9 @@ interface EffortTagProps {
 
 export function EffortTag({ level }: EffortTagProps) {
   const config = {
-    LOW: { label: '~10min', color: 'text-green-600' },
-    MEDIUM: { label: '~25min', color: 'text-orange-600' },
-    HIGH: { label: '~50min', color: 'text-red-600' },
+    LOW: { label: '~10min', color: 'text-emerald-400' },
+    MEDIUM: { label: '~25min', color: 'text-orange-400' },
+    HIGH: { label: '~50min', color: 'text-rose-400' },
   };
 
   const { label, color } = config[level];
