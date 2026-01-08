@@ -69,7 +69,7 @@ export function TasksPage() {
     try {
       const updated = await tasksApi.markDone(taskId);
       setTasks(tasks.map((t) => (t.id === taskId ? updated : t)));
-      toast.success('Task concluída! 🎉');
+      toast.success('Task concluída!');
     } catch {
       toast.error('Erro ao concluir task');
     }

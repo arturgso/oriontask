@@ -32,11 +32,9 @@ export interface Task {
 }
 
 export const KarmaType = {
-  ENERGY: 'ENERGY',
-  MOOD: 'MOOD',
-  RELATIONSHIPS: 'RELATIONSHIPS',
-  MONEY: 'MONEY',
-  GROWTH: 'GROWTH',
+  ACTION: 'ACTION',
+  PEOPLE: 'PEOPLE',
+  THINKING: 'THINKING',
 } as const;
 
 export type KarmaType = typeof KarmaType[keyof typeof KarmaType];

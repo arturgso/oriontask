@@ -5,7 +5,7 @@ import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
 import { Sidebar } from '../components/Sidebar';
 import toast from 'react-hot-toast';
-import { Zap } from 'lucide-react';
+import { PartyPopper, Zap } from 'lucide-react';
 import { TaskStatus, type Task } from '../types';
 
 export function AgoraPage() {
@@ -58,13 +58,11 @@ export function AgoraPage() {
       const task = tasks.find((t) => t.id === taskId);
       if (task) {
         const karmaLabels = {
-          ENERGY: '⚡ Energia',
-          MOOD: '💖 Humor',
-          RELATIONSHIPS: '👥 Relações',
-          MONEY: '💰 Dinheiro',
-          GROWTH: '📈 Crescimento',
+          ACTION: 'Ação',
+          PEOPLE: 'Pessoas',
+          THINKING: 'Reflexão',
         };
-        toast.success(`Task concluída! +${karmaLabels[task.karmaType]} 🎉`, {
+        toast.success(`Task concluída! +${karmaLabels[task.karmaType]}`, {
           duration: 4000,
         });
       }
