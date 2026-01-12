@@ -248,5 +248,5 @@ const Styles = {
   actions: 'flex gap-2 md:gap-3 mt-4 md:mt-4',
   submitBtn: 'flex-1 bg-primary text-stellar py-2 md:py-3 px-3 md:px-4 hover:bg-primary/80 flex items-center justify-center gap-2 text-xs md:text-sm font-semibold transition-colors rounded',
   cancelBtn: 'flex-1 bg-surface text-stellar py-2 md:py-3 px-3 md:px-4 hover:bg-surface/80 text-xs md:text-sm font-semibold transition-colors rounded',
-  agoraButton: 'fixed bottom-4 right-4 bg-primary text-stellar px-3 md:px-4 py-2 md:py-3 hover:bg-primary/80 flex items-center gap-2 text-xs md:text-sm font-semibold rounded-full shadow-lg transition-colors border border-primary/20',
+  agoraButton: 'fixed bottom-4 right-4 bg-primary text-stellar px-3 md:px-4 py-2 md:py-3 hover:bg-primary/80 flex items-center gap-2 text-xs md:text-sm font-semibold rounded-xl shadow-lg transition-colors border border-primary/20',
 };

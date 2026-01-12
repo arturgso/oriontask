@@ -28,15 +28,6 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem('onboarding_seen');
-    if (!hasSeenOnboarding) {
-      // Small delay to ensure smooth transition
-      const timer = setTimeout(() => setShowOnboarding(true), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
     loadShowHidden();
   }, [loadShowHidden]);
 
@@ -120,7 +111,7 @@ export function Sidebar({ isOpen, onClose, onToggle }: SidebarProps) {
             </ul>
             <button
               className={Styles.manageButton}
-              onClick={() => handleNavigation('/manage-dharmas')}
+              onClick={() => handleNavigation('/dharmas')}
             >
               <Plus size={16} />
               <span>Gerenciar Dharmas</span>

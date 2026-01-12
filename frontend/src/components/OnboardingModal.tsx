@@ -8,16 +8,13 @@ interface OnboardingModalProps {
 
 export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     const [shouldRender, setShouldRender] = useState(false);
-    const [dontShowAgain, setDontShowAgain] = useState(false);
+
 
     useEffect(() => {
         if (isOpen) setShouldRender(true);
     }, [isOpen]);
 
     const handleClose = () => {
-        if (dontShowAgain) {
-            localStorage.setItem('onboarding_seen', 'true');
-        }
         onClose();
     };
 
@@ -101,16 +98,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                 </div>
 
                 <div className={Styles.footer}>
-                    <label className={Styles.checkboxContainer}>
-                        <input
-                            type="checkbox"
-                            checked={dontShowAgain}
-                            onChange={(e) => setDontShowAgain(e.target.checked)}
-                            className={Styles.checkbox}
-                        />
-                        <span className={Styles.checkboxLabel}>Não mostrar novamente</span>
-                    </label>
-                    <button onClick={handleClose} className={Styles.primaryButton}>
+                    <button onClick={handleClose} className={Styles.primaryButton + ' w-full'}>
                         Entendi, vamos começar!
                     </button>
                 </div>
