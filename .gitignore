@@ -56,5 +56,4 @@ dist-ssr
 *.sw?
 
 .env
-docs/
 frontend-prototype.html
