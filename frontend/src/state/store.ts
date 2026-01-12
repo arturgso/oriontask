@@ -9,6 +9,7 @@ interface AppState {
   theme: 'light' | 'dark';
   showHidden: boolean;
   hydrated: boolean;
+  isSidebarCollapsed: boolean;
   setUser: (user: User | null) => void;
   loadUserFromStorage: () => Promise<void>;
   loadTheme: () => void;
@@ -16,6 +17,8 @@ interface AppState {
   loadShowHidden: () => void;
   toggleShowHidden: () => Promise<void>;
   logout: () => void;
+  toggleSidebarCollapse: () => void;
+  loadSidebarState: () => void;
 
   // Dharma actions
   fetchDharmas: (userId: string) => Promise<void>;
@@ -41,6 +44,7 @@ export const useStore = create<AppState>((set, get) => ({
   theme: 'light',
   showHidden: false,
   hydrated: false,
+  isSidebarCollapsed: false,
 
   setUser: (user) => {
     set({ user });
@@ -102,6 +106,21 @@ export const useStore = create<AppState>((set, get) => ({
   logout: () => {
     localStorage.removeItem('userId');
     set({ user: null, dharmas: [], tasks: [] });
+  },
+
+  toggleSidebarCollapse: () => {
+    set((state) => {
+      const next = !state.isSidebarCollapsed;
+      localStorage.setItem('sidebarCollapsed', String(next));
+      return { isSidebarCollapsed: next };
+    });
+  },
+
+  loadSidebarState: () => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    if (saved === 'true') {
+      set({ isSidebarCollapsed: true });
+    }
   },
 
   // Dharma actions
