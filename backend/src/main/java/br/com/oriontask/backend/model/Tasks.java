@@ -31,7 +31,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class Tasks {
-  
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -60,6 +60,8 @@ public class Tasks {
 
     @Builder.Default
     private Timestamp completedAt = null;
+
+    private Timestamp snoozedUntil;
 
     @Builder.Default
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());

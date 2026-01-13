@@ -23,6 +23,12 @@ export function TaskCard({ task, onComplete, onMove, onDelete }: TaskCardProps) 
           <div className={Styles.badges}>
             <KarmaBadge type={task.karmaType} size="sm" />
             <EffortTag level={task.effortLevel} />
+            {task.snoozedUntil && new Date(task.snoozedUntil) > new Date() && (
+              <span className="flex items-center gap-1 text-[10px] md:text-xs text-amber-500 font-medium bg-amber-500/10 px-2 py-0.5 rounded-full">
+                <Clock size={12} />
+                Agendada: {new Date(task.snoozedUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
           </div>
         </div>
       </div>

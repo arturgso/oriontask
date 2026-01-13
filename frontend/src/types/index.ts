@@ -43,6 +43,7 @@ export interface Task {
   status: TaskStatus;
   hidden: boolean;
   completedAt: string | null;
+  snoozedUntil: string | null;
   createdAt: string;
   updatedAt: string;
 }
