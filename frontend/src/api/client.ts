@@ -1,124 +1,67 @@
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
-interface ApiError {
-  message: string;
-  status: number;
-}
-
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem('oriontask_token');
-  const headers: HeadersInit = {
+const apiClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
     'Content-Type': 'application/json',
-  };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  return headers;
-}
+  },
+});
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  const text = await response.text();
-  
-  if (!response.ok) {
-    // Se 401, redirecionar para login
-    if (response.status === 401) {
-      localStorage.removeItem('oriontask_token');
-      localStorage.removeItem('oriontask_user');
-      window.location.href = '/login';
+// Interceptor para adicionar o token de autorização
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem('oriontask_token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Interceptor para tratamento de erros
+apiClient.interceptors.response.use(
+  (response) => response.data,
+  (error: AxiosError) => {
+    if (error.response) {
+      // O servidor respondeu com um status fora do range 2xx
+      if (error.response.status === 401) {
+        localStorage.removeItem('oriontask_token');
+        localStorage.removeItem('oriontask_user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
+
+      const message = (error.response.data as { message?: string })?.message || `Erro ${error.response.status}`;
+      console.error(`API Error ${error.response.status}:`, error.response.data);
+
+      return Promise.reject({
+        message,
+        status: error.response.status,
+      });
+    } else if (error.request) {
+      // A requisição foi feita mas não houve resposta
+      console.error('API No Response:', error.request);
+      return Promise.reject({
+        message: 'Sem resposta do servidor',
+        status: 503,
+      });
+    } else {
+      // Algo aconteceu ao configurar a requisição
+      console.error('API Request Error:', error.message);
+      return Promise.reject({
+        message: error.message,
+        status: 500,
+      });
     }
-    
-    console.error(`API Error ${response.status}:`, text);
-    const error: ApiError = {
-      message: text || `Erro ${response.status}`,
-      status: response.status,
-    };
-    throw error;
   }
-
-  if (response.status === 204) {
-    return null as T;
-  }
-
-  if (!text) {
-    throw new Error('Resposta vazia do servidor');
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error('Erro ao parsear JSON:', text);
-    throw new Error(`Resposta inválida do servidor: ${text.substring(0, 100)}`);
-  }
-}
+);
 
 export const api = {
-  async get<T>(endpoint: string): Promise<T> {
-    try {
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        headers: getAuthHeaders(),
-      });
-      return handleResponse<T>(response);
-    } catch (error) {
-      console.error(`GET ${endpoint}:`, error);
-      throw error;
-    }
-  },
-
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    try {
-      console.log(`POST ${endpoint} com dados:`, data);
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
-      return handleResponse<T>(response);
-    } catch (error) {
-      console.error(`POST ${endpoint}:`, error);
-      throw error;
-    }
-  },
-
-  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    try {
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
-      return handleResponse<T>(response);
-    } catch (error) {
-      console.error(`PATCH ${endpoint}:`, error);
-      throw error;
-    }
-  },
-
-  async delete<T>(endpoint: string): Promise<T> {
-    try {
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      return handleResponse<T>(response);
-    } catch (error) {
-      console.error(`DELETE ${endpoint}:`, error);
-      throw error;
-    }
-  },
-
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
-    try {
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: data ? JSON.stringify(data) : undefined,
-      });
-      return handleResponse<T>(response);
-    } catch (error) {
-      console.error(`PUT ${endpoint}:`, error);
-      throw error;
-    }
-  },
+  get: <T>(url: string) => apiClient.get<unknown, T>(url),
+  post: <T>(url: string, data?: unknown) => apiClient.post<unknown, T>(url, data),
+  put: <T>(url: string, data?: unknown) => apiClient.put<unknown, T>(url, data),
+  patch: <T>(url: string, data?: unknown) => apiClient.patch<unknown, T>(url, data),
+  delete: <T>(url: string) => apiClient.delete<unknown, T>(url),
 };
+

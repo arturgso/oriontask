@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { User, Dharma, Task, CreateDharmaDTO, CreateTaskDTO, TaskStatus } from '../types';
-import { usersApi, dharmaApi, tasksApi } from '../api';
+import { userService } from '../services/userService';
+import { dharmaService } from '../services/dharmaService';
+import { taskService } from '../services/taskService';
 
 interface AppState {
   user: User | null;
@@ -59,7 +61,7 @@ export const useStore = create<AppState>((set, get) => ({
     const userId = localStorage.getItem('userId');
     if (userId) {
       try {
-        const user = await usersApi.get(userId);
+        const user = await userService.get(userId);
         set({ user });
       } catch {
         localStorage.removeItem('userId');
@@ -127,7 +129,7 @@ export const useStore = create<AppState>((set, get) => ({
   fetchDharmas: async (userId: string) => {
     try {
       const state = get();
-      const dharmas = await dharmaApi.getByUser(userId, state.showHidden);
+      const dharmas = await dharmaService.getByUser(userId, state.showHidden);
       set({ dharmas });
     } catch (error) {
       console.error('Failed to fetch dharmas:', error);
@@ -136,7 +138,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   createDharma: async (userId: string, dto: CreateDharmaDTO) => {
     try {
-      const newDharma = await dharmaApi.create(userId, dto);
+      const newDharma = await dharmaService.create(userId, dto);
       set((state) => ({ dharmas: [...state.dharmas, newDharma] }));
     } catch (error) {
       console.error('Failed to create dharma:', error);
@@ -146,7 +148,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   updateDharma: async (dharmaId: number, dto: CreateDharmaDTO) => {
     try {
-      const updatedDharma = await dharmaApi.update(dharmaId, dto);
+      const updatedDharma = await dharmaService.update(dharmaId, dto);
       set((state) => ({
         dharmas: state.dharmas.map((d) => (d.id === dharmaId ? updatedDharma : d)),
       }));
@@ -158,7 +160,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   toggleDharmaHidden: async (dharmaId: number) => {
     try {
-      const updatedDharma = await dharmaApi.toggleHidden(dharmaId);
+      const updatedDharma = await dharmaService.toggleHidden(dharmaId);
       set((state) => ({
         dharmas: state.dharmas.map((d) => (d.id === dharmaId ? updatedDharma : d)),
         tasks: state.tasks.map((t) =>
@@ -173,7 +175,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   deleteDharma: async (dharmaId: number) => {
     try {
-      await dharmaApi.delete(dharmaId);
+      await dharmaService.delete(dharmaId);
       set((state) => ({
         dharmas: state.dharmas.filter((d) => d.id !== dharmaId),
         tasks: state.tasks.filter((t) => t.dharma.id !== dharmaId)
@@ -187,7 +189,7 @@ export const useStore = create<AppState>((set, get) => ({
   // Task actions
   fetchTasks: async (dharmaId: number) => {
     try {
-      const response = await tasksApi.getByDharma(dharmaId);
+      const response = await taskService.getByDharma(dharmaId);
       set({ tasks: response.content });
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
@@ -196,7 +198,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   createTask: async (dharmaId: number, dto: CreateTaskDTO) => {
     try {
-      const newTask = await tasksApi.create(dharmaId, dto);
+      const newTask = await taskService.create(dharmaId, dto);
       set((state) => ({ tasks: [...state.tasks, newTask] }));
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -206,7 +208,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   moveTaskToNow: async (taskId: number) => {
     try {
-      const updatedTask = await tasksApi.moveToNow(taskId);
+      const updatedTask = await taskService.moveToNow(taskId);
       set((state) => ({
         tasks: state.tasks.map((t) => (t.id === taskId ? updatedTask : t)),
       }));
@@ -219,8 +221,8 @@ export const useStore = create<AppState>((set, get) => ({
   fillNowWithNext: async (userId: string) => {
     try {
       // Fetch current NOW and NEXT tasks for the user; prioritize NEXT oldest first
-      const nowResponse = await tasksApi.getByUserAndStatus(userId, 'NOW' as TaskStatus);
-      const nextResponse = await tasksApi.getByUserAndStatus(userId, 'NEXT' as TaskStatus);
+      const nowResponse = await taskService.getByUserAndStatus(userId, 'NOW' as TaskStatus);
+      const nextResponse = await taskService.getByUserAndStatus(userId, 'NEXT' as TaskStatus);
 
       const now = nowResponse.content;
       const next = nextResponse.content;
@@ -235,7 +237,7 @@ export const useStore = create<AppState>((set, get) => ({
 
       const promoted: Task[] = [];
       for (const t of candidates) {
-        const updated = await tasksApi.changeStatus(t.id, 'NOW' as TaskStatus);
+        const updated = await taskService.changeStatus(t.id, 'NOW' as TaskStatus);
         promoted.push(updated);
       }
 
@@ -250,7 +252,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   changeTaskStatus: async (taskId: number, status: TaskStatus) => {
     try {
-      const updatedTask = await tasksApi.changeStatus(taskId, status);
+      const updatedTask = await taskService.changeStatus(taskId, status);
       set((state) => ({
         tasks: state.tasks.map((t) => (t.id === taskId ? updatedTask : t)),
       }));
@@ -262,7 +264,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   markTaskDone: async (taskId: number) => {
     try {
-      const updatedTask = await tasksApi.markDone(taskId);
+      const updatedTask = await taskService.markDone(taskId);
       set((state) => ({
         tasks: state.tasks.map((t) => (t.id === taskId ? updatedTask : t)),
       }));
@@ -274,7 +276,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   deleteTask: async (taskId: number) => {
     try {
-      await tasksApi.delete(taskId);
+      await taskService.delete(taskId);
       set((state) => ({ tasks: state.tasks.filter((t) => t.id !== taskId) }));
     } catch (error) {
       console.error('Failed to delete task:', error);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tasksApi } from '../api';
+import { taskService } from '../services/taskService';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
 import { Sidebar } from '../components/Sidebar';
@@ -33,7 +33,7 @@ export function AgoraPage() {
     if (!user) return;
 
     try {
-      const pageData = await tasksApi.getByUserAndStatus(user.id, TaskStatus.NOW);
+      const pageData = await taskService.getByUserAndStatus(user.id, TaskStatus.NOW);
       const data = pageData.content;
       if (data.length < 5) {
         const filled = await fillNowWithNext(user.id);
@@ -53,7 +53,7 @@ export function AgoraPage() {
 
   const handleComplete = async (taskId: number) => {
     try {
-      await tasksApi.markDone(taskId);
+      await taskService.markDone(taskId);
       setTasks(tasks.filter((t) => t.id !== taskId));
 
       const task = tasks.find((t) => t.id === taskId);
@@ -74,7 +74,7 @@ export function AgoraPage() {
 
   const handleMove = async (taskId: number, status: TaskStatus) => {
     try {
-      await tasksApi.changeStatus(taskId, status);
+      await taskService.changeStatus(taskId, status);
       setTasks(tasks.filter((t) => t.id !== taskId));
       toast.success('Movida para Depois');
     } catch {

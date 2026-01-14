@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { tasksApi } from '../api';
+import { taskService } from '../services/taskService';
 import { useStore } from '../state/store';
 import { TaskCard } from '../components/TaskCard';
 import { Sidebar } from '../components/Sidebar';
@@ -41,7 +41,7 @@ export function TasksPage() {
     else setLoadingMore(true);
 
     try {
-      const pageData = await tasksApi.getByDharma(Number(dharmaId), pageNum, 10);
+      const pageData = await taskService.getByDharma(Number(dharmaId), pageNum, 10);
       if (initial) {
         setTasks(pageData.content);
       } else {
@@ -74,7 +74,7 @@ export function TasksPage() {
         karmaType,
         effortLevel
       };
-      const task = await tasksApi.create(Number(dharmaId), data);
+      const task = await taskService.create(Number(dharmaId), data);
       setTasks([task, ...tasks]);
       toast.success('Task criada!');
       setShowForm(false);
@@ -89,7 +89,7 @@ export function TasksPage() {
 
   const handleComplete = async (taskId: number) => {
     try {
-      const updated = await tasksApi.markDone(taskId);
+      const updated = await taskService.markDone(taskId);
       setTasks(tasks.map((t) => (t.id === taskId ? updated : t)));
       toast.success('Task concluída!');
     } catch {
@@ -99,7 +99,7 @@ export function TasksPage() {
 
   const handleMove = async (taskId: number, status: TaskStatus) => {
     try {
-      const updated = await tasksApi.changeStatus(taskId, status);
+      const updated = await taskService.changeStatus(taskId, status);
       setTasks(tasks.map((t) => (t.id === taskId ? updated : t)));
       toast.success(status === TaskStatus.NOW ? 'Movida para Agora' : 'Movida para Depois');
     } catch (error) {
@@ -110,7 +110,7 @@ export function TasksPage() {
 
   const handleDelete = async (taskId: number) => {
     try {
-      await tasksApi.delete(taskId);
+      await taskService.delete(taskId);
       setTasks(tasks.filter((t) => t.id !== taskId));
       toast.success('Task removida');
     } catch (error) {
