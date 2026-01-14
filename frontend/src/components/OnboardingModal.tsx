@@ -8,16 +8,13 @@ interface OnboardingModalProps {
 
 export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     const [shouldRender, setShouldRender] = useState(false);
-    const [dontShowAgain, setDontShowAgain] = useState(false);
+
 
     useEffect(() => {
         if (isOpen) setShouldRender(true);
     }, [isOpen]);
 
     const handleClose = () => {
-        if (dontShowAgain) {
-            localStorage.setItem('onboarding_seen', 'true');
-        }
         onClose();
     };
 
@@ -101,16 +98,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
                 </div>
 
                 <div className={Styles.footer}>
-                    <label className={Styles.checkboxContainer}>
-                        <input
-                            type="checkbox"
-                            checked={dontShowAgain}
-                            onChange={(e) => setDontShowAgain(e.target.checked)}
-                            className={Styles.checkbox}
-                        />
-                        <span className={Styles.checkboxLabel}>Não mostrar novamente</span>
-                    </label>
-                    <button onClick={handleClose} className={Styles.primaryButton}>
+                    <button onClick={handleClose} className={Styles.primaryButton + ' w-full'}>
                         Entendi, vamos começar!
                     </button>
                 </div>
@@ -121,18 +109,18 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
 
 const Styles = {
     overlay: 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300',
-    modal: 'bg-card border border-surface w-full max-w-lg rounded-2xl shadow-2xl transition-all duration-300 transform overflow-hidden',
-    closeButton: 'absolute top-4 right-4 text-nebula hover:text-stellar p-1 rounded-full hover:bg-surface transition-colors',
-    header: 'p-6 md:p-8 flex items-start gap-4 border-surface bg-canvas/50',
-    iconWrapper: 'w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0',
-    title: 'text-xl md:text-2xl font-bold text-stellar',
-    subtitle: 'text-sm text-nebula mt-1',
-    content: 'p-6 md:p-8 space-y-6',
+    modal: 'bg-card border border-surface w-full max-w-lg rounded-2xl shadow-2xl transition-all duration-300 transform flex flex-col max-h-[90vh]',
+    closeButton: 'absolute top-4 right-4 text-nebula hover:text-stellar p-1 rounded-full hover:bg-surface transition-colors z-10',
+    header: 'p-6 md:p-8 flex items-start gap-4 border-b border-surface bg-canvas/50 flex-shrink-0',
+    iconWrapper: 'w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0',
+    title: 'text-lg md:text-2xl font-bold text-stellar',
+    subtitle: 'text-xs md:text-sm text-nebula mt-0.5',
+    content: 'p-6 md:p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1',
     section: 'flex gap-4',
     sectionIcon: 'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
     sectionTitle: 'font-semibold text-stellar mb-1',
     sectionText: 'text-sm text-nebula leading-relaxed',
-    footer: 'p-6 border-surface bg-canvas/30 flex justify-between items-center',
+    footer: 'p-6 border-t border-surface bg-canvas/30 flex justify-between items-center flex-shrink-0',
     checkboxContainer: 'flex items-center gap-2 cursor-pointer select-none',
     checkbox: 'w-4 h-4 rounded border-surface text-primary focus:ring-primary',
     checkboxLabel: 'text-sm text-nebula',

@@ -20,9 +20,11 @@ function App() {
   const theme = useStore((state) => state.theme);
   const hydrated = useStore((state) => state.hydrated);
   const setUser = useStore((state) => state.setUser);
+  const loadSidebarState = useStore((state) => state.loadSidebarState);
 
   useEffect(() => {
     loadTheme();
+    loadSidebarState();
 
     // Carregar usuário do authService
     const user = authService.getUser();

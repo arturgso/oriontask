@@ -19,25 +19,28 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class TasksService {
-    
+
     private final TasksRepository repository;
     private final DharmaRepository dharmaRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${task.snooze.duration-hours:2}")
+    private int snoozeDurationHours;
 
     private static final int MAX_NOW_TASKS = 5;
 
     public Tasks create(EditTasksDTO createDTO, Long dharmaId) {
         Dharma dharma = dharmaRepository.findById(dharmaId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         Tasks task = Tasks.builder()
-            .dharma(dharma)
-            .title(createDTO.title())
-            .description(createDTO.description())
-            .karmaType(createDTO.karmaType())
-            .effortLevel(createDTO.effortLevel())
-            .hidden(dharma.getHidden())  // Inherit hidden flag from parent dharma
-            .status(TaskStatus.NEXT)
-            .build();
+                .dharma(dharma)
+                .title(createDTO.title())
+                .description(createDTO.description())
+                .karmaType(createDTO.karmaType())
+                .effortLevel(createDTO.effortLevel())
+                .hidden(dharma.getHidden()) // Inherit hidden flag from parent dharma
+                .status(TaskStatus.NEXT)
+                .build();
 
         return repository.save(task);
     }
@@ -45,7 +48,7 @@ public class TasksService {
     @Transactional
     public Tasks updateTask(EditTasksDTO editDTO, Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
             throw new IllegalStateException("Completed tasks cannot be edited");
@@ -66,22 +69,22 @@ public class TasksService {
     @Transactional
     public Tasks moveToNow(Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
             throw new IllegalStateException("Completed tasks cannot change status");
         }
 
         Long nowCount = repository.countByDharmaUserIdAndStatus(
-            task.getDharma().getUser().getId(), 
-            TaskStatus.NOW
-        );
+                task.getDharma().getUser().getId(),
+                TaskStatus.NOW);
 
         if (nowCount >= MAX_NOW_TASKS) {
             throw new IllegalStateException("Maximum of 5 tasks in NOW reached");
         }
 
         task.setStatus(TaskStatus.NOW);
+        task.setSnoozedUntil(null);
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         return repository.save(task);
@@ -90,7 +93,7 @@ public class TasksService {
     @Transactional
     public Tasks changeStatus(Long taskId, TaskStatus newStatus) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
             throw new IllegalStateException("Completed tasks cannot change status");
@@ -98,9 +101,8 @@ public class TasksService {
 
         if (newStatus == TaskStatus.NOW) {
             Long nowCount = repository.countByDharmaUserIdAndStatus(
-                task.getDharma().getUser().getId(), 
-                TaskStatus.NOW
-            );
+                    task.getDharma().getUser().getId(),
+                    TaskStatus.NOW);
 
             if (nowCount >= MAX_NOW_TASKS) {
                 throw new IllegalStateException("Maximum of 5 tasks in NOW reached");
@@ -108,6 +110,14 @@ public class TasksService {
         }
 
         task.setStatus(newStatus);
+
+        if (newStatus == TaskStatus.NEXT) {
+            long snoozeMillis = (long) snoozeDurationHours * 60 * 60 * 1000;
+            task.setSnoozedUntil(new Timestamp(System.currentTimeMillis() + snoozeMillis));
+        } else {
+            task.setSnoozedUntil(null);
+        }
+
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         return repository.save(task);
@@ -116,13 +126,14 @@ public class TasksService {
     @Transactional
     public Tasks markAsDone(Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
             throw new IllegalStateException("Task is already completed");
         }
 
         task.setStatus(TaskStatus.DONE);
+        task.setSnoozedUntil(null);
         task.setCompletedAt(new Timestamp(System.currentTimeMillis()));
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
@@ -144,7 +155,7 @@ public class TasksService {
     @Transactional
     public void deleteTask(Long taskId) {
         Tasks task = repository.findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         if (task.getStatus() == TaskStatus.DONE) {
             throw new IllegalStateException("Completed tasks cannot be deleted (history)");

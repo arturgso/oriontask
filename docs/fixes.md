@@ -2,9 +2,9 @@
 
 - [ ] Validação de refresh token
 - [ ] Correção da cor do texto dos botões com accent
-- [ ] Layout menos redondo
+- [x] Layout menos redondo
 - [ ] Tasks de dharmas ocultos continuam apareceram em "Agora"
-- [ ] Botão de gerenciar dharmas redireciona para Agora
-- [ ] SideBar colapsável
-- [ ] Corrigir responsividade do onboarding
+- [x] Botão de gerenciar dharmas redireciona para Agora
+- [x] SideBar colapsável
+- [x] Corrigir responsividade do onboarding
 - [ ] Implementar navegação por teclado
