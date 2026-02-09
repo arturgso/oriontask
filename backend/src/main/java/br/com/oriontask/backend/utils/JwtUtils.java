@@ -10,6 +10,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @Component
 public class JwtUtils {
 
@@ -45,6 +47,14 @@ public class JwtUtils {
     public String extractUsername(String token) {
         DecodedJWT decoded = validateToken(token);
         return decoded.getClaim("username").asString();
+    }
+
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
     }
 }
 

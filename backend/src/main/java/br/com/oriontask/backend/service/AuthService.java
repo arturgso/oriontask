@@ -7,9 +7,10 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -19,15 +20,22 @@ import br.com.oriontask.backend.dto.LoginRequestDTO;
 import br.com.oriontask.backend.dto.SignupRequestDTO;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
+import br.com.oriontask.backend.utils.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
     private final UsersRepository usersRepository;
+    private final JwtUtils jwtService;
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     @Value("${jwt.secret:change-me}")
     private String jwtSecret;
@@ -37,14 +45,13 @@ public class AuthService {
 
     // minimal disposable email domain list; configurable via property in future
     private static final Set<String> DISPOSABLE_DOMAINS = new HashSet<>(Arrays.asList(
-        "mailinator.com",
-        "10minutemail.com",
-        "guerrillamail.com",
-        "yopmail.com",
-        "temp-mail.org",
-        "fakemail.net",
-        "trashmail.com"
-    ));
+            "mailinator.com",
+            "10minutemail.com",
+            "guerrillamail.com",
+            "yopmail.com",
+            "temp-mail.org",
+            "fakemail.net",
+            "trashmail.com"));
 
     @Transactional
     public AuthResponseDTO signup(SignupRequestDTO req) {
@@ -77,8 +84,8 @@ public class AuthService {
 
     public AuthResponseDTO login(LoginRequestDTO req) {
         Optional<Users> userOpt = isEmail(req.login())
-            ? usersRepository.findByEmail(req.login())
-            : usersRepository.findByUsername(req.login());
+                ? usersRepository.findByEmail(req.login())
+                : usersRepository.findByUsername(req.login());
 
         Users user = userOpt.orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
@@ -88,6 +95,22 @@ public class AuthService {
 
         String token = generateToken(user);
         return new AuthResponseDTO(token, user.getId(), user.getUsername(), user.getName());
+    }
+
+    public void logout() {
+
+    }
+
+    public Boolean validateToken(HttpServletRequest request) {
+        String token = jwtService.extractTokenFromRequest(request);
+
+        if (jwtService.validateToken(token) != null) {
+            log.debug("Valid Token");
+            return true;
+        }
+
+        log.debug("Invalid Token");
+        return false;
     }
 
     private String generateToken(Users user) {

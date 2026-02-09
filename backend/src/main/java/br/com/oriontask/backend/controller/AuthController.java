@@ -13,6 +13,7 @@ import br.com.oriontask.backend.dto.AuthResponseDTO;
 import br.com.oriontask.backend.dto.LoginRequestDTO;
 import br.com.oriontask.backend.dto.SignupRequestDTO;
 import br.com.oriontask.backend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,28 +24,51 @@ public class AuthController {
 
     @PostMapping("signup")
     public ResponseEntity<AuthResponseDTO> signup(@RequestBody @Validated SignupRequestDTO req) {
-    AuthResponseDTO resp = authService.signup(req);
-    // Set minimal cookies with id and username
-    ResponseCookie uid = ResponseCookie.from("uid", resp.id().toString())
-        .sameSite("Lax").path("/").build();
-    ResponseCookie uname = ResponseCookie.from("uname", resp.username())
-        .sameSite("Lax").path("/").build();
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .header("Set-Cookie", uid.toString())
-        .header("Set-Cookie", uname.toString())
-        .body(resp);
+        AuthResponseDTO resp = authService.signup(req);
+        // Set minimal cookies with id and username
+        ResponseCookie uid = ResponseCookie.from("uid", resp.id().toString())
+                .sameSite("Lax").path("/").build();
+        ResponseCookie uname = ResponseCookie.from("uname", resp.username())
+                .sameSite("Lax").path("/").build();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Set-Cookie", uid.toString())
+                .header("Set-Cookie", uname.toString())
+                .body(resp);
     }
 
     @PostMapping("login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody @Validated LoginRequestDTO req) {
-    AuthResponseDTO resp = authService.login(req);
-    ResponseCookie uid = ResponseCookie.from("uid", resp.id().toString())
-        .sameSite("Lax").path("/").build();
-    ResponseCookie uname = ResponseCookie.from("uname", resp.username())
-        .sameSite("Lax").path("/").build();
-    return ResponseEntity.ok()
-        .header("Set-Cookie", uid.toString())
-        .header("Set-Cookie", uname.toString())
-        .body(resp);
+        AuthResponseDTO resp = authService.login(req);
+        ResponseCookie uid = ResponseCookie.from("uid", resp.id().toString())
+                .sameSite("Lax").path("/").build();
+        ResponseCookie uname = ResponseCookie.from("uname", resp.username())
+                .sameSite("Lax").path("/").build();
+        return ResponseEntity.ok()
+                .header("Set-Cookie", uid.toString())
+                .header("Set-Cookie", uname.toString())
+                .body(resp);
     }
+
+    @PostMapping("logout")
+    public ResponseEntity<Void> logout() {
+        // Clear cookies by setting them with maxAge=0
+        ResponseCookie uid = ResponseCookie.from("uid", "")
+                .sameSite("Lax").path("/").maxAge(0).build();
+        ResponseCookie uname = ResponseCookie.from("uname", "")
+                .sameSite("Lax").path("/").maxAge(0).build();
+        return ResponseEntity.ok()
+                .header("Set-Cookie", uid.toString())
+                .header("Set-Cookie", uname.toString())
+                .build();
+    }
+
+    @PostMapping("validate")
+    public ResponseEntity<Void> validate(HttpServletRequest request) {
+        if (authService.validateToken(request)) {
+            logout();
+        }
+
+        return null;
+    }
+
 }
