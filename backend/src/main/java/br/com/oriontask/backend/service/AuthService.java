@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import br.com.oriontask.backend.dto.AuthResponseDTO;
 import br.com.oriontask.backend.dto.LoginRequestDTO;
@@ -97,17 +99,19 @@ public class AuthService {
         return new AuthResponseDTO(token, user.getId(), user.getUsername(), user.getName());
     }
 
-    public void logout() {
-
-    }
-
     public Boolean validateToken(HttpServletRequest request) {
         String token = jwtService.extractTokenFromRequest(request);
 
+        try {
         if (jwtService.validateToken(token) != null) {
             log.debug("Valid Token");
             return true;
         }
+        } catch (JWTVerificationException e) {
+            log.debug("Invalid Token {}", e);
+            return false;
+        }
+
 
         log.debug("Invalid Token");
         return false;

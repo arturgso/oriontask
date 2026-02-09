@@ -64,11 +64,13 @@ public class AuthController {
 
     @PostMapping("validate")
     public ResponseEntity<Void> validate(HttpServletRequest request) {
-        if (authService.validateToken(request)) {
-            logout();
+        Boolean result = authService.validateToken(request);
+        
+        if (result) {
+            return ResponseEntity.ok().body(null);
+        } else {
+            return ResponseEntity.status(401).body(null);
         }
-
-        return null;
     }
 
 }
