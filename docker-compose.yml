@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -28,10 +26,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - JAVA_OPTS=
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/orion
-      - SPRING_DATASOURCE_USERNAME=orion
-      - SPRING_DATASOURCE_PASSWORD=orionpass
+      JAVA_OPTS: ""
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: orion
+      DB_SCHEMA: public
+      DB_USER: orion
+      DB_PASSWORD: orionpass
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,15 +41,13 @@ services:
     cpus: 1.5
 
   frontend:
-    image: node:20-alpine
-    working_dir: /app/frontend
-    command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host 0.0.0.0 --port 5173"
-    volumes:
-      - ./frontend:/app/frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080/api/v1
     ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:8080
+      - "3000:3000"
     depends_on:
       - backend
     restart: unless-stopped
