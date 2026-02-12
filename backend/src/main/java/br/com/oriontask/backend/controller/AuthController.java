@@ -14,6 +14,7 @@ import br.com.oriontask.backend.dto.LoginRequestDTO;
 import br.com.oriontask.backend.dto.SignupRequestDTO;
 import br.com.oriontask.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,13 +24,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("signup")
-    public ResponseEntity<AuthResponseDTO> signup(@RequestBody @Validated SignupRequestDTO req) {
+    public ResponseEntity<AuthResponseDTO> signup(@RequestBody @Validated SignupRequestDTO req,
+                                                  HttpServletRequest request) {
         AuthResponseDTO resp = authService.signup(req);
         // Set minimal cookies with id and username
-        ResponseCookie uid = ResponseCookie.from("uid", resp.id().toString())
-                .sameSite("Lax").path("/").build();
-        ResponseCookie uname = ResponseCookie.from("uname", resp.username())
-                .sameSite("Lax").path("/").build();
+        ResponseCookie uid = buildCookie("uid", resp.id().toString(), request, false);
+        ResponseCookie uname = buildCookie("uname", resp.username(), request, false);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header("Set-Cookie", uid.toString())
                 .header("Set-Cookie", uname.toString())
@@ -37,12 +37,11 @@ public class AuthController {
     }
 
     @PostMapping("login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody @Validated LoginRequestDTO req) {
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody @Validated LoginRequestDTO req,
+                                                 HttpServletRequest request) {
         AuthResponseDTO resp = authService.login(req);
-        ResponseCookie uid = ResponseCookie.from("uid", resp.id().toString())
-                .sameSite("Lax").path("/").build();
-        ResponseCookie uname = ResponseCookie.from("uname", resp.username())
-                .sameSite("Lax").path("/").build();
+        ResponseCookie uid = buildCookie("uid", resp.id().toString(), request, false);
+        ResponseCookie uname = buildCookie("uname", resp.username(), request, false);
         return ResponseEntity.ok()
                 .header("Set-Cookie", uid.toString())
                 .header("Set-Cookie", uname.toString())
@@ -50,12 +49,10 @@ public class AuthController {
     }
 
     @PostMapping("logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
         // Clear cookies by setting them with maxAge=0
-        ResponseCookie uid = ResponseCookie.from("uid", "")
-                .sameSite("Lax").path("/").maxAge(0).build();
-        ResponseCookie uname = ResponseCookie.from("uname", "")
-                .sameSite("Lax").path("/").maxAge(0).build();
+        ResponseCookie uid = buildCookie("uid", "", request, true);
+        ResponseCookie uname = buildCookie("uname", "", request, true);
         return ResponseEntity.ok()
                 .header("Set-Cookie", uid.toString())
                 .header("Set-Cookie", uname.toString())
@@ -71,6 +68,29 @@ public class AuthController {
         } else {
             return ResponseEntity.status(401).body(null);
         }
+    }
+
+    private static ResponseCookie buildCookie(String name, String value, HttpServletRequest request, boolean clear) {
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
+                .sameSite("None")
+                .path("/")
+                .secure(isSecureRequest(request));
+        if (clear) {
+            builder.maxAge(0);
+        }
+        return builder.build();
+    }
+
+    private static boolean isSecureRequest(HttpServletRequest request) {
+        if (request.isSecure()) {
+            return true;
+        }
+        String proto = request.getHeader("X-Forwarded-Proto");
+        if (proto != null && proto.toLowerCase(Locale.ROOT).contains("https")) {
+            return true;
+        }
+        String forwarded = request.getHeader("Forwarded");
+        return forwarded != null && forwarded.toLowerCase(Locale.ROOT).contains("proto=https");
     }
 
 }
