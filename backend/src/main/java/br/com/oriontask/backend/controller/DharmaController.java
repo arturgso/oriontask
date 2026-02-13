@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.com.oriontask.backend.dto.dharmas.DharmaDTO;
 import br.com.oriontask.backend.dto.dharmas.NewDharmaDTO;
+import br.com.oriontask.backend.dto.dharmas.UpdateDharmaDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +31,10 @@ public class DharmaController {
     private final DharmaService dharmaService;
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Dharma>> getDharmasByUser(
+    public ResponseEntity<List<DharmaDTO>> getDharmasByUser(
             @PathVariable String userId,
             @RequestParam(required = false, defaultValue = "false") boolean includeHidden) {
-        List<Dharma> dharmas = dharmaService.getDharmasByUser(userId, includeHidden);
-        return ResponseEntity.ok(dharmas);
+        return ResponseEntity.ok(dharmaService.getDharmasByUser(userId, includeHidden));
     }
 
     @PostMapping("/{userId}/create")
@@ -44,9 +44,8 @@ public class DharmaController {
     }
 
     @PatchMapping("/edit/{dharmaId}")
-    public ResponseEntity<Dharma> editDharma(@RequestBody EditDharmaDTO editDTO, @PathVariable Long dharmaId) {
-        Dharma updatedDharma = dharmaService.updateDharma(editDTO, dharmaId);
-        return ResponseEntity.ok(updatedDharma);
+    public ResponseEntity<DharmaDTO> editDharma(@RequestBody @Valid UpdateDharmaDTO editDTO, @PathVariable Long dharmaId) {
+        return ResponseEntity.ok(dharmaService.updateDharma(editDTO, dharmaId));
     }
 
     @DeleteMapping("/{dharmaId}")
@@ -56,8 +55,9 @@ public class DharmaController {
     }
 
     @PatchMapping("/{dharmaId}/toggle-hidden")
-    public ResponseEntity<Dharma> toggleHidden(@PathVariable Long dharmaId) {
-        Dharma updatedDharma = dharmaService.toggleHidden(dharmaId);
-        return ResponseEntity.ok(updatedDharma);
+    public ResponseEntity<Void> toggleHidden(@PathVariable Long dharmaId) {
+        dharmaService.toggleHidden(dharmaId);
+        return ResponseEntity.noContent().build();
+
     }
 }

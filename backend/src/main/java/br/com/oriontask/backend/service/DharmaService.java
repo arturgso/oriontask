@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import br.com.oriontask.backend.dto.dharmas.DharmaDTO;
 import br.com.oriontask.backend.dto.dharmas.NewDharmaDTO;
+import br.com.oriontask.backend.dto.dharmas.UpdateDharmaDTO;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
@@ -31,12 +32,16 @@ public class DharmaService {
 
     private static final int MAX_DHARMAS_PER_USER = 8;
 
-    public List<Dharma> getDharmasByUser(String userId, boolean includeHidden) {
+    public List<DharmaDTO> getDharmasByUser(String userId, boolean includeHidden) {
         UUID userUuid = UUID.fromString(userId);
+        List<Dharma> dharmaList;
         if (includeHidden) {
-            return repository.findByUserId(userUuid);
+            dharmaList = repository.findByUserId(userUuid);
+        } else {
+           dharmaList = repository.findByUserIdAndHiddenFalse(userUuid);
         }
-        return repository.findByUserIdAndHiddenFalse(userUuid);
+
+        return  dharmaMapper.toDTO(dharmaList);
     }
 
     public DharmaDTO create(NewDharmaDTO createDTO, String userId) {
@@ -62,19 +67,15 @@ public class DharmaService {
     }
 
     @Transactional
-    public Dharma updateDharma(EditDharmaDTO editDTO, Long dharmaId) {
+    public DharmaDTO updateDharma(UpdateDharmaDTO editDTO, Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
                 .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         dharma.setName(editDTO.name());
         dharma.setColor(editDTO.color());
-        if (editDTO.hidden() != null) {
-            dharma.setHidden(editDTO.hidden());
-        }
-        dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
         dharma = repository.save(dharma);
-        return dharma;
+        return dharmaMapper.toDTO(dharma);
     }
 
     @Transactional
@@ -95,21 +96,17 @@ public class DharmaService {
     }
 
     @Transactional
-    public Dharma toggleHidden(Long dharmaId) {
+    public void toggleHidden(Long dharmaId) {
         Dharma dharma = repository.findById(dharmaId)
                 .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         dharma.setHidden(!dharma.getHidden());
-        dharma.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
         // Update all tasks of the dharma to inherit the hidden state
         var tasks = tasksRepository.findByDharmaId(dharmaId, Pageable.unpaged());
         tasks.forEach(task -> {
             task.setHidden(dharma.getHidden());
-            task.setUpdatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
         });
         tasksRepository.saveAll(tasks);
-
-        return repository.save(dharma);
     }
 }

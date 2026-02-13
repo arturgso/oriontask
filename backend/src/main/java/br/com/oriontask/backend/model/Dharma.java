@@ -2,6 +2,8 @@ package br.com.oriontask.backend.model;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
 
 import jakarta.persistence.Entity;
@@ -44,9 +46,9 @@ public class Dharma {
     @Builder.Default
     private Boolean hidden = false;
 
-    @Builder.Default
-    private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
+    @CreationTimestamp
+    private Timestamp createdAt;
 
-    @Builder.Default
-    private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());
+    @UpdateTimestamp
+    private Timestamp updatedAt;
 }
