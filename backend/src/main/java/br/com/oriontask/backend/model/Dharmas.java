@@ -1,11 +1,5 @@
 package br.com.oriontask.backend.model;
 
-import java.sql.Timestamp;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.validator.constraints.Length;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,11 +8,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Pattern;
+import java.sql.Timestamp;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Table(name = "tab_dharma")
@@ -28,27 +26,26 @@ import lombok.Setter;
 @Setter
 @Builder
 public class Dharmas {
-  
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Length(min = 3, max = 20, message = "Name must be between 3 and 20 characters")
-    private String name;
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private Users user;
 
-    @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", message = "Color must be hexadecimal, e.g., #FFFFFF")
-    private String color;
+  @Length(min = 3, max = 20, message = "Name must be between 3 and 20 characters")
+  private String name;
 
-    @Builder.Default
-    private Boolean hidden = false;
+  @Pattern(
+      regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+      message = "Color must be hexadecimal, e.g., #FFFFFF")
+  private String color;
 
-    @CreationTimestamp
-    private Timestamp createdAt;
+  @Builder.Default private Boolean hidden = false;
 
-    @UpdateTimestamp
-    private Timestamp updatedAt;
+  @CreationTimestamp private Timestamp createdAt;
+
+  @UpdateTimestamp private Timestamp updatedAt;
 }

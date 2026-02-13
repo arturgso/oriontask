@@ -6,9 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record NewTaskDTO(
-        @NotBlank @Size(min = 5, max = 60) String title,
-        @Size(max = 200) String description,
-        KarmaType karmaType,
-        EffortLevel effortLevel
-) {
-}
+    @NotBlank @Size(min = 5, max = 60) String title,
+    @Size(max = 200) String description,
+    KarmaType karmaType,
+    EffortLevel effortLevel) {}

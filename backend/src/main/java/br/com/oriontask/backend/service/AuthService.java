@@ -1,133 +1,139 @@
 package br.com.oriontask.backend.service;
 
+import br.com.oriontask.backend.dto.auth.AuthResponseDTO;
+import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
+import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
+import br.com.oriontask.backend.dto.users.UserResponseDTO;
+import br.com.oriontask.backend.mappers.UsersMapper;
+import br.com.oriontask.backend.model.Users;
+import br.com.oriontask.backend.repository.UsersRepository;
+import br.com.oriontask.backend.utils.JwtUtils;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
-import br.com.oriontask.backend.dto.users.UserResponseDTO;
-import br.com.oriontask.backend.mappers.UsersMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-
-import br.com.oriontask.backend.dto.auth.AuthResponseDTO;
-import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
-import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
-import br.com.oriontask.backend.model.Users;
-import br.com.oriontask.backend.repository.UsersRepository;
-import br.com.oriontask.backend.utils.JwtUtils;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
-    private final UsersRepository usersRepository;
-    private final UsersMapper usersMapper;
-    private final JwtUtils jwtService;
+  private final UsersRepository usersRepository;
+  private final UsersMapper usersMapper;
+  private final JwtUtils jwtService;
 
-    @Value("${jwt.secret:change-me}")
-    private String jwtSecret;
+  @Value("${jwt.secret:change-me}")
+  private String jwtSecret;
 
-    @Value("${jwt.expMinutes:60}")
-    private int expMinutes;
+  @Value("${jwt.expMinutes:60}")
+  private int expMinutes;
 
-    // minimal disposable email domain list; configurable via property in future
-    private static final Set<String> DISPOSABLE_DOMAINS = new HashSet<>(Arrays.asList(
-            "mailinator.com",
-            "10minutemail.com",
-            "guerrillamail.com",
-            "yopmail.com",
-            "temp-mail.org",
-            "fakemail.net",
-            "trashmail.com"));
+  // minimal disposable email domain list; configurable via property in future
+  private static final Set<String> DISPOSABLE_DOMAINS =
+      new HashSet<>(
+          Arrays.asList(
+              "mailinator.com",
+              "10minutemail.com",
+              "guerrillamail.com",
+              "yopmail.com",
+              "temp-mail.org",
+              "fakemail.net",
+              "trashmail.com"));
 
-    @Transactional
-    public UserResponseDTO signup(SignupRequestDTO req) {
-        usersRepository.findByUsername(req.username()).ifPresent(u -> {
-            throw new IllegalArgumentException("Username unavailable");
-        });
-        usersRepository.findByEmail(req.email()).ifPresent(u -> {
-            throw new IllegalArgumentException("Email unavailable");
-        });
+  @Transactional
+  public UserResponseDTO signup(SignupRequestDTO req) {
+    usersRepository
+        .findByUsername(req.username())
+        .ifPresent(
+            u -> {
+              throw new IllegalArgumentException("Username unavailable");
+            });
+    usersRepository
+        .findByEmail(req.email())
+        .ifPresent(
+            u -> {
+              throw new IllegalArgumentException("Email unavailable");
+            });
 
-        if (isDisposableEmail(req.email())) {
-            throw new IllegalArgumentException("Disposable/temporary emails are not allowed");
-        }
-
-        String passwordHash = BCrypt.hashpw(req.password(), BCrypt.gensalt());
-
-        Users user = Users.builder()
-                .name(req.name())
-                .username(req.username())
-                .email(req.email())
-                .passwordHash(passwordHash)
-                .build();
-
-        user = usersRepository.save(user);
-        return usersMapper.toDTO(user);
+    if (isDisposableEmail(req.email())) {
+      throw new IllegalArgumentException("Disposable/temporary emails are not allowed");
     }
 
-    public AuthResponseDTO login(LoginRequestDTO req) {
-        Optional<Users> userOpt = isEmail(req.login())
-                ? usersRepository.findByEmail(req.login())
-                : usersRepository.findByUsername(req.login());
+    String passwordHash = BCrypt.hashpw(req.password(), BCrypt.gensalt());
 
-        Users user = userOpt.orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+    Users user =
+        Users.builder()
+            .name(req.name())
+            .username(req.username())
+            .email(req.email())
+            .passwordHash(passwordHash)
+            .build();
 
-        if (!BCrypt.checkpw(req.password(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid credentials");
-        }
+    user = usersRepository.save(user);
+    return usersMapper.toDTO(user);
+  }
 
-        String token = generateToken(user);
-        return new AuthResponseDTO(token, user.getId(), user.getUsername());
+  public AuthResponseDTO login(LoginRequestDTO req) {
+    Optional<Users> userOpt =
+        isEmail(req.login())
+            ? usersRepository.findByEmail(req.login())
+            : usersRepository.findByUsername(req.login());
+
+    Users user = userOpt.orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+
+    if (!BCrypt.checkpw(req.password(), user.getPasswordHash())) {
+      throw new IllegalArgumentException("Invalid credentials");
     }
 
-    public Boolean validateToken(HttpServletRequest request) {
-        String token = jwtService.extractTokenFromRequest(request);
+    String token = generateToken(user);
+    return new AuthResponseDTO(token, user.getId(), user.getUsername());
+  }
 
-        try {
-        if (jwtService.validateToken(token) != null) {
-            log.debug("Valid Token");
-            return true;
-        }
-        } catch (JWTVerificationException e) {
-            log.debug("Invalid Token {}", e);
-            return false;
-        }
+  public Boolean validateToken(HttpServletRequest request) {
+    String token = jwtService.extractTokenFromRequest(request);
 
-        log.debug("Invalid Token");
-        return false;
+    try {
+      if (jwtService.validateToken(token) != null) {
+        log.debug("Valid Token");
+        return true;
+      }
+    } catch (JWTVerificationException e) {
+      log.debug("Invalid Token {}", e);
+      return false;
     }
 
-    private String generateToken(Users user) {
-        Algorithm alg = Algorithm.HMAC256(jwtSecret);
-        Instant now = Instant.now();
-        return JWT.create()
-                .withSubject(user.getId().toString())
-                .withClaim("username", user.getUsername())
-                .withIssuedAt(java.util.Date.from(now))
-                .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
-                .sign(alg);
-    }
+    log.debug("Invalid Token");
+    return false;
+  }
 
-    private boolean isEmail(String value) {
-        return value.contains("@");
-    }
+  private String generateToken(Users user) {
+    Algorithm alg = Algorithm.HMAC256(jwtSecret);
+    Instant now = Instant.now();
+    return JWT.create()
+        .withSubject(user.getId().toString())
+        .withClaim("username", user.getUsername())
+        .withIssuedAt(java.util.Date.from(now))
+        .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
+        .sign(alg);
+  }
 
-    private boolean isDisposableEmail(String email) {
-        String domain = email.substring(email.indexOf('@') + 1).toLowerCase();
-        return DISPOSABLE_DOMAINS.contains(domain);
-    }
+  private boolean isEmail(String value) {
+    return value.contains("@");
+  }
+
+  private boolean isDisposableEmail(String email) {
+    String domain = email.substring(email.indexOf('@') + 1).toLowerCase();
+    return DISPOSABLE_DOMAINS.contains(domain);
+  }
 }
