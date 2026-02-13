@@ -1,5 +1,6 @@
 package br.com.oriontask.backend.controller;
 
+import br.com.oriontask.backend.dto.UserResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -23,33 +24,20 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("signup")
-    public ResponseEntity<AuthResponseDTO> signup(@RequestBody @Validated SignupRequestDTO req,
-                                                  HttpServletRequest request) {
-        AuthResponseDTO resp = authService.signup(req);
-        // Set minimal cookies with id and username
-        ResponseCookie uid = buildCookie("uid", resp.id().toString(), request, false);
-        ResponseCookie uname = buildCookie("uname", resp.username(), request, false);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .header("Set-Cookie", uid.toString())
-                .header("Set-Cookie", uname.toString())
-                .body(resp);
+    public ResponseEntity<UserResponseDTO> signup(@RequestBody @Validated SignupRequestDTO req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(req));
     }
 
     @PostMapping("login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody @Validated LoginRequestDTO req,
                                                  HttpServletRequest request) {
         AuthResponseDTO resp = authService.login(req);
-        ResponseCookie uid = buildCookie("uid", resp.id().toString(), request, false);
-        ResponseCookie uname = buildCookie("uname", resp.username(), request, false);
         return ResponseEntity.ok()
-                .header("Set-Cookie", uid.toString())
-                .header("Set-Cookie", uname.toString())
                 .body(resp);
     }
 
     @PostMapping("logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        // Clear cookies by setting them with maxAge=0
         ResponseCookie uid = buildCookie("uid", "", request, true);
         ResponseCookie uname = buildCookie("uname", "", request, true);
         return ResponseEntity.ok()
@@ -63,9 +51,9 @@ public class AuthController {
         Boolean result = authService.validateToken(request);
         
         if (result) {
-            return ResponseEntity.ok().body(null);
+            return ResponseEntity.noContent().build();
         } else {
-            return ResponseEntity.status(401).body(null);
+            return ResponseEntity.status(401).build();
         }
     }
 

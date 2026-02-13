@@ -13,7 +13,7 @@ public class BackendApplication {
 		SpringApplication.run(BackendApplication.class, args);
 	}
 
-	@GetMapping()
+	@GetMapping("/hello")
 	public String hello() {
 		return "Hello, World!";
 	}

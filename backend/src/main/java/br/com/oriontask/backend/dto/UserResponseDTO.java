@@ -7,6 +7,7 @@ public record UserResponseDTO(
         UUID id,
         String name,
         String username,
+        String email,
         Timestamp createdAt,
         Timestamp updatedAt) {
 

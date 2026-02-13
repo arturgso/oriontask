@@ -1,5 +1,6 @@
 package br.com.oriontask.backend.controller;
 
+import br.com.oriontask.backend.dto.UpdateUserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.oriontask.backend.dto.ProfileResponseDTO;
-import br.com.oriontask.backend.dto.UpdateProfileDTO;
 import br.com.oriontask.backend.dto.UserResponseDTO;
 import br.com.oriontask.backend.service.UsersService;
 import br.com.oriontask.backend.utils.SecurityUtils;
@@ -34,12 +33,12 @@ public class UsersController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<ProfileResponseDTO> getProfile() {
+    public ResponseEntity<UserResponseDTO> getProfile() {
         return ResponseEntity.ok(service.getProfile(SecurityUtils.getCurrentUserId()));
     }
 
     @PatchMapping("/profile")
-    public ResponseEntity<ProfileResponseDTO> updateProfile(@Valid @RequestBody UpdateProfileDTO dto) {
+    public ResponseEntity<UserResponseDTO> updateProfile(@Valid @RequestBody UpdateUserDTO dto) {
         return ResponseEntity.ok(service.updateProfile(SecurityUtils.getCurrentUserId(), dto));
     }
 }

@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import br.com.oriontask.backend.dto.UserResponseDTO;
+import br.com.oriontask.backend.mappers.UsersMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,9 +37,8 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 @Slf4j
 public class AuthService {
     private final UsersRepository usersRepository;
+    private final UsersMapper usersMapper;
     private final JwtUtils jwtService;
-
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     @Value("${jwt.secret:change-me}")
     private String jwtSecret;
@@ -56,7 +57,7 @@ public class AuthService {
             "trashmail.com"));
 
     @Transactional
-    public AuthResponseDTO signup(SignupRequestDTO req) {
+    public UserResponseDTO signup(SignupRequestDTO req) {
         usersRepository.findByUsername(req.username()).ifPresent(u -> {
             throw new IllegalArgumentException("Username unavailable");
         });
@@ -78,10 +79,7 @@ public class AuthService {
                 .build();
 
         user = usersRepository.save(user);
-
-        String token = generateToken(user);
-
-        return new AuthResponseDTO(token, user.getId(), user.getUsername(), user.getName());
+        return usersMapper.toDTO(user);
     }
 
     public AuthResponseDTO login(LoginRequestDTO req) {
@@ -96,7 +94,7 @@ public class AuthService {
         }
 
         String token = generateToken(user);
-        return new AuthResponseDTO(token, user.getId(), user.getUsername(), user.getName());
+        return new AuthResponseDTO(token, user.getId(), user.getUsername());
     }
 
     public Boolean validateToken(HttpServletRequest request) {
@@ -111,7 +109,6 @@ public class AuthService {
             log.debug("Invalid Token {}", e);
             return false;
         }
-
 
         log.debug("Invalid Token");
         return false;
