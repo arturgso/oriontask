@@ -14,7 +14,6 @@ import br.com.oriontask.backend.dto.LoginRequestDTO;
 import br.com.oriontask.backend.dto.SignupRequestDTO;
 import br.com.oriontask.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -71,29 +70,14 @@ public class AuthController {
     }
 
     private static ResponseCookie buildCookie(String name, String value, HttpServletRequest request, boolean clear) {
-        boolean secure = isSecureRequest(request);
-        String sameSite = secure ? "None" : "Lax";
-
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
-                .sameSite(sameSite)
+                .sameSite("None")
                 .path("/")
-                .secure(secure);
+                .secure(true);
         if (clear) {
             builder.maxAge(0);
         }
         return builder.build();
-    }
-
-    private static boolean isSecureRequest(HttpServletRequest request) {
-        if (request.isSecure()) {
-            return true;
-        }
-        String proto = request.getHeader("X-Forwarded-Proto");
-        if (proto != null && proto.toLowerCase(Locale.ROOT).contains("https")) {
-            return true;
-        }
-        String forwarded = request.getHeader("Forwarded");
-        return forwarded != null && forwarded.toLowerCase(Locale.ROOT).contains("proto=https");
     }
 
 }
