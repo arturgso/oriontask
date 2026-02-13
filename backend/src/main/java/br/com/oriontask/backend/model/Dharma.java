@@ -38,9 +38,6 @@ public class Dharma {
     @Length(min = 3, max = 20, message = "Name must be between 3 and 20 characters")
     private String name;
 
-    @Length(max = 100, message = "Description must be at most 100 characters")
-    private String description;
-
     @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", message = "Color must be hexadecimal, e.g., #FFFFFF")
     private String color;
 

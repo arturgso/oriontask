@@ -2,6 +2,10 @@ package br.com.oriontask.backend.controller;
 
 import java.util.List;
 
+import br.com.oriontask.backend.dto.dharmas.DharmaDTO;
+import br.com.oriontask.backend.dto.dharmas.NewDharmaDTO;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +38,9 @@ public class DharmaController {
     }
 
     @PostMapping("/{userId}/create")
-    public ResponseEntity<Dharma> createDharma(@RequestBody EditDharmaDTO createDTO, @PathVariable String userId) {
-        Dharma dharma = dharmaService.create(createDTO, userId);
-        return ResponseEntity.ok(dharma);
+    public ResponseEntity<DharmaDTO> createDharma(@RequestBody @Valid NewDharmaDTO createDTO, @PathVariable String userId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(dharmaService.create(
+                createDTO, userId));
     }
 
     @PatchMapping("/edit/{dharmaId}")

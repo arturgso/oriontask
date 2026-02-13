@@ -3,6 +3,8 @@ package br.com.oriontask.backend.service;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.oriontask.backend.dto.dharmas.DharmaDTO;
+import br.com.oriontask.backend.dto.dharmas.NewDharmaDTO;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,8 @@ public class DharmaService {
     private final UsersRepository uRepository;
     private final TasksRepository tasksRepository;
 
+    private final DharmaMapper dharmaMapper;
+
     private static final int MAX_DHARMAS_PER_USER = 8;
 
     public List<Dharma> getDharmasByUser(String userId, boolean includeHidden) {
@@ -35,7 +39,7 @@ public class DharmaService {
         return repository.findByUserIdAndHiddenFalse(userUuid);
     }
 
-    public Dharma create(EditDharmaDTO createDTO, String userId) {
+    public DharmaDTO create(NewDharmaDTO createDTO, String userId) {
         Users user = uRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -45,18 +49,16 @@ public class DharmaService {
             throw new IllegalStateException("Maximum number of dharmas reached for this user");
         }
 
-        String color = createDTO.color() != null ? createDTO.color() : ColorGenerator.generateRandomColor();
+        Dharma dharma  = dharmaMapper.toEntity(createDTO);
+        dharma.setUser(user);
+        String color = dharma.getColor();
 
-        Dharma dharma = Dharma.builder()
-                .user(user)
-                .name(createDTO.name())
-                .description(createDTO.description())
-                .color(color)
-                .hidden(createDTO.hidden() != null ? createDTO.hidden() : false)
-                .build();
+        if (color == null) {
+            dharma.setColor(ColorGenerator.generateRandomColor());
+        }
 
         dharma = repository.save(dharma);
-        return dharma;
+        return dharmaMapper.toDTO(dharma);
     }
 
     @Transactional
@@ -65,7 +67,6 @@ public class DharmaService {
                 .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
         dharma.setName(editDTO.name());
-        dharma.setDescription(editDTO.description());
         dharma.setColor(editDTO.color());
         if (editDTO.hidden() != null) {
             dharma.setHidden(editDTO.hidden());
