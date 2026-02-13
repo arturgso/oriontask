@@ -71,8 +71,7 @@ public class DharmaService {
         Dharma dharma = repository.findById(dharmaId)
                 .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
 
-        dharma.setName(editDTO.name());
-        dharma.setColor(editDTO.color());
+        dharma = dharmaMapper.partialUpdate(editDTO, dharma);
 
         dharma = repository.save(dharma);
         return dharmaMapper.toDTO(dharma);
