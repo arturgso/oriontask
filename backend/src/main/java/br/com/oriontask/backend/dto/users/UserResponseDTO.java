@@ -1,4 +1,4 @@
-package br.com.oriontask.backend.dto;
+package br.com.oriontask.backend.dto.users;
 
 import java.sql.Timestamp;
 import java.util.UUID;

@@ -2,7 +2,9 @@ package br.com.oriontask.backend.service;
 
 import java.util.UUID;
 
-import br.com.oriontask.backend.dto.*;
+import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
+import br.com.oriontask.backend.dto.users.UpdateUserDTO;
+import br.com.oriontask.backend.dto.users.UserResponseDTO;
 import br.com.oriontask.backend.mappers.UsersMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class UsersService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserResponseDTO create(EditUserDTO createDTO) {
+    public UserResponseDTO create(SignupRequestDTO createDTO) {
         repository.findByUsername(createDTO.username()).ifPresent(user -> {
             throw new IllegalArgumentException("Username unavailable");
         });

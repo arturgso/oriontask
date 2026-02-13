@@ -1,6 +1,6 @@
 package br.com.oriontask.backend.controller;
 
-import br.com.oriontask.backend.dto.UserResponseDTO;
+import br.com.oriontask.backend.dto.users.UserResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.oriontask.backend.dto.AuthResponseDTO;
-import br.com.oriontask.backend.dto.LoginRequestDTO;
-import br.com.oriontask.backend.dto.SignupRequestDTO;
+import br.com.oriontask.backend.dto.auth.AuthResponseDTO;
+import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
+import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
 import br.com.oriontask.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

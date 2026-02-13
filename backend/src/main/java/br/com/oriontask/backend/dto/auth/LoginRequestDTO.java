@@ -1,4 +1,4 @@
-package br.com.oriontask.backend.dto;
+package br.com.oriontask.backend.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

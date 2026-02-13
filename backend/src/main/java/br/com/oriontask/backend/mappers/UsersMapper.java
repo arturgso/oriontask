@@ -1,8 +1,8 @@
 package br.com.oriontask.backend.mappers;
 
-import br.com.oriontask.backend.dto.SignupRequestDTO;
-import br.com.oriontask.backend.dto.UpdateUserDTO;
-import br.com.oriontask.backend.dto.UserResponseDTO;
+import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
+import br.com.oriontask.backend.dto.users.UpdateUserDTO;
+import br.com.oriontask.backend.dto.users.UserResponseDTO;
 import br.com.oriontask.backend.model.Users;
 import org.mapstruct.*;
 

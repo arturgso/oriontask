@@ -14,12 +14,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
-import br.com.oriontask.backend.dto.AuthResponseDTO;
-import br.com.oriontask.backend.dto.LoginRequestDTO;
-import br.com.oriontask.backend.dto.SignupRequestDTO;
+import br.com.oriontask.backend.dto.auth.AuthResponseDTO;
+import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
+import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
 
