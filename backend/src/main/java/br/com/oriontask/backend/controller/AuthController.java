@@ -71,10 +71,13 @@ public class AuthController {
     }
 
     private static ResponseCookie buildCookie(String name, String value, HttpServletRequest request, boolean clear) {
+        boolean secure = isSecureRequest(request);
+        String sameSite = secure ? "None" : "Lax";
+
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
-                .sameSite("None")
+                .sameSite(sameSite)
                 .path("/")
-                .secure(isSecureRequest(request));
+                .secure(secure);
         if (clear) {
             builder.maxAge(0);
         }
