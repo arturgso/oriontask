@@ -3,15 +3,18 @@ package br.com.oriontask.backend.service;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import br.com.oriontask.backend.dto.tasks.NewTaskDTO;
+import br.com.oriontask.backend.dto.tasks.TaskDTO;
+import br.com.oriontask.backend.dto.tasks.UpdateTaskDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import br.com.oriontask.backend.dto.EditTasksDTO;
 import br.com.oriontask.backend.enums.TaskStatus;
-import br.com.oriontask.backend.model.Dharma;
+import br.com.oriontask.backend.mappers.TasksMapper;
+import br.com.oriontask.backend.model.Dharmas;
 import br.com.oriontask.backend.model.Tasks;
-import br.com.oriontask.backend.repository.DharmaRepository;
+import br.com.oriontask.backend.repository.DharmasRepository;
 import br.com.oriontask.backend.repository.TasksRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,32 +24,28 @@ import lombok.RequiredArgsConstructor;
 public class TasksService {
 
     private final TasksRepository repository;
-    private final DharmaRepository dharmaRepository;
+    private final DharmasRepository dharmasRepository;
+    private final TasksMapper tasksMapper;
 
     @org.springframework.beans.factory.annotation.Value("${task.snooze.duration-hours:2}")
     private int snoozeDurationHours;
 
     private static final int MAX_NOW_TASKS = 5;
 
-    public Tasks create(EditTasksDTO createDTO, Long dharmaId) {
-        Dharma dharma = dharmaRepository.findById(dharmaId)
-                .orElseThrow(() -> new IllegalArgumentException("Dharma not found"));
+    public TaskDTO create(NewTaskDTO createDTO, Long dharmasId) {
+        Dharmas dharmas = dharmasRepository.findById(dharmasId)
+                .orElseThrow(() -> new IllegalArgumentException("Dharmas not found"));
 
-        Tasks task = Tasks.builder()
-                .dharma(dharma)
-                .title(createDTO.title())
-                .description(createDTO.description())
-                .karmaType(createDTO.karmaType())
-                .effortLevel(createDTO.effortLevel())
-                .hidden(dharma.getHidden()) // Inherit hidden flag from parent dharma
-                .status(TaskStatus.NEXT)
-                .build();
+        Tasks task = tasksMapper.toEntity(createDTO);
+        task.setDharmas(dharmas);
+        task.setHidden(dharmas.getHidden()); // Inherit hidden flag from parent dharmas
+        task.setStatus(TaskStatus.NEXT);
 
-        return repository.save(task);
+        return tasksMapper.toDTO(repository.save(task));
     }
 
     @Transactional
-    public Tasks updateTask(EditTasksDTO editDTO, Long taskId) {
+    public TaskDTO updateTask(UpdateTaskDTO editDTO, Long taskId) {
         Tasks task = repository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
@@ -54,20 +53,14 @@ public class TasksService {
             throw new IllegalStateException("Completed tasks cannot be edited");
         }
 
-        task.setTitle(editDTO.title());
-        task.setDescription(editDTO.description());
-        task.setKarmaType(editDTO.karmaType());
-        task.setEffortLevel(editDTO.effortLevel());
-        if (editDTO.hidden() != null) {
-            task.setHidden(editDTO.hidden());
-        }
+        task = tasksMapper.partialUpdate(editDTO, task);
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
-        return repository.save(task);
+        return tasksMapper.toDTO(repository.save(task));
     }
 
     @Transactional
-    public Tasks moveToNow(Long taskId) {
+    public TaskDTO moveToNow(Long taskId) {
         Tasks task = repository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
@@ -75,8 +68,8 @@ public class TasksService {
             throw new IllegalStateException("Completed tasks cannot change status");
         }
 
-        Long nowCount = repository.countByDharmaUserIdAndStatus(
-                task.getDharma().getUser().getId(),
+        Long nowCount = repository.countByDharmasUserIdAndStatus(
+                task.getDharmas().getUser().getId(),
                 TaskStatus.NOW);
 
         if (nowCount >= MAX_NOW_TASKS) {
@@ -87,11 +80,11 @@ public class TasksService {
         task.setSnoozedUntil(null);
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
-        return repository.save(task);
+        return tasksMapper.toDTO(repository.save(task));
     }
 
     @Transactional
-    public Tasks changeStatus(Long taskId, TaskStatus newStatus) {
+    public TaskDTO changeStatus(Long taskId, TaskStatus newStatus) {
         Tasks task = repository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
@@ -100,8 +93,8 @@ public class TasksService {
         }
 
         if (newStatus == TaskStatus.NOW) {
-            Long nowCount = repository.countByDharmaUserIdAndStatus(
-                    task.getDharma().getUser().getId(),
+            Long nowCount = repository.countByDharmasUserIdAndStatus(
+                    task.getDharmas().getUser().getId(),
                     TaskStatus.NOW);
 
             if (nowCount >= MAX_NOW_TASKS) {
@@ -120,11 +113,11 @@ public class TasksService {
 
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
-        return repository.save(task);
+        return tasksMapper.toDTO(repository.save(task));
     }
 
     @Transactional
-    public Tasks markAsDone(Long taskId) {
+    public TaskDTO markAsDone(Long taskId) {
         Tasks task = repository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
@@ -137,19 +130,19 @@ public class TasksService {
         task.setCompletedAt(new Timestamp(System.currentTimeMillis()));
         task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
-        return repository.save(task);
+        return tasksMapper.toDTO(repository.save(task));
     }
 
-    public Page<Tasks> getTasksByDharma(Long dharmaId, Pageable pageable) {
-        return repository.findByDharmaId(dharmaId, pageable);
+    public Page<TaskDTO> getTasksByDharmas(Long dharmasId, Pageable pageable) {
+        return repository.findByDharmasId(dharmasId, pageable).map(tasksMapper::toDTO);
     }
 
-    public Page<Tasks> getTasksByStatus(Long dharmaId, TaskStatus status, Pageable pageable) {
-        return repository.findByDharmaIdAndStatus(dharmaId, status, pageable);
+    public Page<TaskDTO> getTasksByDharmasAndStatus(Long dharmasId, TaskStatus status, Pageable pageable) {
+        return repository.findByDharmasIdAndStatus(dharmasId, status, pageable).map(tasksMapper::toDTO);
     }
 
-    public Page<Tasks> getTasksByUserAndStatus(String userId, TaskStatus status, Pageable pageable) {
-        return repository.findByDharmaUserIdAndStatus(UUID.fromString(userId), status, pageable);
+    public Page<TaskDTO> getTasksByUserAndStatus(String userId, TaskStatus status, Pageable pageable) {
+        return repository.findByDharmasUserIdAndStatus(UUID.fromString(userId), status, pageable).map(tasksMapper::toDTO);
     }
 
     @Transactional

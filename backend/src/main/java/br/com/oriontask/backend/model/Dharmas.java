@@ -27,7 +27,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class Dharma {
+public class Dharmas {
   
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

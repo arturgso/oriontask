@@ -38,7 +38,7 @@ public class Tasks {
 
     @ManyToOne
     @JoinColumn(name = "dharma_id", nullable = false)
-    private Dharma dharma;
+    private Dharmas dharmas;
 
     @Size(min = 5, max = 60, message = "The title must be between 5 and 60 characters")
     private String title;

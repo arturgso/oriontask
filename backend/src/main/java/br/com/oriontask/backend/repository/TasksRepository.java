@@ -14,29 +14,29 @@ import br.com.oriontask.backend.model.Tasks;
 public interface TasksRepository extends JpaRepository<Tasks, Long> {
     Optional<Tasks> findById(Long id);
 
-    List<Tasks> findByDharmaId(Long dharmaId);
+    List<Tasks> findByDharmasId(Long dharmasId);
 
-    Page<Tasks> findByDharmaId(Long dharmaId, Pageable pageable);
+    Page<Tasks> findByDharmasId(Long dharmasId, Pageable pageable);
 
-    Page<Tasks> findByDharmaIdAndStatus(Long dharmaId, TaskStatus status, Pageable pageable);
+    Page<Tasks> findByDharmasIdAndStatus(Long dharmasId, TaskStatus status, Pageable pageable);
 
-    @Query("SELECT t FROM Tasks t WHERE t.dharma.user.id = :userId AND " +
+    @Query("SELECT t FROM Tasks t WHERE t.dharmas.user.id = :userId AND " +
             "((t.status = :status AND :status = br.com.oriontask.backend.enums.TaskStatus.NOW) OR " +
             "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.enums.TaskStatus.NOW AND t.snoozedUntil <= CURRENT_TIMESTAMP) OR "
             +
             "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.enums.TaskStatus.NEXT AND (t.snoozedUntil IS NULL OR t.snoozedUntil <= CURRENT_TIMESTAMP)) OR "
             +
             "(t.status = :status AND :status NOT IN (br.com.oriontask.backend.enums.TaskStatus.NOW, br.com.oriontask.backend.enums.TaskStatus.NEXT)))")
-    Page<Tasks> findByDharmaUserIdAndStatus(java.util.UUID userId, TaskStatus status, Pageable pageable);
+    Page<Tasks> findByDharmasUserIdAndStatus(java.util.UUID userId, TaskStatus status, Pageable pageable);
 
-    Long countByDharmaId(Long dharmaId);
+    Long countByDharmasId(Long dharmasId);
 
-    @Query("SELECT COUNT(t) FROM Tasks t WHERE t.dharma.user.id = :userId AND " +
+    @Query("SELECT COUNT(t) FROM Tasks t WHERE t.dharmas.user.id = :userId AND " +
             "((t.status = :status AND :status = br.com.oriontask.backend.enums.TaskStatus.NOW) OR " +
             "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.enums.TaskStatus.NOW AND t.snoozedUntil <= CURRENT_TIMESTAMP) OR "
             +
             "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.enums.TaskStatus.NEXT AND (t.snoozedUntil IS NULL OR t.snoozedUntil <= CURRENT_TIMESTAMP)) OR "
             +
             "(t.status = :status AND :status NOT IN (br.com.oriontask.backend.enums.TaskStatus.NOW, br.com.oriontask.backend.enums.TaskStatus.NEXT)))")
-    Long countByDharmaUserIdAndStatus(java.util.UUID userId, TaskStatus status);
+    Long countByDharmasUserIdAndStatus(java.util.UUID userId, TaskStatus status);
 }

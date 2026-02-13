@@ -2,7 +2,7 @@ package br.com.oriontask.backend.dto.dharmas;
 
 import java.sql.Timestamp;
 
-public record DharmaDTO(
+public record DharmasDTO(
         Long id,
         String name,
         String color,

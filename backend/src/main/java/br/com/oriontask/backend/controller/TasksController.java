@@ -1,7 +1,9 @@
 package br.com.oriontask.backend.controller;
 
-import java.util.List;
-
+import br.com.oriontask.backend.dto.tasks.NewTaskDTO;
+import br.com.oriontask.backend.dto.tasks.TaskDTO;
+import br.com.oriontask.backend.dto.tasks.UpdateTaskDTO;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,9 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.oriontask.backend.dto.EditTasksDTO;
 import br.com.oriontask.backend.enums.TaskStatus;
-import br.com.oriontask.backend.model.Tasks;
 import br.com.oriontask.backend.service.TasksService;
 import lombok.RequiredArgsConstructor;
 
@@ -29,68 +29,63 @@ public class TasksController {
     
     private final TasksService tasksService;
 
-    @PostMapping("/{dharmaId}/create")
-    public ResponseEntity<Tasks> createTask(@RequestBody EditTasksDTO createDTO, @PathVariable Long dharmaId) {
-        Tasks task = tasksService.create(createDTO, dharmaId);
-        return ResponseEntity.ok(task);
+    @PostMapping("/{dharmasId}/create")
+    public ResponseEntity<TaskDTO> createTask(@RequestBody @Valid NewTaskDTO createDTO, @PathVariable Long dharmasId) {
+        return ResponseEntity.ok(tasksService.create(createDTO, dharmasId));
     }
 
     @PatchMapping("/edit/{taskId}")
-    public ResponseEntity<Tasks> editTask(@RequestBody EditTasksDTO editDTO, @PathVariable Long taskId) {
-        Tasks updatedTask = tasksService.updateTask(editDTO, taskId);
-        return ResponseEntity.ok(updatedTask);
+    public ResponseEntity<TaskDTO> editTask(@RequestBody @Valid UpdateTaskDTO editDTO, @PathVariable Long taskId) {
+        return ResponseEntity.ok(tasksService.updateTask(editDTO, taskId));
     }
 
     @PatchMapping("/{taskId}/move-to-now")
-    public ResponseEntity<Tasks> moveToNow(@PathVariable Long taskId) {
-        Tasks task = tasksService.moveToNow(taskId);
-        return ResponseEntity.ok(task);
+    public ResponseEntity<TaskDTO> moveToNow(@PathVariable Long taskId) {
+        return ResponseEntity.ok(tasksService.moveToNow(taskId));
     }
 
     @PatchMapping("/{taskId}/change-status")
-    public ResponseEntity<Tasks> changeStatus(
+    public ResponseEntity<TaskDTO> changeStatus(
         @PathVariable Long taskId,
         @RequestParam TaskStatus status
     ) {
-        Tasks task = tasksService.changeStatus(taskId, status);
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(tasksService.changeStatus(taskId, status));
     }
 
     @PatchMapping("/{taskId}/mark-done")
-    public ResponseEntity<Tasks> markAsDone(@PathVariable Long taskId) {
-        Tasks task = tasksService.markAsDone(taskId);
-        return ResponseEntity.ok(task);
+    public ResponseEntity<TaskDTO> markAsDone(@PathVariable Long taskId) {
+        return ResponseEntity.ok(tasksService.markAsDone(taskId));
     }
 
-    @GetMapping("/dharma/{dharmaId}")
-    public ResponseEntity<Page<Tasks>> getTasksByDharma(
-        @PathVariable Long dharmaId,
+    @GetMapping("/dharmas/{dharmasId}")
+    public ResponseEntity<Page<TaskDTO>> getTasksByDharmas(
+        @PathVariable Long dharmasId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        Page<Tasks> tasks = tasksService.getTasksByDharma(dharmaId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
+        Page<TaskDTO> tasks = tasksService.getTasksByDharmas(dharmasId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
         return ResponseEntity.ok(tasks);
     }
 
-    @GetMapping("/dharma/{dharmaId}/status/{status}")
-    public ResponseEntity<Page<Tasks>> getTasksByDharmaAndStatus(
-        @PathVariable Long dharmaId,
+    @GetMapping("/dharmas/{dharmasId}/status/{status}")
+    public ResponseEntity<Page<TaskDTO>> getTasksByDharmasAndStatus(
+        @PathVariable Long dharmasId,
         @PathVariable TaskStatus status,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        Page<Tasks> tasks = tasksService.getTasksByStatus(dharmaId, status, PageRequest.of(page, size, Sort.by("createdAt").descending()));
+        Page<TaskDTO> tasks = tasksService.getTasksByDharmasAndStatus(dharmasId, status, PageRequest.of(page, size, Sort.by("createdAt").descending()));
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/user/{userId}/status/{status}")
-    public ResponseEntity<Page<Tasks>> getTasksByUserAndStatus(
+    public ResponseEntity<Page<TaskDTO>> getTasksByUserAndStatus(
         @PathVariable String userId,
         @PathVariable TaskStatus status,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        Page<Tasks> tasks = tasksService.getTasksByUserAndStatus(userId, status, PageRequest.of(page, size, Sort.by("createdAt").descending()));
+        Page<TaskDTO> tasks = tasksService.getTasksByUserAndStatus(userId, status, PageRequest.of(page, size, Sort.by("createdAt").descending()));
         return ResponseEntity.ok(tasks);
     }
 
