@@ -1,6 +1,6 @@
 package br.com.oriontask.backend.config;
 
-import br.com.oriontask.backend.utils.JwtUtils;
+import br.com.oriontask.backend.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private final JwtUtils jwtUtils;
+  private final TokenService jwtUtils;
 
   @Override
   protected void doFilterInternal(

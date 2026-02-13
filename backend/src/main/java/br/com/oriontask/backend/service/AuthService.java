@@ -7,21 +7,14 @@ import br.com.oriontask.backend.dto.users.UserResponseDTO;
 import br.com.oriontask.backend.mappers.UsersMapper;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
-import br.com.oriontask.backend.utils.JwtUtils;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +24,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
   private final UsersRepository usersRepository;
   private final UsersMapper usersMapper;
-  private final JwtUtils jwtService;
-
-  @Value("${jwt.secret:change-me}")
-  private String jwtSecret;
-
-  @Value("${jwt.expMinutes:60}")
-  private int expMinutes;
+  private final TokenService jwtService;
 
   // minimal disposable email domain list; configurable via property in future
   private static final Set<String> DISPOSABLE_DOMAINS =
@@ -96,36 +83,8 @@ public class AuthService {
       throw new IllegalArgumentException("Invalid credentials");
     }
 
-    String token = generateToken(user);
+    String token = jwtService.generateToken(user);
     return new AuthResponseDTO(token, user.getId(), user.getUsername());
-  }
-
-  public Boolean validateToken(HttpServletRequest request) {
-    String token = jwtService.extractTokenFromRequest(request);
-
-    try {
-      if (jwtService.validateToken(token) != null) {
-        log.debug("Valid Token");
-        return true;
-      }
-    } catch (JWTVerificationException e) {
-      log.debug("Invalid Token {}", e);
-      return false;
-    }
-
-    log.debug("Invalid Token");
-    return false;
-  }
-
-  private String generateToken(Users user) {
-    Algorithm alg = Algorithm.HMAC256(jwtSecret);
-    Instant now = Instant.now();
-    return JWT.create()
-        .withSubject(user.getId().toString())
-        .withClaim("username", user.getUsername())
-        .withIssuedAt(java.util.Date.from(now))
-        .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
-        .sign(alg);
   }
 
   private boolean isEmail(String value) {
