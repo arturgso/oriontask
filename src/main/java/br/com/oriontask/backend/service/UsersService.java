@@ -59,9 +59,7 @@ public class UsersService {
   }
 
   @Transactional
-  public UserResponseDTO updateProfile(
-      UpdateUserDTO dto, Authentication authentication)
-       {
+  public UserResponseDTO updateProfile(UpdateUserDTO dto, Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
 
     Users user = getEntity(userId);

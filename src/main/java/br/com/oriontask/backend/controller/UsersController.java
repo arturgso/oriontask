@@ -24,6 +24,7 @@ public class UsersController {
 
   @GetMapping("me")
   public ResponseEntity<UserResponseDTO> getMe(Authentication authentication) {
+
     return ResponseEntity.ok().body(service.getMe(authentication));
   }
 
@@ -35,9 +36,7 @@ public class UsersController {
 
   @PatchMapping("/profile/me")
   public ResponseEntity<UserResponseDTO> updateProfile(
-      @Valid @RequestBody UpdateUserDTO dto,
-      Authentication authentication)
-      throws AccessDeniedException {
+      @Valid @RequestBody UpdateUserDTO dto, Authentication authentication) {
     return ResponseEntity.ok(service.updateProfile(dto, authentication));
   }
 }
