@@ -8,12 +8,10 @@ import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
 import br.com.oriontask.backend.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
-
 import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.h2.engine.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -44,11 +42,16 @@ public class UsersService {
   public UserResponseDTO getMe(Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
 
-    return mapper.toDTO(repository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
+    return mapper.toDTO(
+        repository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
   }
 
-  public UserResponseDTO list(String username, Authentication authentication) throws AccessDeniedException {
-    Users user = repository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+  public UserResponseDTO list(String username, Authentication authentication)
+      throws AccessDeniedException {
+    Users user =
+        repository
+            .findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
     securityUtils.isOwner(user.getId(), authentication);
 
@@ -63,7 +66,9 @@ public class UsersService {
   }
 
   @Transactional
-  public UserResponseDTO updateProfile(String username, UpdateUserDTO dto, Authentication authentication) throws AccessDeniedException {
+  public UserResponseDTO updateProfile(
+      String username, UpdateUserDTO dto, Authentication authentication)
+      throws AccessDeniedException {
     Users user =
         repository
             .findByUsername(username)
