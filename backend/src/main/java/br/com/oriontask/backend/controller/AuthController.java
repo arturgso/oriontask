@@ -5,6 +5,7 @@ import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
 import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
 import br.com.oriontask.backend.dto.users.UserResponseDTO;
 import br.com.oriontask.backend.service.AuthService;
+import br.com.oriontask.backend.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
   private final AuthService authService;
+  private final TokenService tokenService;
 
   @PostMapping("signup")
   public ResponseEntity<UserResponseDTO> signup(@RequestBody @Validated SignupRequestDTO req) {
@@ -46,7 +48,7 @@ public class AuthController {
 
   @PostMapping("validate")
   public ResponseEntity<Void> validate(HttpServletRequest request) {
-    Boolean result = authService.validateToken(request);
+    Boolean result = tokenService.validateToken(request);
 
     if (result) {
       return ResponseEntity.noContent().build();

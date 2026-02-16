@@ -6,11 +6,15 @@ import br.com.oriontask.backend.dto.users.UserResponseDTO;
 import br.com.oriontask.backend.mappers.UsersMapper;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
+import br.com.oriontask.backend.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
+
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.h2.engine.User;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class UsersService {
   private final UsersRepository repository;
   private final UsersMapper mapper;
-  private final PasswordEncoder passwordEncoder;
+  private final SecurityUtils securityUtils;
 
   @Transactional
   public UserResponseDTO create(SignupRequestDTO createDTO) {
@@ -37,18 +41,18 @@ public class UsersService {
     return mapper.toDTO(user);
   }
 
-  public UserResponseDTO list(String id) {
-    return mapper.toDTO(
-        repository
-            .findById(UUID.fromString(id))
-            .orElseThrow(() -> new RuntimeException("User not found")));
+  public UserResponseDTO getMe(Authentication authentication) {
+    UUID userId = UUID.fromString(authentication.getName());
+
+    return mapper.toDTO(repository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
   }
 
-  public UserResponseDTO getByUsername(String username) {
-    return mapper.toDTO(
-        repository
-            .findByUsername(username)
-            .orElseThrow(() -> new IllegalArgumentException("User not found")));
+  public UserResponseDTO list(String username, Authentication authentication) throws AccessDeniedException {
+    Users user = repository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+
+    securityUtils.isOwner(user.getId(), authentication);
+
+    return mapper.toDTO(user);
   }
 
   public UserResponseDTO getProfile(UUID userId) {
@@ -59,15 +63,23 @@ public class UsersService {
   }
 
   @Transactional
-  public UserResponseDTO updateProfile(UUID userId, UpdateUserDTO dto) {
+  public UserResponseDTO updateProfile(String username, UpdateUserDTO dto, Authentication authentication) throws AccessDeniedException {
     Users user =
         repository
-            .findById(userId)
+            .findByUsername(username)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+    securityUtils.isOwner(user.getId(), authentication);
 
     user = mapper.partialUpdate(dto, user);
     user = repository.save(user);
 
     return mapper.toDTO(user);
+  }
+
+  protected Users getEntity(String userId) {
+    return repository
+        .findById(UUID.fromString(userId))
+        .orElseThrow(() -> new IllegalArgumentException("User not found"));
   }
 }

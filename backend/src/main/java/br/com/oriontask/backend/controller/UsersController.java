@@ -2,12 +2,19 @@ package br.com.oriontask.backend.controller;
 
 import br.com.oriontask.backend.dto.users.UpdateUserDTO;
 import br.com.oriontask.backend.dto.users.UserResponseDTO;
+import br.com.oriontask.backend.repository.UsersRepository;
 import br.com.oriontask.backend.service.UsersService;
 import br.com.oriontask.backend.utils.SecurityUtils;
 import jakarta.validation.Valid;
+
+import java.nio.file.AccessDeniedException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,23 +28,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsersController {
   private final UsersService service;
 
-  @GetMapping("{id}")
-  public ResponseEntity<UserResponseDTO> list(@PathVariable String id) {
-    return new ResponseEntity<>(service.list(id), HttpStatus.OK);
+  @GetMapping("me")
+  public ResponseEntity<UserResponseDTO> getMe(Authentication authentication) {
+    return ResponseEntity.ok().body(service.getMe(authentication));
   }
 
-  @GetMapping("/username/{username}")
-  public ResponseEntity<UserResponseDTO> getByUsername(@PathVariable String username) {
-    return new ResponseEntity<>(service.getByUsername(username), HttpStatus.OK);
+  @GetMapping("{username}")
+  public ResponseEntity<UserResponseDTO> list(
+          @PathVariable String username, Authentication authentication) throws AccessDeniedException {
+    return new ResponseEntity<>(service.list(username, authentication), HttpStatus.OK);
   }
 
-  @GetMapping("/profile")
-  public ResponseEntity<UserResponseDTO> getProfile() {
-    return ResponseEntity.ok(service.getProfile(SecurityUtils.getCurrentUserId()));
-  }
-
-  @PatchMapping("/profile")
-  public ResponseEntity<UserResponseDTO> updateProfile(@Valid @RequestBody UpdateUserDTO dto) {
-    return ResponseEntity.ok(service.updateProfile(SecurityUtils.getCurrentUserId(), dto));
+  @PatchMapping("/profile/{username}")
+  public ResponseEntity<UserResponseDTO> updateProfile(
+      @Valid @RequestBody UpdateUserDTO dto, @PathVariable String username, Authentication authentication) throws AccessDeniedException {
+    return ResponseEntity.ok(service.updateProfile(username, dto, authentication));
   }
 }

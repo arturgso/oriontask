@@ -8,11 +8,7 @@ import br.com.oriontask.backend.mappers.UsersMapper;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
 import jakarta.transaction.Transactional;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -24,6 +20,8 @@ import org.springframework.stereotype.Service;
 public class AuthService {
   private final UsersRepository usersRepository;
   private final UsersMapper usersMapper;
+
+  private final UsersService usersService;
   private final TokenService jwtService;
 
   // minimal disposable email domain list; configurable via property in future

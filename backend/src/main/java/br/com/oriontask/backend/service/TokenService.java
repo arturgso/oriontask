@@ -6,11 +6,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -29,11 +27,11 @@ public class TokenService {
     Algorithm alg = Algorithm.HMAC256(jwtSecret);
     Instant now = Instant.now();
     return JWT.create()
-            .withSubject(user.getId().toString())
-            .withClaim("username", user.getUsername())
-            .withIssuedAt(java.util.Date.from(now))
-            .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
-            .sign(alg);
+        .withSubject(user.getId().toString())
+        .withClaim("username", user.getUsername())
+        .withIssuedAt(java.util.Date.from(now))
+        .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
+        .sign(alg);
   }
 
   public Boolean validateToken(HttpServletRequest request) {
