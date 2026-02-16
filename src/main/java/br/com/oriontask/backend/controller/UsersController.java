@@ -24,7 +24,6 @@ public class UsersController {
 
   @GetMapping("me")
   public ResponseEntity<UserResponseDTO> getMe(Authentication authentication) {
-
     return ResponseEntity.ok().body(service.getMe(authentication));
   }
 
