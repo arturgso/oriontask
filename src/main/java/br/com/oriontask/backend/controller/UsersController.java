@@ -33,12 +33,11 @@ public class UsersController {
     return new ResponseEntity<>(service.list(username, authentication), HttpStatus.OK);
   }
 
-  @PatchMapping("/profile/{username}")
+  @PatchMapping("/profile/me")
   public ResponseEntity<UserResponseDTO> updateProfile(
       @Valid @RequestBody UpdateUserDTO dto,
-      @PathVariable String username,
       Authentication authentication)
       throws AccessDeniedException {
-    return ResponseEntity.ok(service.updateProfile(username, dto, authentication));
+    return ResponseEntity.ok(service.updateProfile(dto, authentication));
   }
 }

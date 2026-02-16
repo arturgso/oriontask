@@ -58,23 +58,13 @@ public class UsersService {
     return mapper.toDTO(user);
   }
 
-  public UserResponseDTO getProfile(UUID userId) {
-    return mapper.toDTO(
-        repository
-            .findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found")));
-  }
-
   @Transactional
   public UserResponseDTO updateProfile(
-      String username, UpdateUserDTO dto, Authentication authentication)
-      throws AccessDeniedException {
-    Users user =
-        repository
-            .findByUsername(username)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+      UpdateUserDTO dto, Authentication authentication)
+       {
+    UUID userId = UUID.fromString(authentication.getName());
 
-    securityUtils.isOwner(user.getId(), authentication);
+    Users user = getEntity(userId);
 
     user = mapper.partialUpdate(dto, user);
     user = repository.save(user);
@@ -82,9 +72,9 @@ public class UsersService {
     return mapper.toDTO(user);
   }
 
-  protected Users getEntity(String userId) {
+  protected Users getEntity(UUID userId) {
     return repository
-        .findById(UUID.fromString(userId))
+        .findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("User not found"));
   }
 }
