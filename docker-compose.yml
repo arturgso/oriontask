@@ -40,20 +40,5 @@ services:
     mem_limit: 1024m
     cpus: 1.0
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: https://oriontask.app.br/api/v1
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    restart: unless-stopped
-    mem_limit: 512m
-    cpus: 0.5
-
 volumes:
   pgdata:
-
