@@ -157,6 +157,12 @@ public class TasksService {
         .map(tasksMapper::toDTO);
   }
 
+  public Page<TaskDTO> getTasksByUser(String userId, Pageable pageable) {
+    return repository
+        .findByDharmasUserId(UUID.fromString(userId), pageable)
+        .map(tasksMapper::toDTO);
+  }
+
   @Transactional
   public void deleteTask(Long taskId) {
     Tasks task =

@@ -91,6 +91,17 @@ public class TasksController {
     return ResponseEntity.ok(tasks);
   }
 
+  @GetMapping("/user/{userId}")
+  public ResponseEntity<Page<TaskDTO>> getTasksByUser(
+      @PathVariable String userId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    Page<TaskDTO> tasks =
+        tasksService.getTasksByUser(
+            userId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
+    return ResponseEntity.ok(tasks);
+  }
+
   @DeleteMapping("/{taskId}")
   public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
     tasksService.deleteTask(taskId);

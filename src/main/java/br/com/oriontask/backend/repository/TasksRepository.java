@@ -18,6 +18,8 @@ public interface TasksRepository extends JpaRepository<Tasks, Long> {
 
   Page<Tasks> findByDharmasIdAndStatus(Long dharmasId, TaskStatus status, Pageable pageable);
 
+  Page<Tasks> findByDharmasUserId(java.util.UUID userId, Pageable pageable);
+
   @Query(
       "SELECT t FROM Tasks t WHERE t.dharmas.user.id = :userId AND "
           + "((t.status = :status AND :status = br.com.oriontask.backend.enums.TaskStatus.NOW) OR "
