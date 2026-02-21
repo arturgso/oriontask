@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "Rodando testes antes do push..."
+./gradlew -q test
+
+if [ $? -ne 0 ]; then
+  echo "Push bloqueado: testes falharam."
+  exit 1
+fi
+
+echo "Testes OK. Push liberado."
+exit 0

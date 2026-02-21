@@ -1,0 +1,16 @@
+#!/bin/sh
+
+echo "Rodando SpotlessCheck antes do commit..."
+./gradlew spotlessCheck
+
+if [ $? -ne 0 ]; then
+  echo "Spotless encontrou problemas, aplicando formatação..."
+  ./gradlew spotlessApply
+
+  stagedFiles=$(git diff --name-only)
+  for file in $stagedFiles; do
+    if test -f "$file"; then
+      git add "$file"
+    fi
+  done
+fi

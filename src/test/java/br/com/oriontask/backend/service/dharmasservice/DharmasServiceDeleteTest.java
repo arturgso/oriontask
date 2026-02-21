@@ -18,6 +18,7 @@ import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import br.com.oriontask.backend.users.service.UserLookupService;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,10 +42,12 @@ class DharmasServiceDeleteTest {
   @Test
   @DisplayName("Should throw when dharmas does not exist")
   void deleteShouldThrowWhenDharmasNotFound() {
-    when(repository.findById(60L)).thenReturn(Optional.empty());
+    UUID userId = UUID.randomUUID();
+    when(repository.findByIdAndUserId(60L, userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> dharmasService.deleteDharmas(60L));
+        assertThrows(
+            IllegalArgumentException.class, () -> dharmasService.deleteDharmas(60L, userId));
 
     assertEquals("Dharmas not found", exception.getMessage());
     verify(repository, never()).delete(any(Dharmas.class));
@@ -53,16 +56,17 @@ class DharmasServiceDeleteTest {
   @Test
   @DisplayName("Should block delete when there are active tasks")
   void deleteShouldThrowWhenActiveTasksExist() {
+    UUID userId = UUID.randomUUID();
     Dharmas dharmas = Dharmas.builder().id(61L).build();
     Tasks doneTask = Tasks.builder().id(1L).status(TaskStatus.DONE).build();
     Tasks nowTask = Tasks.builder().id(2L).status(TaskStatus.NOW).build();
 
-    when(repository.findById(61L)).thenReturn(Optional.of(dharmas));
+    when(repository.findByIdAndUserId(61L, userId)).thenReturn(Optional.of(dharmas));
     when(tasksRepository.findByDharmasId(61L, Pageable.unpaged()))
         .thenReturn(new PageImpl<>(List.of(doneTask, nowTask)));
 
     IllegalStateException exception =
-        assertThrows(IllegalStateException.class, () -> dharmasService.deleteDharmas(61L));
+        assertThrows(IllegalStateException.class, () -> dharmasService.deleteDharmas(61L, userId));
 
     assertEquals(
         "Cannot delete Dharmas with active tasks. Complete or move tasks first.",
@@ -73,15 +77,16 @@ class DharmasServiceDeleteTest {
   @Test
   @DisplayName("Should delete when all tasks are DONE")
   void deleteShouldSucceedWhenNoActiveTasks() {
+    UUID userId = UUID.randomUUID();
     Dharmas dharmas = Dharmas.builder().id(62L).build();
     Tasks done1 = Tasks.builder().id(1L).status(TaskStatus.DONE).build();
     Tasks done2 = Tasks.builder().id(2L).status(TaskStatus.DONE).build();
 
-    when(repository.findById(62L)).thenReturn(Optional.of(dharmas));
+    when(repository.findByIdAndUserId(62L, userId)).thenReturn(Optional.of(dharmas));
     when(tasksRepository.findByDharmasId(62L, Pageable.unpaged()))
         .thenReturn(new PageImpl<>(List.of(done1, done2)));
 
-    dharmasService.deleteDharmas(62L);
+    dharmasService.deleteDharmas(62L, userId);
 
     verify(repository).delete(dharmas);
   }

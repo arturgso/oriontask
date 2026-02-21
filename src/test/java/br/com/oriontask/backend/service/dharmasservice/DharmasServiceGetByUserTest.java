@@ -1,7 +1,6 @@
 package br.com.oriontask.backend.service.dharmasservice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +44,7 @@ class DharmasServiceGetByUserTest {
     when(repository.findByUserId(userId)).thenReturn(dharmas);
     when(dharmasMapper.toDTO(dharmas)).thenReturn(expected);
 
-    List<DharmasDTO> result = dharmasService.listDharmas(userId.toString(), true);
+    List<DharmasDTO> result = dharmasService.listDharmas(userId, true);
 
     assertEquals(1, result.size());
     verify(repository).findByUserId(userId);
@@ -63,17 +62,10 @@ class DharmasServiceGetByUserTest {
     when(repository.findByUserIdAndHiddenFalse(userId)).thenReturn(dharmas);
     when(dharmasMapper.toDTO(dharmas)).thenReturn(expected);
 
-    List<DharmasDTO> result = dharmasService.listDharmas(userId.toString(), false);
+    List<DharmasDTO> result = dharmasService.listDharmas(userId, false);
 
     assertEquals(1, result.size());
     verify(repository).findByUserIdAndHiddenFalse(userId);
     verify(dharmasMapper).toDTO(dharmas);
-  }
-
-  @Test
-  @DisplayName("Should throw for invalid user id format")
-  void listDharmasShouldThrowForInvalidUuid() {
-    assertThrows(
-        IllegalArgumentException.class, () -> dharmasService.listDharmas("not-a-uuid", true));
   }
 }

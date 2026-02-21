@@ -43,9 +43,8 @@ class DharmasServiceCreateTest {
   @Test
   @DisplayName("Should throw when user does not exist")
   void createShouldThrowWhenUserNotFound() {
-    String userId = UUID.randomUUID().toString();
-    when(userLookup.getRequiredUse(UUID.fromString(userId)))
-        .thenThrow(new UserLookupExceptionImpl());
+    UUID userId = UUID.randomUUID();
+    when(userLookup.getRequiredUse(userId)).thenThrow(new UserLookupExceptionImpl());
 
     IllegalArgumentException exception =
         assertThrows(
@@ -71,7 +70,7 @@ class DharmasServiceCreateTest {
     IllegalStateException exception =
         assertThrows(
             IllegalStateException.class,
-            () -> dharmasService.create(new NewDharmasDTO("Focus", "#112233"), userId.toString()));
+            () -> dharmasService.create(new NewDharmasDTO("Focus", "#112233"), userId));
 
     assertEquals("Maximum number of dharmas reached for this user", exception.getMessage());
     verify(repository, never()).save(any(Dharmas.class));
@@ -93,7 +92,7 @@ class DharmasServiceCreateTest {
         .thenReturn(
             new DharmasDTO(1L, "Health", "#abcdef", false, new Timestamp(1), new Timestamp(2)));
 
-    DharmasDTO result = dharmasService.create(dto, userId.toString());
+    DharmasDTO result = dharmasService.create(dto, userId);
 
     assertNotNull(result);
     assertEquals("Health", result.name());
@@ -122,7 +121,7 @@ class DharmasServiceCreateTest {
                   2L, d.getName(), d.getColor(), false, new Timestamp(1), new Timestamp(2));
             });
 
-    DharmasDTO result = dharmasService.create(dto, userId.toString());
+    DharmasDTO result = dharmasService.create(dto, userId);
 
     assertNotNull(result.color());
     assertNotNull(entity.getColor());

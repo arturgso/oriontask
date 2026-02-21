@@ -19,6 +19,7 @@ import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import br.com.oriontask.backend.users.service.UserLookupService;
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,12 +41,13 @@ class DharmasServiceUpdateTest {
   @Test
   @DisplayName("Should throw when dharmas does not exist")
   void updateShouldThrowWhenDharmasNotFound() {
-    when(repository.findById(50L)).thenReturn(Optional.empty());
+    UUID userId = UUID.randomUUID();
+    when(repository.findByIdAndUserId(50L, userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> dharmasService.updateDharmas(new UpdateDharmasDTO("x", "#123456"), 50L));
+            () -> dharmasService.updateDharmas(userId, new UpdateDharmasDTO("x", "#123456"), 50L));
 
     assertEquals("Dharmas not found", exception.getMessage());
     verify(repository, never()).save(any(Dharmas.class));
@@ -54,10 +56,11 @@ class DharmasServiceUpdateTest {
   @Test
   @DisplayName("Should partially update and save dharmas")
   void updateShouldPersistChanges() {
+    UUID userId = UUID.randomUUID();
     Dharmas dharmas = Dharmas.builder().id(51L).name("Body").color("#111111").hidden(false).build();
     UpdateDharmasDTO dto = new UpdateDharmasDTO("Mind", "#222222");
 
-    when(repository.findById(51L)).thenReturn(Optional.of(dharmas));
+    when(repository.findByIdAndUserId(51L, userId)).thenReturn(Optional.of(dharmas));
     when(dharmasMapper.partialUpdate(dto, dharmas))
         .thenAnswer(
             invocation -> {
@@ -71,7 +74,7 @@ class DharmasServiceUpdateTest {
         .thenReturn(
             new DharmasDTO(51L, "Mind", "#222222", false, new Timestamp(1), new Timestamp(2)));
 
-    DharmasDTO result = dharmasService.updateDharmas(dto, 51L);
+    DharmasDTO result = dharmasService.updateDharmas(userId, dto, 51L);
 
     assertNotNull(result);
     assertEquals("Mind", result.name());

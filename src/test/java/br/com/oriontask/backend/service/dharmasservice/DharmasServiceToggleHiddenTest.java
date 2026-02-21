@@ -16,6 +16,7 @@ import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import br.com.oriontask.backend.users.service.UserLookupService;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,10 +40,12 @@ class DharmasServiceToggleHiddenTest {
   @Test
   @DisplayName("Should throw when dharmas does not exist")
   void toggleHiddenShouldThrowWhenDharmasNotFound() {
-    when(repository.findById(70L)).thenReturn(Optional.empty());
+    UUID userId = UUID.randomUUID();
+    when(repository.findByIdAndUserId(70L, userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> dharmasService.toggleHidden(70L));
+        assertThrows(
+            IllegalArgumentException.class, () -> dharmasService.toggleHidden(70L, userId));
 
     assertEquals("Dharmas not found", exception.getMessage());
   }
@@ -50,15 +53,16 @@ class DharmasServiceToggleHiddenTest {
   @Test
   @DisplayName("Should toggle hidden and propagate value to all tasks")
   void toggleHiddenShouldPropagateToTasks() {
+    UUID userId = UUID.randomUUID();
     Dharmas dharmas = Dharmas.builder().id(71L).hidden(false).build();
     Tasks task1 = Tasks.builder().id(1L).hidden(false).build();
     Tasks task2 = Tasks.builder().id(2L).hidden(false).build();
 
-    when(repository.findById(71L)).thenReturn(Optional.of(dharmas));
+    when(repository.findByIdAndUserId(71L, userId)).thenReturn(Optional.of(dharmas));
     when(tasksRepository.findByDharmasId(71L, Pageable.unpaged()))
         .thenReturn(new PageImpl<>(List.of(task1, task2)));
 
-    dharmasService.toggleHidden(71L);
+    dharmasService.toggleHidden(71L, userId);
 
     assertEquals(true, dharmas.getHidden());
     assertEquals(true, task1.getHidden());

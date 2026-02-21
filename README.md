@@ -59,3 +59,14 @@ Serviços:
 - [Karma Spec](docs/KARMA-SPEC.md)
 - [Projects Spec](docs/PROJECTS-SPEC.md)
 - [Fixes](docs/fixes.md)
+
+## Hooks versionados
+Para ativar os hooks versionados do repositório:
+
+```bash
+./scripts/setup-hooks.sh
+```
+
+Isso configura `core.hooksPath=.githooks` e habilita:
+- `pre-commit`: roda `spotlessCheck` (e `spotlessApply` se necessário)
+- `pre-push`: roda `./gradlew -q test`
