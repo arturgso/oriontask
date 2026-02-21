@@ -8,6 +8,7 @@ import org.junit.platform.suite.api.Suite;
   TasksServiceChangeStatusTest.class,
   TasksServiceUpdateTaskTest.class,
   TasksServiceMoveToNowTest.class,
-  TasksServiceMarkAsDoneTest.class
+  TasksServiceMarkAsDoneTest.class,
+  TasksServiceSnoozeTaskTest.class
 })
 public class TasksServiceTestSuite {}

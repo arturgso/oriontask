@@ -1,8 +1,8 @@
 package br.com.oriontask.backend.tasks.service;
 
 import br.com.oriontask.backend.dharmas.model.Dharmas;
-import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
 import br.com.oriontask.backend.shared.enums.TaskStatus;
+import br.com.oriontask.backend.shared.utils.DharmaLookupService;
 import br.com.oriontask.backend.tasks.dto.NewTaskDTO;
 import br.com.oriontask.backend.tasks.dto.TaskDTO;
 import br.com.oriontask.backend.tasks.dto.UpdateTaskDTO;
@@ -24,20 +24,20 @@ import org.springframework.stereotype.Service;
 public class TasksService {
 
   private final TasksRepository repository;
-  private final DharmasRepository dharmasRepository;
+  private final DharmaLookupService dharmaLookup;
   private final TasksMapper tasksMapper;
 
   private final TaskStatusTransitionPolicy statusPolicy;
 
-  public TaskDTO create(NewTaskDTO createDTO, Long dharmasId) {
+  public TaskDTO create(NewTaskDTO createDTO, UUID userId) {
+    Long dharmasId = createDTO.dharmasId();
+
     log.info("TasksService.create requested dharmasId={}", dharmasId);
-    Dharmas dharmas =
-        dharmasRepository
-            .findById(dharmasId)
-            .orElseThrow(() -> new IllegalArgumentException("Dharmas not found"));
+    Dharmas dharmas = dharmaLookup.getRequiredDharma(dharmasId, userId);
 
     Tasks task = tasksMapper.toEntity(createDTO);
     task.setDharmas(dharmas);
+    task.setUser(dharmas.getUser());
     task.setHidden(dharmas.getHidden());
     task.setStatus(TaskStatus.NEXT);
 
@@ -47,9 +47,9 @@ public class TasksService {
   }
 
   @Transactional
-  public TaskDTO updateTask(UpdateTaskDTO editDTO, Long taskId) {
+  public TaskDTO updateTask(UpdateTaskDTO editDTO, Long taskId, UUID userId) {
     log.info("TasksService.updateTask requested taskId={}", taskId);
-    Tasks task = getTaskById(taskId);
+    Tasks task = getTaskById(taskId, userId);
     statusPolicy.ensureStatusChangeAllowed(task);
 
     task = tasksMapper.partialUpdate(editDTO, task);
@@ -59,12 +59,12 @@ public class TasksService {
   }
 
   @Transactional
-  public TaskDTO moveToNow(Long taskId) {
+  public TaskDTO moveToNow(Long taskId, UUID userId) {
     log.info("TasksService.moveToNow requested taskId={}", taskId);
-    Tasks task = getTaskById(taskId);
+    Tasks task = getTaskById(taskId, userId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
-    Long currentCount = getCurrentTasksCount(task.getDharmas().getUser().getId());
+    Long currentCount = getCurrentTasksCount(userId);
 
     statusPolicy.ensureNowLimitNotExceeded(currentCount, null);
     statusPolicy.markAsNow(task);
@@ -75,21 +75,16 @@ public class TasksService {
   }
 
   @Transactional
-  public TaskDTO changeStatus(Long taskId, TaskStatus newStatus) {
+  public TaskDTO changeStatus(Long taskId, TaskStatus newStatus, UUID userId) {
     log.info("TasksService.changeStatus requested taskId={} newStatus={}", taskId, newStatus);
-    Tasks task = getTaskById(taskId);
+    Tasks task = getTaskById(taskId, userId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
 
     Long currentCount = getCurrentTasksCount(task.getDharmas().getUser().getId());
 
     statusPolicy.ensureNowLimitNotExceeded(currentCount, newStatus);
-
-    if (newStatus == TaskStatus.SNOOZED) {
-      statusPolicy.snoozeTask(task);
-    } else {
-      statusPolicy.applyStatusTransition(task, newStatus);
-    }
+    statusPolicy.applyStatusTransition(task, newStatus);
 
     TaskDTO result = tasksMapper.toDTO(repository.save(task));
     log.info("TasksService.changeStatus completed taskId={} newStatus={}", taskId, newStatus);
@@ -97,9 +92,22 @@ public class TasksService {
   }
 
   @Transactional
-  public TaskDTO markAsDone(Long taskId) {
+  public TaskDTO snoozeTask(Long taskId, UUID userId) {
+    log.info("TasksService.snoozeTask requested taskId={}", taskId);
+    Tasks task = getTaskById(taskId, userId);
+
+    statusPolicy.ensureStatusChangeAllowed(task);
+    statusPolicy.snoozeTask(task);
+
+    TaskDTO result = tasksMapper.toDTO(repository.save(task));
+    log.info("TasksService.snoozeTask completed taskId={}", taskId);
+    return result;
+  }
+
+  @Transactional
+  public TaskDTO markAsDone(Long taskId, UUID userId) {
     log.info("TasksService.markAsDone requested taskId={}", taskId);
-    Tasks task = getTaskById(taskId);
+    Tasks task = getTaskById(taskId, userId);
 
     statusPolicy.markAsDone(task);
     TaskDTO result = tasksMapper.toDTO(repository.save(task));
@@ -107,77 +115,42 @@ public class TasksService {
     return result;
   }
 
-  public Page<TaskDTO> getTasksByDharmas(Long dharmasId, Pageable pageable) {
+  public Page<TaskDTO> listTasks(
+      UUID userId, Long dharmasId, TaskStatus status, Pageable pageable) {
     log.debug(
-        "TasksService.getTasksByDharmas requested dharmasId={} page={} size={}",
+        "TasksService.listTasks requested userId={} dharmasId={} status={} page={} size={}",
+        userId,
         dharmasId,
+        status,
         pageable.getPageNumber(),
         pageable.getPageSize());
-    Page<TaskDTO> result = repository.findByDharmasId(dharmasId, pageable).map(tasksMapper::toDTO);
-    log.debug(
-        "TasksService.getTasksByDharmas completed dharmasId={} returned={}",
-        dharmasId,
-        result.getNumberOfElements());
-    return result;
-  }
 
-  public Page<TaskDTO> getTasksByDharmasAndStatus(
-      Long dharmasId, TaskStatus status, Pageable pageable) {
+    Page<Tasks> page;
+
+    if (dharmasId != null && status != null) {
+      page = repository.findByUserIdAndDharmasIdAndStatus(userId, dharmasId, status, pageable);
+    } else if (dharmasId != null) {
+      page = repository.findByUserIdAndDharmasId(userId, dharmasId, pageable);
+    } else if (status != null) {
+      page = repository.findByUserIdAndStatus(userId, status, pageable);
+    } else {
+      page = repository.findByUserId(userId, pageable);
+    }
+
+    Page<TaskDTO> result = page.map(tasksMapper::toDTO);
     log.debug(
-        "TasksService.getTasksByDharmasAndStatus requested dharmasId={} status={} page={} size={}",
+        "TasksService.listTasks completed userId={} dharmasId={} status={} returned={}",
+        userId,
         dharmasId,
         status,
-        pageable.getPageNumber(),
-        pageable.getPageSize());
-    Page<TaskDTO> result =
-        repository.findByDharmasIdAndStatus(dharmasId, status, pageable).map(tasksMapper::toDTO);
-    log.debug(
-        "TasksService.getTasksByDharmasAndStatus completed dharmasId={} status={} returned={}",
-        dharmasId,
-        status,
-        result.getNumberOfElements());
-    return result;
-  }
-
-  public Page<TaskDTO> getTasksByUserAndStatus(
-      String userId, TaskStatus status, Pageable pageable) {
-    log.debug(
-        "TasksService.getTasksByUserAndStatus requested userId={} status={} page={} size={}",
-        userId,
-        status,
-        pageable.getPageNumber(),
-        pageable.getPageSize());
-    Page<TaskDTO> result =
-        repository
-            .findByDharmasUserIdAndStatus(UUID.fromString(userId), status, pageable)
-            .map(tasksMapper::toDTO);
-    log.debug(
-        "TasksService.getTasksByUserAndStatus completed userId={} status={} returned={}",
-        userId,
-        status,
-        result.getNumberOfElements());
-    return result;
-  }
-
-  public Page<TaskDTO> getTasksByUser(String userId, Pageable pageable) {
-    log.debug(
-        "TasksService.getTasksByUser requested userId={} page={} size={}",
-        userId,
-        pageable.getPageNumber(),
-        pageable.getPageSize());
-    Page<TaskDTO> result =
-        repository.findByDharmasUserId(UUID.fromString(userId), pageable).map(tasksMapper::toDTO);
-    log.debug(
-        "TasksService.getTasksByUser completed userId={} returned={}",
-        userId,
         result.getNumberOfElements());
     return result;
   }
 
   @Transactional
-  public void deleteTask(Long taskId) {
+  public void deleteTask(Long taskId, UUID userId) {
     log.info("TasksService.deleteTask requested taskId={}", taskId);
-    Tasks task = getTaskById(taskId);
+    Tasks task = getTaskById(taskId, userId);
 
     statusPolicy.ensureStatusChangeAllowed(task, true);
 
@@ -189,9 +162,9 @@ public class TasksService {
     return repository.countByDharmasUserIdAndStatus(userId, TaskStatus.NOW);
   }
 
-  private Tasks getTaskById(Long taskId) {
+  private Tasks getTaskById(Long taskId, UUID userId) {
     return repository
-        .findById(taskId)
+        .findByIdAndUserId(taskId, userId)
         .orElseThrow(
             () -> {
               log.warn("TasksService.getTaskById task not found taskId={}", taskId);

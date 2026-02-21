@@ -4,6 +4,7 @@ import br.com.oriontask.backend.dharmas.model.Dharmas;
 import br.com.oriontask.backend.shared.enums.EffortLevel;
 import br.com.oriontask.backend.shared.enums.KarmaType;
 import br.com.oriontask.backend.shared.enums.TaskStatus;
+import br.com.oriontask.backend.users.model.Users;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,6 +41,10 @@ public class Tasks {
   @ManyToOne
   @JoinColumn(name = "dharma_id", nullable = false)
   private Dharmas dharmas;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private Users user;
 
   @Size(min = 5, max = 60, message = "The title must be between 5 and 60 characters")
   private String title;

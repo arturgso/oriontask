@@ -67,7 +67,6 @@ public class TaskStatusTransitionPolicy {
 
     task.setStatus(TaskStatus.NOW);
     clearSnooze(task);
-    task.setCompletedAt(new Timestamp(System.currentTimeMillis()));
   }
 
   public void clearSnooze(Tasks task) {

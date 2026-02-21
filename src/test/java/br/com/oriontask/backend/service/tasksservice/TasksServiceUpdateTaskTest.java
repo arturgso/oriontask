@@ -10,8 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dharmas.model.Dharmas;
-import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
 import br.com.oriontask.backend.shared.enums.TaskStatus;
+import br.com.oriontask.backend.shared.utils.DharmaLookupService;
 import br.com.oriontask.backend.tasks.dto.TaskDTO;
 import br.com.oriontask.backend.tasks.dto.UpdateTaskDTO;
 import br.com.oriontask.backend.tasks.exception.TaskStatusChangeNotAllowedException;
@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TasksServiceUpdateTaskTest {
 
   @Mock private TasksRepository repository;
-  @Mock private DharmasRepository dharmasRepository;
+  @Mock private DharmaLookupService dharmaLookup;
   @Mock private TasksMapper tasksMapper;
   @Mock private TaskStatusTransitionPolicy statusPolicy;
 
@@ -45,10 +45,12 @@ class TasksServiceUpdateTaskTest {
   @DisplayName("Should throw when task is not found")
   void updateTaskShouldThrowWhenTaskNotFound() {
     UpdateTaskDTO editDTO = new UpdateTaskDTO("Updated title", "Updated desc", null, null, true);
-    when(repository.findById(99L)).thenReturn(Optional.empty());
+    UUID userId = UUID.randomUUID();
+    when(repository.findByIdAndUserId(99L, userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> tasksService.updateTask(editDTO, 99L));
+        assertThrows(
+            IllegalArgumentException.class, () -> tasksService.updateTask(editDTO, 99L, userId));
 
     assertEquals("Task not found", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
@@ -60,15 +62,17 @@ class TasksServiceUpdateTaskTest {
   void updateTaskShouldThrowWhenTaskIsDone() {
     Tasks existingTask = buildTask(10L, TaskStatus.DONE);
     UpdateTaskDTO editDTO = new UpdateTaskDTO("Updated title", "Updated desc", null, null, true);
+    UUID userId = existingTask.getDharmas().getUser().getId();
 
-    when(repository.findById(10L)).thenReturn(Optional.of(existingTask));
+    when(repository.findByIdAndUserId(10L, userId)).thenReturn(Optional.of(existingTask));
     doThrow(new TaskStatusChangeNotAllowedException())
         .when(statusPolicy)
         .ensureStatusChangeAllowed(existingTask);
 
     TaskStatusChangeNotAllowedException exception =
         assertThrows(
-            TaskStatusChangeNotAllowedException.class, () -> tasksService.updateTask(editDTO, 10L));
+            TaskStatusChangeNotAllowedException.class,
+            () -> tasksService.updateTask(editDTO, 10L, userId));
 
     assertEquals("Completed tasks cannot change status", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
@@ -80,17 +84,18 @@ class TasksServiceUpdateTaskTest {
   void updateTaskShouldUpdateAndSave() {
     Tasks existingTask = buildTask(11L, TaskStatus.NOW);
     Timestamp previousUpdatedAt = existingTask.getUpdatedAt();
+    UUID userId = existingTask.getDharmas().getUser().getId();
     UpdateTaskDTO editDTO =
         new UpdateTaskDTO("Rewritten title", "Rewritten description", null, null, true);
 
-    when(repository.findById(11L)).thenReturn(Optional.of(existingTask));
+    when(repository.findByIdAndUserId(11L, userId)).thenReturn(Optional.of(existingTask));
     when(tasksMapper.partialUpdate(editDTO, existingTask))
         .thenAnswer(invocation -> invocation.getArgument(1));
     when(repository.save(existingTask)).thenAnswer(invocation -> invocation.getArgument(0));
     when(tasksMapper.toDTO(existingTask))
         .thenAnswer(invocation -> toDTO(invocation.getArgument(0)));
 
-    TaskDTO result = tasksService.updateTask(editDTO, 11L);
+    TaskDTO result = tasksService.updateTask(editDTO, 11L, userId);
 
     assertNotNull(result);
     assertEquals(11L, result.id());

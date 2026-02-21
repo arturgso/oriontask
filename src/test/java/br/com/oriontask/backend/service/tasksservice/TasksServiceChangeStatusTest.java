@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -12,9 +11,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dharmas.model.Dharmas;
-import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
 import br.com.oriontask.backend.shared.enums.TaskStatus;
+import br.com.oriontask.backend.shared.utils.DharmaLookupService;
 import br.com.oriontask.backend.tasks.dto.TaskDTO;
+import br.com.oriontask.backend.tasks.exception.InvalidSnoozedStatusTransitionException;
 import br.com.oriontask.backend.tasks.exception.NowTasksLimitExceededException;
 import br.com.oriontask.backend.tasks.exception.TaskStatusChangeNotAllowedException;
 import br.com.oriontask.backend.tasks.mapper.TasksMapper;
@@ -39,7 +39,7 @@ class TasksServiceChangeStatusTest {
 
   @Mock private TasksRepository repository;
 
-  @Mock private DharmasRepository dharmasRepository;
+  @Mock private DharmaLookupService dharmaLookup;
 
   @Mock private TasksMapper tasksMapper;
 
@@ -50,11 +50,13 @@ class TasksServiceChangeStatusTest {
   @Test
   @DisplayName("Should throw when task does not exist")
   void changeStatusShouldThrowWhenTaskNotFound() {
-    when(repository.findById(10L)).thenReturn(Optional.empty());
+    UUID userId = UUID.randomUUID();
+    when(repository.findByIdAndUserId(10L, userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> tasksService.changeStatus(10L, TaskStatus.NOW));
+            IllegalArgumentException.class,
+            () -> tasksService.changeStatus(10L, TaskStatus.NOW, userId));
 
     assertEquals("Task not found", exception.getMessage());
     verify(repository, never()).save(any());
@@ -64,11 +66,12 @@ class TasksServiceChangeStatusTest {
   @DisplayName("Should block status change for DONE task")
   void changeStatusShouldThrowWhenTaskIsDone() {
     Tasks task = buildTask(1L, TaskStatus.DONE);
-    when(repository.findById(1L)).thenReturn(Optional.of(task));
+    UUID userId = task.getDharmas().getUser().getId();
+    when(repository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(task));
 
     assertThrows(
         TaskStatusChangeNotAllowedException.class,
-        () -> tasksService.changeStatus(1L, TaskStatus.NEXT));
+        () -> tasksService.changeStatus(1L, TaskStatus.NEXT, userId));
     verify(repository, never()).save(any());
   }
 
@@ -78,59 +81,54 @@ class TasksServiceChangeStatusTest {
     Tasks task = buildTask(2L, TaskStatus.NEXT);
     UUID userId = task.getDharmas().getUser().getId();
 
-    when(repository.findById(2L)).thenReturn(Optional.of(task));
+    when(repository.findByIdAndUserId(2L, userId)).thenReturn(Optional.of(task));
     when(repository.countByDharmasUserIdAndStatus(userId, TaskStatus.NOW)).thenReturn(5L);
 
     NowTasksLimitExceededException exception =
         assertThrows(
             NowTasksLimitExceededException.class,
-            () -> tasksService.changeStatus(2L, TaskStatus.NOW));
+            () -> tasksService.changeStatus(2L, TaskStatus.NOW, userId));
 
     assertEquals("Maximum of 5 tasks in NOW reached", exception.getMessage());
     verify(repository, never()).save(any());
   }
 
   @Test
-  @DisplayName("Should set SNOOZED with snoozedUntil and updatedAt")
-  void changeStatusShouldSetSnoozedAndSnooze() {
+  @DisplayName("Should block direct SNOOZED transition in changeStatus")
+  void changeStatusShouldBlockDirectSnoozedTransition() {
     Tasks task = buildTask(3L, TaskStatus.NOW);
-    Timestamp before = new Timestamp(System.currentTimeMillis());
+    UUID userId = task.getDharmas().getUser().getId();
 
-    when(repository.findById(3L)).thenReturn(Optional.of(task));
+    when(repository.findByIdAndUserId(3L, userId)).thenReturn(Optional.of(task));
     when(repository.countByDharmasUserIdAndStatus(
             eq(task.getDharmas().getUser().getId()), eq(TaskStatus.NOW)))
         .thenReturn(0L);
-    when(repository.save(any(Tasks.class))).thenAnswer(invocation -> invocation.getArgument(0));
-    stubMapperToDTO();
 
-    TaskDTO result = tasksService.changeStatus(3L, TaskStatus.SNOOZED);
-    Timestamp after = new Timestamp(System.currentTimeMillis());
+    InvalidSnoozedStatusTransitionException exception =
+        assertThrows(
+            InvalidSnoozedStatusTransitionException.class,
+            () -> tasksService.changeStatus(3L, TaskStatus.SNOOZED, userId));
 
-    assertEquals(TaskStatus.SNOOZED, result.status());
-    assertNotNull(result.snoozedUntil());
-    assertNotNull(result.updatedAt());
-    long minExpected = before.getTime() + (2L * 60 * 60 * 1000) - 2000;
-    long maxExpected = after.getTime() + (2L * 60 * 60 * 1000) + 2000;
-    assertTrue(result.snoozedUntil().getTime() >= minExpected);
-    assertTrue(result.snoozedUntil().getTime() <= maxExpected);
-
-    verify(repository).save(task);
+    assertEquals(
+        "To snooze a task, use the snoozeTask method from the policy", exception.getMessage());
+    verify(repository, never()).save(any(Tasks.class));
   }
 
   @Test
   @DisplayName("Should clear snoozedUntil when status is not SNOOZED")
   void changeStatusShouldClearSnoozeForNonSnoozedStatus() {
     Tasks task = buildTask(4L, TaskStatus.SNOOZED);
+    UUID userId = task.getDharmas().getUser().getId();
     task.setSnoozedUntil(new Timestamp(System.currentTimeMillis() + 3600000));
 
-    when(repository.findById(4L)).thenReturn(Optional.of(task));
+    when(repository.findByIdAndUserId(4L, userId)).thenReturn(Optional.of(task));
     when(repository.countByDharmasUserIdAndStatus(
             eq(task.getDharmas().getUser().getId()), eq(TaskStatus.NOW)))
         .thenReturn(1L);
     when(repository.save(any(Tasks.class))).thenAnswer(invocation -> invocation.getArgument(0));
     stubMapperToDTO();
 
-    TaskDTO result = tasksService.changeStatus(4L, TaskStatus.NOW);
+    TaskDTO result = tasksService.changeStatus(4L, TaskStatus.NOW, userId);
 
     assertEquals(TaskStatus.NOW, result.status());
     assertNull(result.snoozedUntil());

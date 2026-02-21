@@ -11,8 +11,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dharmas.model.Dharmas;
-import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
 import br.com.oriontask.backend.shared.enums.TaskStatus;
+import br.com.oriontask.backend.shared.utils.DharmaLookupService;
 import br.com.oriontask.backend.tasks.dto.TaskDTO;
 import br.com.oriontask.backend.tasks.exception.TaskAlreadyCompletedException;
 import br.com.oriontask.backend.tasks.mapper.TasksMapper;
@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TasksServiceMarkAsDoneTest {
 
   @Mock private TasksRepository repository;
-  @Mock private DharmasRepository dharmasRepository;
+  @Mock private DharmaLookupService dharmaLookup;
   @Mock private TasksMapper tasksMapper;
   @Mock private TaskStatusTransitionPolicy statusPolicy;
 
@@ -44,10 +44,11 @@ class TasksServiceMarkAsDoneTest {
   @Test
   @DisplayName("Should throw when task is not found")
   void markAsDoneShouldThrowWhenTaskNotFound() {
-    when(repository.findById(77L)).thenReturn(Optional.empty());
+    UUID userId = UUID.randomUUID();
+    when(repository.findByIdAndUserId(77L, userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> tasksService.markAsDone(77L));
+        assertThrows(IllegalArgumentException.class, () -> tasksService.markAsDone(77L, userId));
 
     assertEquals("Task not found", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
@@ -57,11 +58,13 @@ class TasksServiceMarkAsDoneTest {
   @DisplayName("Should throw when task is already completed")
   void markAsDoneShouldThrowWhenTaskAlreadyCompleted() {
     Tasks task = buildTask(78L, TaskStatus.DONE);
-    when(repository.findById(78L)).thenReturn(Optional.of(task));
+    UUID userId = task.getDharmas().getUser().getId();
+    when(repository.findByIdAndUserId(78L, userId)).thenReturn(Optional.of(task));
     doThrow(new TaskAlreadyCompletedException()).when(statusPolicy).markAsDone(task);
 
     TaskAlreadyCompletedException exception =
-        assertThrows(TaskAlreadyCompletedException.class, () -> tasksService.markAsDone(78L));
+        assertThrows(
+            TaskAlreadyCompletedException.class, () -> tasksService.markAsDone(78L, userId));
 
     assertEquals("Task is already completed", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
@@ -71,8 +74,9 @@ class TasksServiceMarkAsDoneTest {
   @DisplayName("Should mark task as done and persist")
   void markAsDoneShouldPersist() {
     Tasks task = buildTask(79L, TaskStatus.NOW);
+    UUID userId = task.getDharmas().getUser().getId();
 
-    when(repository.findById(79L)).thenReturn(Optional.of(task));
+    when(repository.findByIdAndUserId(79L, userId)).thenReturn(Optional.of(task));
     doAnswer(
             invocation -> {
               Tasks target = invocation.getArgument(0);
@@ -86,7 +90,7 @@ class TasksServiceMarkAsDoneTest {
     when(repository.save(task)).thenReturn(task);
     when(tasksMapper.toDTO(task)).thenAnswer(invocation -> toDTO(invocation.getArgument(0)));
 
-    TaskDTO result = tasksService.markAsDone(79L);
+    TaskDTO result = tasksService.markAsDone(79L, userId);
 
     assertNotNull(result);
     assertEquals(TaskStatus.DONE, result.status());

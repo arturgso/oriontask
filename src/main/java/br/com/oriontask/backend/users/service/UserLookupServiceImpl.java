@@ -1,5 +1,6 @@
 package br.com.oriontask.backend.users.service;
 
+import br.com.oriontask.backend.shared.utils.UserLookupService;
 import br.com.oriontask.backend.users.exception.UserLookupExceptionImpl;
 import br.com.oriontask.backend.users.model.Users;
 import br.com.oriontask.backend.users.repository.UsersRepository;
