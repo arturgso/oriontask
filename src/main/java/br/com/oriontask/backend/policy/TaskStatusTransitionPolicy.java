@@ -22,6 +22,8 @@ public class TaskStatusTransitionPolicy {
   }
 
   public void ensureNowLimitNotExceeded(Long currentTasksCount, TaskStatus taskStatus) {
+    if (taskStatus == null) taskStatus = TaskStatus.NOW;
+
     if (currentTasksCount >= MAX_CURRENT_TASKS && taskStatus.equals(TaskStatus.NOW)) {
       throw new NowTasksLimitExceededException();
     }
@@ -46,6 +48,16 @@ public class TaskStatusTransitionPolicy {
     }
 
     task.setStatus(TaskStatus.DONE);
+    clearSnooze(task);
+    task.setCompletedAt(new Timestamp(System.currentTimeMillis()));
+  }
+
+  public void markAsNow(Tasks task) {
+    if (task.getStatus() == TaskStatus.DONE) {
+      throw new TaskAlreadyCompletedException();
+    }
+
+    task.setStatus(TaskStatus.NOW);
     clearSnooze(task);
     task.setCompletedAt(new Timestamp(System.currentTimeMillis()));
   }

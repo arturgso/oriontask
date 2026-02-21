@@ -2,16 +2,18 @@ package br.com.oriontask.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dto.tasks.TaskDTO;
-import br.com.oriontask.backend.dto.tasks.UpdateTaskDTO;
 import br.com.oriontask.backend.enums.TaskStatus;
+import br.com.oriontask.backend.exceptions.task.NowTasksLimitExceededException;
 import br.com.oriontask.backend.exceptions.task.TaskStatusChangeNotAllowedException;
 import br.com.oriontask.backend.mappers.TasksMapper;
 import br.com.oriontask.backend.model.Dharmas;
@@ -31,7 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TasksServiceUpdateTaskTest {
+class TasksServiceMoveToNowTest {
 
   @Mock private TasksRepository repository;
   @Mock private DharmasRepository dharmasRepository;
@@ -42,67 +44,82 @@ class TasksServiceUpdateTaskTest {
 
   @Test
   @DisplayName("Should throw when task is not found")
-  void updateTaskShouldThrowWhenTaskNotFound() {
-    UpdateTaskDTO editDTO = new UpdateTaskDTO("Updated title", "Updated desc", null, null, true);
+  void moveToNowShouldThrowWhenTaskNotFound() {
     when(repository.findById(99L)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> tasksService.updateTask(editDTO, 99L));
+        assertThrows(IllegalArgumentException.class, () -> tasksService.moveToNow(99L));
 
     assertEquals("Task not found", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
-    verify(tasksMapper, never()).partialUpdate(any(UpdateTaskDTO.class), any(Tasks.class));
   }
 
   @Test
-  @DisplayName("Should block update when task is DONE")
-  void updateTaskShouldThrowWhenTaskIsDone() {
-    Tasks existingTask = buildTask(10L, TaskStatus.DONE);
-    UpdateTaskDTO editDTO = new UpdateTaskDTO("Updated title", "Updated desc", null, null, true);
-
-    when(repository.findById(10L)).thenReturn(Optional.of(existingTask));
+  @DisplayName("Should block move to NOW when task status change is not allowed")
+  void moveToNowShouldThrowWhenTaskCannotChangeStatus() {
+    Tasks task = buildTask(10L, TaskStatus.DONE);
+    when(repository.findById(10L)).thenReturn(Optional.of(task));
     doThrow(new TaskStatusChangeNotAllowedException())
         .when(statusPolicy)
-        .ensureStatusChangeAllowed(existingTask);
+        .ensureStatusChangeAllowed(task);
 
     TaskStatusChangeNotAllowedException exception =
-        assertThrows(
-            TaskStatusChangeNotAllowedException.class, () -> tasksService.updateTask(editDTO, 10L));
+        assertThrows(TaskStatusChangeNotAllowedException.class, () -> tasksService.moveToNow(10L));
 
     assertEquals("Completed tasks cannot change status", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
-    verify(tasksMapper, never()).partialUpdate(any(UpdateTaskDTO.class), any(Tasks.class));
   }
 
   @Test
-  @DisplayName("Should update editable task, touch updatedAt and persist")
-  void updateTaskShouldUpdateAndSave() {
-    Tasks existingTask = buildTask(11L, TaskStatus.NOW);
-    Timestamp previousUpdatedAt = existingTask.getUpdatedAt();
-    UpdateTaskDTO editDTO =
-        new UpdateTaskDTO("Rewritten title", "Rewritten description", null, null, true);
+  @DisplayName("Should block move to NOW when NOW limit is reached")
+  void moveToNowShouldThrowWhenNowLimitReached() {
+    Tasks task = buildTask(11L, TaskStatus.NEXT);
+    UUID userId = task.getDharmas().getUser().getId();
 
-    when(repository.findById(11L)).thenReturn(Optional.of(existingTask));
-    when(tasksMapper.partialUpdate(editDTO, existingTask))
-        .thenAnswer(invocation -> invocation.getArgument(1));
-    when(repository.save(existingTask)).thenAnswer(invocation -> invocation.getArgument(0));
-    when(tasksMapper.toDTO(existingTask))
-        .thenAnswer(invocation -> toDTO(invocation.getArgument(0)));
+    when(repository.findById(11L)).thenReturn(Optional.of(task));
+    when(repository.countByDharmasUserIdAndStatus(userId, TaskStatus.NOW)).thenReturn(5L);
+    doThrow(new NowTasksLimitExceededException())
+        .when(statusPolicy)
+        .ensureNowLimitNotExceeded(5L, null);
 
-    TaskDTO result = tasksService.updateTask(editDTO, 11L);
+    NowTasksLimitExceededException exception =
+        assertThrows(NowTasksLimitExceededException.class, () -> tasksService.moveToNow(11L));
+
+    assertEquals("Maximum of 5 tasks in NOW reached", exception.getMessage());
+    verify(repository, never()).save(any(Tasks.class));
+  }
+
+  @Test
+  @DisplayName("Should move task to NOW and clear snooze")
+  void moveToNowShouldMoveTaskSuccessfully() {
+    Tasks task = buildTask(12L, TaskStatus.SNOOZED);
+    task.setSnoozedUntil(new Timestamp(System.currentTimeMillis() + 3600000));
+    UUID userId = task.getDharmas().getUser().getId();
+
+    when(repository.findById(12L)).thenReturn(Optional.of(task));
+    when(repository.countByDharmasUserIdAndStatus(userId, TaskStatus.NOW)).thenReturn(2L);
+    doAnswer(
+            invocation -> {
+              Tasks target = invocation.getArgument(0);
+              target.setStatus(TaskStatus.NOW);
+              target.setSnoozedUntil(null);
+              return null;
+            })
+        .when(statusPolicy)
+        .markAsNow(task);
+    when(repository.save(task)).thenReturn(task);
+    when(tasksMapper.toDTO(task)).thenAnswer(invocation -> toDTO(invocation.getArgument(0)));
+
+    TaskDTO result = tasksService.moveToNow(12L);
 
     assertNotNull(result);
-    assertEquals(11L, result.id());
-    assertNotNull(existingTask.getUpdatedAt());
-    assertNotNull(result.updatedAt());
-    assertEquals(existingTask.getUpdatedAt(), result.updatedAt());
-    assertNotNull(previousUpdatedAt);
-    assertNotNull(existingTask.getUpdatedAt());
     assertEquals(TaskStatus.NOW, result.status());
+    assertNull(result.snoozedUntil());
 
-    verify(tasksMapper).partialUpdate(editDTO, existingTask);
-    verify(repository).save(existingTask);
-    verify(tasksMapper).toDTO(existingTask);
+    verify(statusPolicy).ensureStatusChangeAllowed(task);
+    verify(statusPolicy).ensureNowLimitNotExceeded(2L, null);
+    verify(statusPolicy).markAsNow(task);
+    verify(repository).save(task);
   }
 
   private Tasks buildTask(Long taskId, TaskStatus status) {

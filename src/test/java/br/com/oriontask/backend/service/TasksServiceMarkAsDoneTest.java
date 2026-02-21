@@ -4,15 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dto.tasks.TaskDTO;
-import br.com.oriontask.backend.dto.tasks.UpdateTaskDTO;
 import br.com.oriontask.backend.enums.TaskStatus;
-import br.com.oriontask.backend.exceptions.task.TaskStatusChangeNotAllowedException;
+import br.com.oriontask.backend.exceptions.task.TaskAlreadyCompletedException;
 import br.com.oriontask.backend.mappers.TasksMapper;
 import br.com.oriontask.backend.model.Dharmas;
 import br.com.oriontask.backend.model.Tasks;
@@ -31,7 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TasksServiceUpdateTaskTest {
+class TasksServiceMarkAsDoneTest {
 
   @Mock private TasksRepository repository;
   @Mock private DharmasRepository dharmasRepository;
@@ -42,67 +42,57 @@ class TasksServiceUpdateTaskTest {
 
   @Test
   @DisplayName("Should throw when task is not found")
-  void updateTaskShouldThrowWhenTaskNotFound() {
-    UpdateTaskDTO editDTO = new UpdateTaskDTO("Updated title", "Updated desc", null, null, true);
-    when(repository.findById(99L)).thenReturn(Optional.empty());
+  void markAsDoneShouldThrowWhenTaskNotFound() {
+    when(repository.findById(77L)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> tasksService.updateTask(editDTO, 99L));
+        assertThrows(IllegalArgumentException.class, () -> tasksService.markAsDone(77L));
 
     assertEquals("Task not found", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
-    verify(tasksMapper, never()).partialUpdate(any(UpdateTaskDTO.class), any(Tasks.class));
   }
 
   @Test
-  @DisplayName("Should block update when task is DONE")
-  void updateTaskShouldThrowWhenTaskIsDone() {
-    Tasks existingTask = buildTask(10L, TaskStatus.DONE);
-    UpdateTaskDTO editDTO = new UpdateTaskDTO("Updated title", "Updated desc", null, null, true);
+  @DisplayName("Should throw when task is already completed")
+  void markAsDoneShouldThrowWhenTaskAlreadyCompleted() {
+    Tasks task = buildTask(78L, TaskStatus.DONE);
+    when(repository.findById(78L)).thenReturn(Optional.of(task));
+    doThrow(new TaskAlreadyCompletedException()).when(statusPolicy).markAsDone(task);
 
-    when(repository.findById(10L)).thenReturn(Optional.of(existingTask));
-    doThrow(new TaskStatusChangeNotAllowedException())
-        .when(statusPolicy)
-        .ensureStatusChangeAllowed(existingTask);
+    TaskAlreadyCompletedException exception =
+        assertThrows(TaskAlreadyCompletedException.class, () -> tasksService.markAsDone(78L));
 
-    TaskStatusChangeNotAllowedException exception =
-        assertThrows(
-            TaskStatusChangeNotAllowedException.class, () -> tasksService.updateTask(editDTO, 10L));
-
-    assertEquals("Completed tasks cannot change status", exception.getMessage());
+    assertEquals("Task is already completed", exception.getMessage());
     verify(repository, never()).save(any(Tasks.class));
-    verify(tasksMapper, never()).partialUpdate(any(UpdateTaskDTO.class), any(Tasks.class));
   }
 
   @Test
-  @DisplayName("Should update editable task, touch updatedAt and persist")
-  void updateTaskShouldUpdateAndSave() {
-    Tasks existingTask = buildTask(11L, TaskStatus.NOW);
-    Timestamp previousUpdatedAt = existingTask.getUpdatedAt();
-    UpdateTaskDTO editDTO =
-        new UpdateTaskDTO("Rewritten title", "Rewritten description", null, null, true);
+  @DisplayName("Should mark task as done and persist")
+  void markAsDoneShouldPersist() {
+    Tasks task = buildTask(79L, TaskStatus.NOW);
 
-    when(repository.findById(11L)).thenReturn(Optional.of(existingTask));
-    when(tasksMapper.partialUpdate(editDTO, existingTask))
-        .thenAnswer(invocation -> invocation.getArgument(1));
-    when(repository.save(existingTask)).thenAnswer(invocation -> invocation.getArgument(0));
-    when(tasksMapper.toDTO(existingTask))
-        .thenAnswer(invocation -> toDTO(invocation.getArgument(0)));
+    when(repository.findById(79L)).thenReturn(Optional.of(task));
+    doAnswer(
+            invocation -> {
+              Tasks target = invocation.getArgument(0);
+              target.setStatus(TaskStatus.DONE);
+              target.setCompletedAt(new Timestamp(System.currentTimeMillis()));
+              target.setSnoozedUntil(null);
+              return null;
+            })
+        .when(statusPolicy)
+        .markAsDone(task);
+    when(repository.save(task)).thenReturn(task);
+    when(tasksMapper.toDTO(task)).thenAnswer(invocation -> toDTO(invocation.getArgument(0)));
 
-    TaskDTO result = tasksService.updateTask(editDTO, 11L);
+    TaskDTO result = tasksService.markAsDone(79L);
 
     assertNotNull(result);
-    assertEquals(11L, result.id());
-    assertNotNull(existingTask.getUpdatedAt());
-    assertNotNull(result.updatedAt());
-    assertEquals(existingTask.getUpdatedAt(), result.updatedAt());
-    assertNotNull(previousUpdatedAt);
-    assertNotNull(existingTask.getUpdatedAt());
-    assertEquals(TaskStatus.NOW, result.status());
+    assertEquals(TaskStatus.DONE, result.status());
+    assertNotNull(result.completedAt());
 
-    verify(tasksMapper).partialUpdate(editDTO, existingTask);
-    verify(repository).save(existingTask);
-    verify(tasksMapper).toDTO(existingTask);
+    verify(statusPolicy).markAsDone(task);
+    verify(repository).save(task);
   }
 
   private Tasks buildTask(Long taskId, TaskStatus status) {

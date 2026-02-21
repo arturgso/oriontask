@@ -11,7 +11,6 @@ import br.com.oriontask.backend.policy.TaskStatusTransitionPolicy;
 import br.com.oriontask.backend.repository.DharmasRepository;
 import br.com.oriontask.backend.repository.TasksRepository;
 import jakarta.transaction.Transactional;
-import java.sql.Timestamp;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -65,21 +64,13 @@ public class TasksService {
             .findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-    if (task.getStatus() == TaskStatus.DONE) {
-      throw new IllegalStateException("Completed tasks cannot change status");
-    }
-
-    Long nowCount =
+    statusPolicy.ensureStatusChangeAllowed(task);
+    Long currentCount =
         repository.countByDharmasUserIdAndStatus(
             task.getDharmas().getUser().getId(), TaskStatus.NOW);
 
-    if (nowCount >= MAX_NOW_TASKS) {
-      throw new IllegalStateException("Maximum of 5 tasks in NOW reached");
-    }
-
-    task.setStatus(TaskStatus.NOW);
-    task.setSnoozedUntil(null);
-    task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+    statusPolicy.ensureNowLimitNotExceeded(currentCount, null);
+    statusPolicy.markAsNow(task);
 
     return tasksMapper.toDTO(repository.save(task));
   }
