@@ -14,7 +14,6 @@ import jakarta.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,9 +27,6 @@ public class TasksService {
   private final TasksMapper tasksMapper;
 
   private final TaskStatusTransitionPolicy statusPolicy;
-
-  @Value("${task.snooze.duration-hours:2}")
-  private int snoozeDurationHours;
 
   private static final int MAX_NOW_TASKS = 5;
 
@@ -55,12 +51,9 @@ public class TasksService {
             .findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-    if (task.getStatus() == TaskStatus.DONE) {
-      throw new IllegalStateException("Completed tasks cannot be edited");
-    }
+    statusPolicy.ensureStatusChangeAllowed(task);
 
     task = tasksMapper.partialUpdate(editDTO, task);
-    task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
     return tasksMapper.toDTO(repository.save(task));
   }

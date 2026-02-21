@@ -25,7 +25,6 @@ import br.com.oriontask.backend.repository.TasksRepository;
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +32,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class TasksServiceChangeStatusTest {
@@ -47,11 +45,6 @@ class TasksServiceChangeStatusTest {
   @Spy private TaskStatusTransitionPolicy statusPolicy = new TaskStatusTransitionPolicy();
 
   @InjectMocks private TasksService tasksService;
-
-  @BeforeEach
-  void setUp() {
-    ReflectionTestUtils.setField(tasksService, "snoozeDurationHours", 2);
-  }
 
   @Test
   @DisplayName("Should throw when task does not exist")
