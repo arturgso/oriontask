@@ -31,11 +31,9 @@ public class DharmasService {
   private final DharmasMapper dharmasMapper;
   private final DharmasPolicy dharmasPolicy;
 
-  private static final int MAX_DHARMAS_PER_USER = 8;
-
-  public DharmasDTO create(NewDharmasDTO createDTO, String userId) {
+  public DharmasDTO create(NewDharmasDTO createDTO, UUID userId) {
     log.info("DharmasService.create requested userId={}", userId);
-    Users user = userLookup.getRequiredUse(UUID.fromString(userId));
+    Users user = userLookup.getRequiredUse(userId);
 
     Long dharmaCount = repository.countByUser(user);
 
