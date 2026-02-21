@@ -52,17 +52,16 @@ public class DharmasService {
     return dharmasMapper.toDTO(dharmas);
   }
 
-  public List<DharmasDTO> getDharmasByUser(String userId, boolean includeHidden) {
+  public List<DharmasDTO> listDharmas(UUID userId, boolean includeHidden) {
     log.debug(
         "DharmasService.getDharmasByUser requested userId={} includeHidden={}",
         userId,
         includeHidden);
-    UUID userUuid = UUID.fromString(userId);
     List<Dharmas> dharmaList;
     if (includeHidden) {
-      dharmaList = repository.findByUserId(userUuid);
+      dharmaList = repository.findByUserId(userId);
     } else {
-      dharmaList = repository.findByUserIdAndHiddenFalse(userUuid);
+      dharmaList = repository.findByUserIdAndHiddenFalse(userId);
     }
 
     List<DharmasDTO> result = dharmasMapper.toDTO(dharmaList);
@@ -72,11 +71,11 @@ public class DharmasService {
   }
 
   @Transactional
-  public DharmasDTO updateDharmas(UpdateDharmasDTO editDTO, Long dharmasId) {
+  public DharmasDTO updateDharmas(UUID userId, UpdateDharmasDTO editDTO, Long dharmasId) {
     log.info("DharmasService.updateDharmas requested dharmasId={}", dharmasId);
     Dharmas dharmas =
         repository
-            .findById(dharmasId)
+            .findByIdAndUserId(dharmasId, userId)
             .orElseThrow(() -> new IllegalArgumentException("Dharmas not found"));
 
     dharmas = dharmasMapper.partialUpdate(editDTO, dharmas);
@@ -87,11 +86,11 @@ public class DharmasService {
   }
 
   @Transactional
-  public void deleteDharmas(Long dharmasId) {
+  public void deleteDharmas(Long dharmasId, UUID userId) {
     log.info("DharmasService.deleteDharmas requested dharmasId={}", dharmasId);
     Dharmas dharmas =
         repository
-            .findById(dharmasId)
+            .findByIdAndUserId(dharmasId, userId)
             .orElseThrow(() -> new IllegalArgumentException("Dharmas not found"));
 
     // Check for active (non-completed) tasks before deleting
@@ -114,15 +113,16 @@ public class DharmasService {
   }
 
   @Transactional
-  public void toggleHidden(Long dharmasId) {
+  public void toggleHidden(Long dharmasId, UUID userId) {
     log.info("DharmasService.toggleHidden requested dharmasId={}", dharmasId);
     Dharmas dharmas =
         repository
-            .findById(dharmasId)
+            .findByIdAndUserId(dharmasId, userId)
             .orElseThrow(() -> new IllegalArgumentException("Dharmas not found"));
 
     dharmas.setHidden(!dharmas.getHidden());
 
+    // TODO - Move to service to method HideAllTasks
     // Update all tasks of the dharmas to inherit the hidden state
     var tasks = tasksRepository.findByDharmasId(dharmasId, Pageable.unpaged());
     tasks.forEach(

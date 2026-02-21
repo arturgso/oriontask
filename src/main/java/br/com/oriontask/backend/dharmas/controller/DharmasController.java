@@ -10,6 +10,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,34 +28,43 @@ public class DharmasController {
 
   private final DharmasService dharmasService;
 
-  @PostMapping("/{userId}/create")
+  @PostMapping
   public ResponseEntity<DharmasDTO> createDharmas(
-      @RequestBody @Valid NewDharmasDTO createDTO, @PathVariable UUID userId) {
+      @RequestBody @Valid NewDharmasDTO createDTO, Authentication authentication) {
+    UUID userId = UUID.fromString(authentication.getName());
     return ResponseEntity.status(HttpStatus.CREATED).body(dharmasService.create(createDTO, userId));
   }
 
-  @GetMapping("/user/{userId}")
-  public ResponseEntity<List<DharmasDTO>> getDharmasByUser(
-      @PathVariable String userId,
-      @RequestParam(required = false, defaultValue = "false") boolean includeHidden) {
-    return ResponseEntity.ok(dharmasService.getDharmasByUser(userId, includeHidden));
+  @GetMapping
+  public ResponseEntity<List<DharmasDTO>> findAll(
+      @RequestParam(required = false, defaultValue = "false") boolean includeHidden,
+      Authentication authentication) {
+    UUID userId = UUID.fromString(authentication.getName());
+    return ResponseEntity.ok(dharmasService.listDharmas(userId, includeHidden));
   }
 
-  @PatchMapping("/edit/{dharmasId}")
-  public ResponseEntity<DharmasDTO> editDharmas(
-      @RequestBody @Valid UpdateDharmasDTO editDTO, @PathVariable Long dharmasId) {
-    return ResponseEntity.ok(dharmasService.updateDharmas(editDTO, dharmasId));
+  @PatchMapping("{dharmasId}")
+  public ResponseEntity<DharmasDTO> update(
+      @RequestBody @Valid UpdateDharmasDTO editDTO,
+      @PathVariable Long dharmasId,
+      Authentication authentication) {
+    UUID userId = UUID.fromString(authentication.getName());
+    return ResponseEntity.ok(dharmasService.updateDharmas(userId, editDTO, dharmasId));
   }
 
-  @PatchMapping("/{dharmasId}/toggle-hidden")
-  public ResponseEntity<Void> toggleHidden(@PathVariable Long dharmasId) {
-    dharmasService.toggleHidden(dharmasId);
+  @PatchMapping("/{dharmasId}/hidden")
+  public ResponseEntity<Void> toggleHidden(
+      @PathVariable Long dharmasId, Authentication authentication) {
+    UUID userId = UUID.fromString(authentication.getName());
+    dharmasService.toggleHidden(dharmasId, userId);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{dharmasId}")
-  public ResponseEntity<Void> deleteDharmas(@PathVariable Long dharmasId) {
-    dharmasService.deleteDharmas(dharmasId);
+  public ResponseEntity<Void> deleteDharmas(
+      @PathVariable Long dharmasId, Authentication authentication) {
+    UUID userId = UUID.fromString(authentication.getName());
+    dharmasService.deleteDharmas(dharmasId, userId);
     return ResponseEntity.noContent().build();
   }
 }

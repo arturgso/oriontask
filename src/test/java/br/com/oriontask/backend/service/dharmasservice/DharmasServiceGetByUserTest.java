@@ -36,7 +36,7 @@ class DharmasServiceGetByUserTest {
 
   @Test
   @DisplayName("Should fetch all dharmas when includeHidden is true")
-  void getDharmasByUserShouldIncludeHidden() {
+  void listDharmasShouldIncludeHidden() {
     UUID userId = UUID.randomUUID();
     List<Dharmas> dharmas = List.of(Dharmas.builder().id(1L).name("Body").hidden(true).build());
     List<DharmasDTO> expected =
@@ -45,7 +45,7 @@ class DharmasServiceGetByUserTest {
     when(repository.findByUserId(userId)).thenReturn(dharmas);
     when(dharmasMapper.toDTO(dharmas)).thenReturn(expected);
 
-    List<DharmasDTO> result = dharmasService.getDharmasByUser(userId.toString(), true);
+    List<DharmasDTO> result = dharmasService.listDharmas(userId.toString(), true);
 
     assertEquals(1, result.size());
     verify(repository).findByUserId(userId);
@@ -54,7 +54,7 @@ class DharmasServiceGetByUserTest {
 
   @Test
   @DisplayName("Should fetch only visible dharmas when includeHidden is false")
-  void getDharmasByUserShouldExcludeHidden() {
+  void listDharmasShouldExcludeHidden() {
     UUID userId = UUID.randomUUID();
     List<Dharmas> dharmas = List.of(Dharmas.builder().id(2L).name("Mind").hidden(false).build());
     List<DharmasDTO> expected =
@@ -63,7 +63,7 @@ class DharmasServiceGetByUserTest {
     when(repository.findByUserIdAndHiddenFalse(userId)).thenReturn(dharmas);
     when(dharmasMapper.toDTO(dharmas)).thenReturn(expected);
 
-    List<DharmasDTO> result = dharmasService.getDharmasByUser(userId.toString(), false);
+    List<DharmasDTO> result = dharmasService.listDharmas(userId.toString(), false);
 
     assertEquals(1, result.size());
     verify(repository).findByUserIdAndHiddenFalse(userId);
@@ -72,8 +72,8 @@ class DharmasServiceGetByUserTest {
 
   @Test
   @DisplayName("Should throw for invalid user id format")
-  void getDharmasByUserShouldThrowForInvalidUuid() {
+  void listDharmasShouldThrowForInvalidUuid() {
     assertThrows(
-        IllegalArgumentException.class, () -> dharmasService.getDharmasByUser("not-a-uuid", true));
+        IllegalArgumentException.class, () -> dharmasService.listDharmas("not-a-uuid", true));
   }
 }

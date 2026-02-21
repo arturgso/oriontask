@@ -15,4 +15,6 @@ public interface DharmasRepository extends JpaRepository<Dharmas, Long> {
   List<Dharmas> findByUserId(UUID userId);
 
   List<Dharmas> findByUserIdAndHiddenFalse(UUID userId);
+
+  Optional<Dharmas> findByIdAndUserId(Long dharmasId, UUID userId);
 }
