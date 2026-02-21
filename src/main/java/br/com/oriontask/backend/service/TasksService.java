@@ -55,9 +55,7 @@ public class TasksService {
     Tasks task = getTaskById(taskId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
-    Long currentCount =
-        repository.countByDharmasUserIdAndStatus(
-            task.getDharmas().getUser().getId(), TaskStatus.NOW);
+    Long currentCount = getCurrentTasksCount(task.getDharmas().getUser().getId());
 
     statusPolicy.ensureNowLimitNotExceeded(currentCount, null);
     statusPolicy.markAsNow(task);
@@ -71,10 +69,9 @@ public class TasksService {
 
     statusPolicy.ensureStatusChangeAllowed(task);
 
-    Long currentTasksCount =
-        repository.countByDharmasUserIdAndStatus(
-            task.getDharmas().getUser().getId(), TaskStatus.NOW);
-    statusPolicy.ensureNowLimitNotExceeded(currentTasksCount, newStatus);
+    Long currentCount = getCurrentTasksCount(task.getDharmas().getUser().getId());
+
+    statusPolicy.ensureNowLimitNotExceeded(currentCount, newStatus);
 
     if (newStatus == TaskStatus.SNOOZED) {
       statusPolicy.snoozeTask(task);
@@ -127,6 +124,10 @@ public class TasksService {
     }
 
     repository.delete(task);
+  }
+
+  private Long getCurrentTasksCount(UUID userId) {
+    return repository.countByDharmasUserIdAndStatus(userId, TaskStatus.NOW);
   }
 
   private Tasks getTaskById(Long taskId) {
