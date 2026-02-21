@@ -1,5 +1,7 @@
 package br.com.oriontask.backend.config;
 
+import br.com.oriontask.backend.exceptions.user.UserNotFoundException;
+import br.com.oriontask.backend.exceptions.user.UsernameUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.HashMap;
@@ -105,5 +107,31 @@ public class GlobalExceptionHandler {
     response.put("path", request.getRequestURI());
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+  }
+
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<Map<String, Object>> handleUserNotFoundException(
+      UserNotFoundException ex, HttpServletRequest request) {
+    Map<String, Object> response = new HashMap<>();
+    response.put("timestamp", Instant.now().toString());
+    response.put("status", HttpStatus.NOT_FOUND.value());
+    response.put("error", "Not Found");
+    response.put("message", ex.getMessage());
+    response.put("path", request.getRequestURI());
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+  }
+
+  @ExceptionHandler(UsernameUnavailableException.class)
+  public ResponseEntity<Map<String, Object>> handleUsernameUnavailableException(
+      UsernameUnavailableException ex, HttpServletRequest request) {
+    Map<String, Object> response = new HashMap<>();
+    response.put("timestamp", Instant.now().toString());
+    response.put("status", HttpStatus.CONFLICT.value());
+    response.put("error", "Conflict");
+    response.put("message", ex.getMessage());
+    response.put("path", request.getRequestURI());
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
   }
 }

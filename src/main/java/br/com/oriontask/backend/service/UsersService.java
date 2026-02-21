@@ -3,6 +3,8 @@ package br.com.oriontask.backend.service;
 import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
 import br.com.oriontask.backend.dto.users.UpdateUserDTO;
 import br.com.oriontask.backend.dto.users.UserResponseDTO;
+import br.com.oriontask.backend.exceptions.user.UserNotFoundException;
+import br.com.oriontask.backend.exceptions.user.UsernameUnavailableException;
 import br.com.oriontask.backend.mappers.UsersMapper;
 import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.repository.UsersRepository;
@@ -29,10 +31,10 @@ public class UsersService {
         .findByUsername(createDTO.username())
         .ifPresent(
             user -> {
-              throw new IllegalArgumentException("Username unavailable");
+              throw new UsernameUnavailableException();
             });
 
-    Users user = Users.builder().name(createDTO.name()).username(createDTO.username()).build();
+    Users user = mapper.toEntity(createDTO);
 
     user = repository.save(user);
 
@@ -42,16 +44,12 @@ public class UsersService {
   public UserResponseDTO getMe(Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
 
-    return mapper.toDTO(
-        repository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
+    return mapper.toDTO(repository.findById(userId).orElseThrow(UserNotFoundException::new));
   }
 
   public UserResponseDTO list(String username, Authentication authentication)
       throws AccessDeniedException {
-    Users user =
-        repository
-            .findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+    Users user = repository.findByUsername(username).orElseThrow(UserNotFoundException::new);
 
     securityUtils.isOwner(user.getId(), authentication);
 
@@ -71,8 +69,6 @@ public class UsersService {
   }
 
   protected Users getEntity(UUID userId) {
-    return repository
-        .findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    return repository.findById(userId).orElseThrow(UserNotFoundException::new);
   }
 }
