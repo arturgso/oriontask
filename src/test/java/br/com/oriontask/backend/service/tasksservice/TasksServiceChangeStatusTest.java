@@ -71,14 +71,14 @@ class TasksServiceChangeStatusTest {
 
     assertThrows(
         TaskStatusChangeNotAllowedException.class,
-        () -> tasksService.changeStatus(1L, TaskStatus.NEXT, userId));
+        () -> tasksService.changeStatus(1L, TaskStatus.WAITING, userId));
     verify(repository, never()).save(any());
   }
 
   @Test
   @DisplayName("Should block move to NOW when limit is reached")
   void changeStatusShouldThrowWhenNowLimitReached() {
-    Tasks task = buildTask(2L, TaskStatus.NEXT);
+    Tasks task = buildTask(2L, TaskStatus.WAITING);
     UUID userId = task.getDharmas().getUser().getId();
 
     when(repository.findByIdAndUserId(2L, userId)).thenReturn(Optional.of(task));
@@ -134,6 +134,26 @@ class TasksServiceChangeStatusTest {
     assertNull(result.snoozedUntil());
     assertNotNull(result.updatedAt());
 
+    verify(repository).save(task);
+  }
+
+  @Test
+  @DisplayName("Should map deprecated NEXT status to WAITING")
+  @SuppressWarnings("deprecation")
+  void changeStatusShouldMapNextToWaiting() {
+    Tasks task = buildTask(5L, TaskStatus.NOW);
+    UUID userId = task.getDharmas().getUser().getId();
+
+    when(repository.findByIdAndUserId(5L, userId)).thenReturn(Optional.of(task));
+    when(repository.countByDharmasUserIdAndStatus(
+            eq(task.getDharmas().getUser().getId()), eq(TaskStatus.NOW)))
+        .thenReturn(1L);
+    when(repository.save(any(Tasks.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    stubMapperToDTO();
+
+    TaskDTO result = tasksService.changeStatus(5L, TaskStatus.NEXT, userId);
+
+    assertEquals(TaskStatus.WAITING, result.status());
     verify(repository).save(task);
   }
 

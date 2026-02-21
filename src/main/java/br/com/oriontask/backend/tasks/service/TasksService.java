@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,7 +40,8 @@ public class TasksService {
     task.setDharmas(dharmas);
     task.setUser(dharmas.getUser());
     task.setHidden(dharmas.getHidden());
-    task.setStatus(TaskStatus.NEXT);
+    Long currentNowCount = getCurrentTasksCount(userId);
+    task.setStatus(currentNowCount < 5 ? TaskStatus.NOW : TaskStatus.WAITING);
 
     TaskDTO result = tasksMapper.toDTO(repository.save(task));
     log.info("TasksService.create completed taskId={} dharmasId={}", result.id(), dharmasId);
@@ -75,19 +77,28 @@ public class TasksService {
   }
 
   @Transactional
+  @SuppressWarnings("deprecation")
   public TaskDTO changeStatus(Long taskId, TaskStatus newStatus, UUID userId) {
     log.info("TasksService.changeStatus requested taskId={} newStatus={}", taskId, newStatus);
     Tasks task = getTaskById(taskId, userId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
+    TaskStatus normalizedStatus =
+        newStatus == TaskStatus.NEXT
+            ? TaskStatus.WAITING
+            : newStatus;
 
     Long currentCount = getCurrentTasksCount(task.getDharmas().getUser().getId());
 
-    statusPolicy.ensureNowLimitNotExceeded(currentCount, newStatus);
-    statusPolicy.applyStatusTransition(task, newStatus);
+    statusPolicy.ensureNowLimitNotExceeded(currentCount, normalizedStatus);
+    statusPolicy.applyStatusTransition(task, normalizedStatus);
 
     TaskDTO result = tasksMapper.toDTO(repository.save(task));
-    log.info("TasksService.changeStatus completed taskId={} newStatus={}", taskId, newStatus);
+    log.info(
+        "TasksService.changeStatus completed taskId={} requestedStatus={} appliedStatus={}",
+        taskId,
+        newStatus,
+        normalizedStatus);
     return result;
   }
 
@@ -156,6 +167,32 @@ public class TasksService {
 
     repository.delete(task);
     log.info("TasksService.deleteTask completed taskId={}", taskId);
+  }
+
+  @Transactional
+  @Scheduled(fixedDelayString = "${task.waiting-promotion.interval-ms:600000}")
+  public void promoteRecentWaitingTasksToNow() {
+    repository
+        .findDistinctUserIdsByStatus(TaskStatus.WAITING)
+        .forEach(
+            userId -> {
+              Long currentCount = getCurrentTasksCount(userId);
+              if (currentCount >= 5) {
+                return;
+              }
+
+              repository
+                  .findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, TaskStatus.WAITING)
+                  .ifPresent(
+                      waitingTask -> {
+                        statusPolicy.markAsNow(waitingTask);
+                        repository.save(waitingTask);
+                        log.info(
+                            "TasksService.promoteRecentWaitingTasksToNow promoted taskId={} userId={}",
+                            waitingTask.getId(),
+                            userId);
+                      });
+            });
   }
 
   private Long getCurrentTasksCount(UUID userId) {

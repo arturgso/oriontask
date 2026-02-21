@@ -2,6 +2,7 @@ package br.com.oriontask.backend.tasks.repository;
 
 import br.com.oriontask.backend.shared.enums.TaskStatus;
 import br.com.oriontask.backend.tasks.model.Tasks;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -20,30 +21,17 @@ public interface TasksRepository extends JpaRepository<Tasks, Long> {
 
   Page<Tasks> findByUserIdAndDharmasId(UUID userId, Long dharmasId, Pageable pageable);
 
-  @Query(
-      "SELECT t FROM Tasks t WHERE t.user.id = :userId AND "
-          + "((t.status = :status AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NOW) OR "
-          + "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NOW AND t.snoozedUntil <= CURRENT_TIMESTAMP) OR "
-          + "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NEXT AND (t.snoozedUntil IS NULL OR t.snoozedUntil <= CURRENT_TIMESTAMP)) OR "
-          + "(t.status = :status AND :status NOT IN (br.com.oriontask.backend.shared.enums.TaskStatus.NOW, br.com.oriontask.backend.shared.enums.TaskStatus.NEXT)))")
   Page<Tasks> findByUserIdAndStatus(UUID userId, TaskStatus status, Pageable pageable);
 
-  @Query(
-      "SELECT t FROM Tasks t WHERE t.user.id = :userId AND t.dharmas.id = :dharmasId AND "
-          + "((t.status = :status AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NOW) OR "
-          + "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NOW AND t.snoozedUntil <= CURRENT_TIMESTAMP) OR "
-          + "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NEXT AND (t.snoozedUntil IS NULL OR t.snoozedUntil <= CURRENT_TIMESTAMP)) OR "
-          + "(t.status = :status AND :status NOT IN (br.com.oriontask.backend.shared.enums.TaskStatus.NOW, br.com.oriontask.backend.shared.enums.TaskStatus.NEXT)))")
   Page<Tasks> findByUserIdAndDharmasIdAndStatus(
       UUID userId, Long dharmasId, TaskStatus status, Pageable pageable);
 
   Long countByDharmasId(Long dharmasId);
 
-  @Query(
-      "SELECT COUNT(t) FROM Tasks t WHERE t.user.id = :userId AND "
-          + "((t.status = :status AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NOW) OR "
-          + "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NOW AND t.snoozedUntil <= CURRENT_TIMESTAMP) OR "
-          + "(t.status = 'NEXT' AND :status = br.com.oriontask.backend.shared.enums.TaskStatus.NEXT AND (t.snoozedUntil IS NULL OR t.snoozedUntil <= CURRENT_TIMESTAMP)) OR "
-          + "(t.status = :status AND :status NOT IN (br.com.oriontask.backend.shared.enums.TaskStatus.NOW, br.com.oriontask.backend.shared.enums.TaskStatus.NEXT)))")
   Long countByDharmasUserIdAndStatus(java.util.UUID userId, TaskStatus status);
+
+  @Query("SELECT DISTINCT t.user.id FROM Tasks t WHERE t.status = :status")
+  List<UUID> findDistinctUserIdsByStatus(TaskStatus status);
+
+  Optional<Tasks> findFirstByUserIdAndStatusOrderByCreatedAtDesc(UUID userId, TaskStatus status);
 }

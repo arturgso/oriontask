@@ -77,7 +77,7 @@ class TasksServiceMoveToNowTest {
   @Test
   @DisplayName("Should block move to NOW when NOW limit is reached")
   void moveToNowShouldThrowWhenNowLimitReached() {
-    Tasks task = buildTask(11L, TaskStatus.NEXT);
+    Tasks task = buildTask(11L, TaskStatus.WAITING);
     UUID userId = task.getDharmas().getUser().getId();
 
     when(repository.findByIdAndUserId(11L, userId)).thenReturn(Optional.of(task));
