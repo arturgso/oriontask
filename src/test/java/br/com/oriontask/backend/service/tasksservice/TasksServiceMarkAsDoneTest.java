@@ -1,4 +1,4 @@
-package br.com.oriontask.backend.service;
+package br.com.oriontask.backend.service.tasksservice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,6 +20,7 @@ import br.com.oriontask.backend.model.Users;
 import br.com.oriontask.backend.policy.TaskStatusTransitionPolicy;
 import br.com.oriontask.backend.repository.DharmasRepository;
 import br.com.oriontask.backend.repository.TasksRepository;
+import br.com.oriontask.backend.service.TasksService;
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.UUID;

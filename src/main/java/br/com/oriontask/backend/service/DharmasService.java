@@ -7,9 +7,10 @@ import br.com.oriontask.backend.enums.TaskStatus;
 import br.com.oriontask.backend.mappers.DharmasMapper;
 import br.com.oriontask.backend.model.Dharmas;
 import br.com.oriontask.backend.model.Users;
+import br.com.oriontask.backend.policy.DharmasPolicy;
 import br.com.oriontask.backend.repository.DharmasRepository;
 import br.com.oriontask.backend.repository.TasksRepository;
-import br.com.oriontask.backend.repository.UsersRepository;
+import br.com.oriontask.backend.service.user.UserLookupService;
 import br.com.oriontask.backend.utils.ColorGenerator;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -22,36 +23,20 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DharmasService {
   private final DharmasRepository repository;
-  private final UsersRepository uRepository;
+  private final UserLookupService userLookup;
   private final TasksRepository tasksRepository;
 
   private final DharmasMapper dharmasMapper;
+  private final DharmasPolicy dharmasPolicy;
 
   private static final int MAX_DHARMAS_PER_USER = 8;
 
-  public List<DharmasDTO> getDharmasByUser(String userId, boolean includeHidden) {
-    UUID userUuid = UUID.fromString(userId);
-    List<Dharmas> dharmaList;
-    if (includeHidden) {
-      dharmaList = repository.findByUserId(userUuid);
-    } else {
-      dharmaList = repository.findByUserIdAndHiddenFalse(userUuid);
-    }
-
-    return dharmasMapper.toDTO(dharmaList);
-  }
-
   public DharmasDTO create(NewDharmasDTO createDTO, String userId) {
-    Users user =
-        uRepository
-            .findById(UUID.fromString(userId))
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    Users user = userLookup.getRequiredUse(UUID.fromString(userId));
 
     Long dharmaCount = repository.countByUser(user);
 
-    if (dharmaCount >= MAX_DHARMAS_PER_USER) {
-      throw new IllegalStateException("Maximum number of dharmas reached for this user");
-    }
+    dharmasPolicy.validateMaxDharmasPerUser(dharmaCount);
 
     Dharmas dharmas = dharmasMapper.toEntity(createDTO);
     dharmas.setUser(user);
@@ -63,6 +48,18 @@ public class DharmasService {
 
     dharmas = repository.save(dharmas);
     return dharmasMapper.toDTO(dharmas);
+  }
+
+  public List<DharmasDTO> getDharmasByUser(String userId, boolean includeHidden) {
+    UUID userUuid = UUID.fromString(userId);
+    List<Dharmas> dharmaList;
+    if (includeHidden) {
+      dharmaList = repository.findByUserId(userUuid);
+    } else {
+      dharmaList = repository.findByUserIdAndHiddenFalse(userUuid);
+    }
+
+    return dharmasMapper.toDTO(dharmaList);
   }
 
   @Transactional

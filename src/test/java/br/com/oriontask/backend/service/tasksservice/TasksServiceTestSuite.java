@@ -1,4 +1,4 @@
-package br.com.oriontask.backend.service;
+package br.com.oriontask.backend.service.tasksservice;
 
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
