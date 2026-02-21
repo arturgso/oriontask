@@ -99,10 +99,11 @@ public class TasksService {
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
     statusPolicy.ensureStatusChangeAllowed(task);
-    statusPolicy.ensureNowLimitNotExceeded(
+
+    Long currentTasksCount =
         repository.countByDharmasUserIdAndStatus(
-            task.getDharmas().getUser().getId(), TaskStatus.NOW),
-        newStatus);
+            task.getDharmas().getUser().getId(), TaskStatus.NOW);
+    statusPolicy.ensureNowLimitNotExceeded(currentTasksCount, newStatus);
 
     if (newStatus == TaskStatus.SNOOZED) {
       statusPolicy.snoozeTask(task);
