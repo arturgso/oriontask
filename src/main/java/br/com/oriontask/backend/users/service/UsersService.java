@@ -1,6 +1,7 @@
 package br.com.oriontask.backend.users.service;
 
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
+import br.com.oriontask.backend.shared.utils.SecurityUtils;
 import br.com.oriontask.backend.users.dto.UpdateUserDTO;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.exception.UserNotFoundException;
@@ -8,7 +9,6 @@ import br.com.oriontask.backend.users.exception.UsernameUnavailableException;
 import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
 import br.com.oriontask.backend.users.repository.UsersRepository;
-import br.com.oriontask.backend.shared.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import java.nio.file.AccessDeniedException;
 import java.util.UUID;

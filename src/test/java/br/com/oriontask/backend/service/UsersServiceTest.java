@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
+import br.com.oriontask.backend.shared.utils.SecurityUtils;
 import br.com.oriontask.backend.users.dto.UpdateUserDTO;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.exception.UserNotFoundException;
@@ -16,7 +17,6 @@ import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
 import br.com.oriontask.backend.users.repository.UsersRepository;
 import br.com.oriontask.backend.users.service.UsersService;
-import br.com.oriontask.backend.shared.utils.SecurityUtils;
 import java.nio.file.AccessDeniedException;
 import java.sql.Timestamp;
 import java.util.Optional;

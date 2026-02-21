@@ -8,11 +8,11 @@ import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dharmas.mapper.DharmasMapper;
 import br.com.oriontask.backend.dharmas.model.Dharmas;
-import br.com.oriontask.backend.tasks.model.Tasks;
 import br.com.oriontask.backend.dharmas.policy.DharmasPolicy;
 import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
-import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import br.com.oriontask.backend.dharmas.service.DharmasService;
+import br.com.oriontask.backend.tasks.model.Tasks;
+import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import br.com.oriontask.backend.users.service.UserLookupService;
 import java.util.List;
 import java.util.Optional;

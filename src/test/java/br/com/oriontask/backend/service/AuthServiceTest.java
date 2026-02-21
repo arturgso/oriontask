@@ -17,7 +17,6 @@ import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
 import br.com.oriontask.backend.users.repository.UsersRepository;
-import br.com.oriontask.backend.users.service.UsersService;
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.UUID;

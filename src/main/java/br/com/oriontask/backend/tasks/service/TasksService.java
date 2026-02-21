@@ -1,14 +1,14 @@
 package br.com.oriontask.backend.tasks.service;
 
+import br.com.oriontask.backend.dharmas.model.Dharmas;
+import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
+import br.com.oriontask.backend.shared.enums.TaskStatus;
 import br.com.oriontask.backend.tasks.dto.NewTaskDTO;
 import br.com.oriontask.backend.tasks.dto.TaskDTO;
 import br.com.oriontask.backend.tasks.dto.UpdateTaskDTO;
-import br.com.oriontask.backend.shared.enums.TaskStatus;
 import br.com.oriontask.backend.tasks.mapper.TasksMapper;
-import br.com.oriontask.backend.dharmas.model.Dharmas;
 import br.com.oriontask.backend.tasks.model.Tasks;
 import br.com.oriontask.backend.tasks.policy.TaskStatusTransitionPolicy;
-import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
 import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import jakarta.transaction.Transactional;
 import java.util.UUID;

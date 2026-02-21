@@ -1,9 +1,9 @@
 package br.com.oriontask.backend.tasks.controller;
 
+import br.com.oriontask.backend.shared.enums.TaskStatus;
 import br.com.oriontask.backend.tasks.dto.NewTaskDTO;
 import br.com.oriontask.backend.tasks.dto.TaskDTO;
 import br.com.oriontask.backend.tasks.dto.UpdateTaskDTO;
-import br.com.oriontask.backend.shared.enums.TaskStatus;
 import br.com.oriontask.backend.tasks.service.TasksService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
