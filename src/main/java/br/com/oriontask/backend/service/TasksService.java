@@ -114,14 +114,9 @@ public class TasksService {
 
   @Transactional
   public void deleteTask(Long taskId) {
-    Tasks task =
-        repository
-            .findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+    Tasks task = getTaskById(taskId);
 
-    if (task.getStatus() == TaskStatus.DONE) {
-      throw new IllegalStateException("Completed tasks cannot be deleted (history)");
-    }
+    statusPolicy.ensureStatusChangeAllowed(task, true);
 
     repository.delete(task);
   }

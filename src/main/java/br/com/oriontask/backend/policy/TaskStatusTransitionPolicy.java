@@ -4,6 +4,7 @@ import br.com.oriontask.backend.enums.TaskStatus;
 import br.com.oriontask.backend.exceptions.task.InvalidSnoozedStatusTransitionException;
 import br.com.oriontask.backend.exceptions.task.NowTasksLimitExceededException;
 import br.com.oriontask.backend.exceptions.task.TaskAlreadyCompletedException;
+import br.com.oriontask.backend.exceptions.task.TaskDeletionNotAllowedException;
 import br.com.oriontask.backend.exceptions.task.TaskStatusChangeNotAllowedException;
 import br.com.oriontask.backend.model.Tasks;
 import java.sql.Timestamp;
@@ -16,7 +17,14 @@ public class TaskStatusTransitionPolicy {
   private static final Integer SNOOZE_DURATION_HOURS = 2;
 
   public void ensureStatusChangeAllowed(Tasks task) {
+    ensureStatusChangeAllowed(task, false);
+  }
+
+  public void ensureStatusChangeAllowed(Tasks task, boolean isDeleteOperation) {
     if (task.getStatus() == TaskStatus.DONE) {
+      if (isDeleteOperation) {
+        throw new TaskDeletionNotAllowedException();
+      }
       throw new TaskStatusChangeNotAllowedException();
     }
   }
