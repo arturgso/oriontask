@@ -7,12 +7,14 @@ import br.com.oriontask.backend.enums.TaskStatus;
 import br.com.oriontask.backend.mappers.TasksMapper;
 import br.com.oriontask.backend.model.Dharmas;
 import br.com.oriontask.backend.model.Tasks;
+import br.com.oriontask.backend.policy.TaskStatusTransitionPolicy;
 import br.com.oriontask.backend.repository.DharmasRepository;
 import br.com.oriontask.backend.repository.TasksRepository;
 import jakarta.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,9 @@ public class TasksService {
   private final DharmasRepository dharmasRepository;
   private final TasksMapper tasksMapper;
 
-  @org.springframework.beans.factory.annotation.Value("${task.snooze.duration-hours:2}")
+  private final TaskStatusTransitionPolicy statusPolicy;
+
+  @Value("${task.snooze.duration-hours:2}")
   private int snoozeDurationHours;
 
   private static final int MAX_NOW_TASKS = 5;
@@ -38,7 +42,7 @@ public class TasksService {
 
     Tasks task = tasksMapper.toEntity(createDTO);
     task.setDharmas(dharmas);
-    task.setHidden(dharmas.getHidden()); // Inherit hidden flag from parent dharmas
+    task.setHidden(dharmas.getHidden());
     task.setStatus(TaskStatus.NEXT);
 
     return tasksMapper.toDTO(repository.save(task));
@@ -94,30 +98,17 @@ public class TasksService {
             .findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-    if (task.getStatus() == TaskStatus.DONE) {
-      throw new IllegalStateException("Completed tasks cannot change status");
-    }
+    statusPolicy.ensureStatusChangeAllowed(task);
+    statusPolicy.ensureNowLimitNotExceeded(
+        repository.countByDharmasUserIdAndStatus(
+            task.getDharmas().getUser().getId(), TaskStatus.NOW),
+        newStatus);
 
-    if (newStatus == TaskStatus.NOW) {
-      Long nowCount =
-          repository.countByDharmasUserIdAndStatus(
-              task.getDharmas().getUser().getId(), TaskStatus.NOW);
-
-      if (nowCount >= MAX_NOW_TASKS) {
-        throw new IllegalStateException("Maximum of 5 tasks in NOW reached");
-      }
-    }
-
-    task.setStatus(newStatus);
-
-    if (newStatus == TaskStatus.NEXT) {
-      long snoozeMillis = (long) snoozeDurationHours * 60 * 60 * 1000;
-      task.setSnoozedUntil(new Timestamp(System.currentTimeMillis() + snoozeMillis));
+    if (newStatus == TaskStatus.SNOOZED) {
+      statusPolicy.snoozeTask(task);
     } else {
-      task.setSnoozedUntil(null);
+      statusPolicy.applyStatusTransition(task, newStatus);
     }
-
-    task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
     return tasksMapper.toDTO(repository.save(task));
   }

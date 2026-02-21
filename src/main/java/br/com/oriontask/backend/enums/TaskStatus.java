@@ -4,5 +4,6 @@ public enum TaskStatus {
   NOW,
   NEXT,
   WAITING,
+  SNOOZED,
   DONE
 }

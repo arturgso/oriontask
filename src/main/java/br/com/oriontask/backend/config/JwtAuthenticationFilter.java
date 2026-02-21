@@ -40,13 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UUID userId = jwtUtils.extractUserId(token);
         String username = jwtUtils.extractUsername(token);
 
-        // Create authentication object with userId as principal
         UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(
-                userId, // principal is userId (UUID)
-                null, // credentials
-                Collections.emptyList() // authorities (no roles yet)
-                );
+            new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
 
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -55,7 +50,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       } catch (Exception e) {
         log.warn("JWT validation failed: {}", e.getMessage());
-        // Don't set authentication; filter chain continues
       }
     }
 

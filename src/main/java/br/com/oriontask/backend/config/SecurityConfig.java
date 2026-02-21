@@ -30,32 +30,25 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.cors(Customizer.withDefaults())
-        .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless API
+        .csrf(csrf -> csrf.disable())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth
-                    // Public endpoints - no authentication required
-                    .requestMatchers("/auth/**")
+                auth.requestMatchers("/auth/**")
                     .permitAll()
                     .requestMatchers("/hello")
                     .permitAll()
                     .requestMatchers("/actuator/health")
                     .permitAll()
                     .requestMatchers("/h2-console/**")
-                    .permitAll() // for dev/test
+                    .permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**")
-                    .permitAll() // CORS preflight
-
-                    // All other endpoints require authentication
+                    .permitAll()
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-    // Allow H2 console frames (for dev/test only)
     http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
-
     return http.build();
   }
 }

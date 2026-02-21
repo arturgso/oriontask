@@ -19,6 +19,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
 
 @Entity
@@ -59,7 +61,7 @@ public class Tasks {
 
   private Timestamp snoozedUntil;
 
-  @Builder.Default private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
+  @CreationTimestamp private Timestamp createdAt;
 
-  @Builder.Default private Timestamp updatedAt = new Timestamp(System.currentTimeMillis());
+  @UpdateTimestamp private Timestamp updatedAt;
 }
