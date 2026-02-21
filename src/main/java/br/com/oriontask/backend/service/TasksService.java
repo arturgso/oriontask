@@ -120,15 +120,7 @@ public class TasksService {
             .findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
-    if (task.getStatus() == TaskStatus.DONE) {
-      throw new IllegalStateException("Task is already completed");
-    }
-
-    task.setStatus(TaskStatus.DONE);
-    task.setSnoozedUntil(null);
-    task.setCompletedAt(new Timestamp(System.currentTimeMillis()));
-    task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-
+    statusPolicy.markAsDone(task);
     return tasksMapper.toDTO(repository.save(task));
   }
 

@@ -13,6 +13,8 @@ import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dto.tasks.TaskDTO;
 import br.com.oriontask.backend.enums.TaskStatus;
+import br.com.oriontask.backend.exceptions.task.NowTasksLimitExceededException;
+import br.com.oriontask.backend.exceptions.task.TaskStatusChangeNotAllowedException;
 import br.com.oriontask.backend.mappers.TasksMapper;
 import br.com.oriontask.backend.model.Dharmas;
 import br.com.oriontask.backend.model.Tasks;
@@ -70,7 +72,9 @@ class TasksServiceChangeStatusTest {
     Tasks task = buildTask(1L, TaskStatus.DONE);
     when(repository.findById(1L)).thenReturn(Optional.of(task));
 
-    assertThrows(IllegalStateException.class, () -> tasksService.changeStatus(1L, TaskStatus.NEXT));
+    assertThrows(
+        TaskStatusChangeNotAllowedException.class,
+        () -> tasksService.changeStatus(1L, TaskStatus.NEXT));
     verify(repository, never()).save(any());
   }
 
@@ -83,9 +87,10 @@ class TasksServiceChangeStatusTest {
     when(repository.findById(2L)).thenReturn(Optional.of(task));
     when(repository.countByDharmasUserIdAndStatus(userId, TaskStatus.NOW)).thenReturn(5L);
 
-    IllegalStateException exception =
+    NowTasksLimitExceededException exception =
         assertThrows(
-            IllegalStateException.class, () -> tasksService.changeStatus(2L, TaskStatus.NOW));
+            NowTasksLimitExceededException.class,
+            () -> tasksService.changeStatus(2L, TaskStatus.NOW));
 
     assertEquals("Maximum of 5 tasks in NOW reached", exception.getMessage());
     verify(repository, never()).save(any());
