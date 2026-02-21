@@ -1,300 +1,219 @@
-// package br.com.oriontask.backend.service;
-//
-// import static org.junit.jupiter.api.Assertions.*;
-//
-// import br.com.oriontask.backend.dto.auth.AuthResponseDTO;
-// import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
-// import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
-// import br.com.oriontask.backend.model.Users;
-// import br.com.oriontask.backend.repository.UsersRepository;
-// import com.auth0.jwt.JWT;
-// import com.auth0.jwt.interfaces.DecodedJWT;
-// import java.util.Optional;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.DisplayName;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.context.SpringBootTest;
-// import org.springframework.security.crypto.bcrypt.BCrypt;
-// import org.springframework.test.context.ActiveProfiles;
-// import org.springframework.transaction.annotation.Transactional;
-//
-/// **
-// * Integration tests for AuthService. Tests cover: - Signup with valid data - Signup with
-// disposable
-// * email (blocked) - Username and email uniqueness - Login with username - Login with email -
-// * Invalid credentials handling - JWT token generation with correct claims - Password hash
-// * validation
-// */
-// @SpringBootTest
-// @Transactional
-// @ActiveProfiles("test")
-// class AuthServiceTest {
-//
-//  @Autowired private AuthService authService;
-//
-//  @Autowired private UsersRepository usersRepository;
-//
-//  private String testUsername;
-//  private String testEmail;
-//  private String testPassword;
-//
-//  @BeforeEach
-//  void setUp() {
-//    testUsername = "testuser" + System.currentTimeMillis();
-//    testEmail = "test" + System.currentTimeMillis() + "@example.com";
-//    testPassword = "Test123!@#";
-//
-//    // Clean up any existing test data
-//    usersRepository.deleteAll();
-//  }
-//
-//  @Test
-//  @DisplayName("Should create user successfully with valid data")
-//  void testSignupSuccess() {
-//    // Given
-//    SignupRequestDTO request =
-//        new SignupRequestDTO("Test User", testUsername, testEmail, testPassword);
-//
-//    // When
-//    AuthResponseDTO response = authService.signup(request);
-//
-//    // Then
-//    assertNotNull(response);
-//    assertNotNull(response.token());
-//    assertNotNull(response.id());
-//    assertEquals(testUsername, response.username());
-//    assertEquals("Test User", response.name());
-//
-//    // Verify user is saved in database
-//    Optional<Users> savedUser = usersRepository.findByUsername(testUsername);
-//    assertTrue(savedUser.isPresent());
-//    assertEquals(testEmail, savedUser.get().getEmail());
-//  }
-//
-//  @Test
-//  @DisplayName("Should generate JWT token with correct claims (sub=userId, username claim)")
-//  void testJwtTokenGeneration() {
-//    // Given
-//    SignupRequestDTO request =
-//        new SignupRequestDTO("JWT Test User", testUsername, testEmail, testPassword);
-//
-//    // When
-//    AuthResponseDTO response = authService.signup(request);
-//    String token = response.token();
-//
-//    // Then
-//    assertNotNull(token);
-//
-//    // Decode token without verification to check claims
-//    DecodedJWT decoded = JWT.decode(token);
-//
-//    // Verify subject is userId
-//    assertEquals(response.id().toString(), decoded.getSubject());
-//
-//    // Verify username claim
-//    assertEquals(testUsername, decoded.getClaim("username").asString());
-//
-//    // Verify token has expiration
-//    assertNotNull(decoded.getExpiresAt());
-//    assertNotNull(decoded.getIssuedAt());
-//  }
-//
-//  @Test
-//  @DisplayName("Should hash password with bcrypt")
-//  void testPasswordHashing() {
-//    // Given
-//    SignupRequestDTO request =
-//        new SignupRequestDTO("Hash Test User", testUsername, testEmail, testPassword);
-//
-//    // When
-//    authService.signup(request);
-//
-//    // Then
-//    Users savedUser = usersRepository.findByUsername(testUsername).orElseThrow();
-//    String passwordHash = savedUser.getPasswordHash();
-//
-//    // Verify hash is bcrypt format (starts with $2a$ or $2b$)
-//    assertTrue(
-//        passwordHash.startsWith("$2")
-//            || passwordHash.startsWith("$2a$")
-//            || passwordHash.startsWith("$2b$"));
-//
-//    // Verify password matches hash
-//    assertTrue(BCrypt.checkpw(testPassword, passwordHash));
-//
-//    // Verify wrong password doesn't match
-//    assertFalse(BCrypt.checkpw("WrongPassword123!", passwordHash));
-//  }
-//
-//  @Test
-//  @DisplayName("Should reject disposable email domains")
-//  void testDisposableEmailBlocked() {
-//    // Given - List of disposable email domains that should be blocked
-//    String[] disposableDomains = {
-//      "mailinator.com",
-//      "10minutemail.com",
-//      "guerrillamail.com",
-//      "yopmail.com",
-//      "temp-mail.org",
-//      "fakemail.net",
-//      "trashmail.com"
-//    };
-//
-//    for (String domain : disposableDomains) {
-//      String disposableEmail = "test@" + domain;
-//      SignupRequestDTO request =
-//          new SignupRequestDTO(
-//              "Disposable User",
-//              testUsername + domain.replace(".", ""),
-//              disposableEmail,
-//              testPassword);
-//
-//      // When & Then
-//      IllegalArgumentException exception =
-//          assertThrows(
-//              IllegalArgumentException.class,
-//              () -> authService.signup(request),
-//              "Should reject disposable domain: " + domain);
-//
-//      assertEquals("Disposable/temporary emails are not allowed", exception.getMessage());
-//    }
-//  }
-//
-//  @Test
-//  @DisplayName("Should reject duplicate username")
-//  void testDuplicateUsername() {
-//    // Given - Create first user
-//    SignupRequestDTO firstRequest =
-//        new SignupRequestDTO("First User", testUsername, testEmail, testPassword);
-//    authService.signup(firstRequest);
-//
-//    // When - Try to create second user with same username
-//    SignupRequestDTO duplicateRequest =
-//        new SignupRequestDTO(
-//            "Second User",
-//            testUsername, // Same username
-//            "different" + testEmail,
-//            testPassword);
-//
-//    // Then
-//    IllegalArgumentException exception =
-//        assertThrows(IllegalArgumentException.class, () -> authService.signup(duplicateRequest));
-//    assertEquals("Username unavailable", exception.getMessage());
-//  }
-//
-//  @Test
-//  @DisplayName("Should reject duplicate email")
-//  void testDuplicateEmail() {
-//    // Given - Create first user
-//    SignupRequestDTO firstRequest =
-//        new SignupRequestDTO("First User", testUsername, testEmail, testPassword);
-//    authService.signup(firstRequest);
-//
-//    // When - Try to create second user with same email
-//    SignupRequestDTO duplicateRequest =
-//        new SignupRequestDTO(
-//            "Second User",
-//            testUsername + "2",
-//            testEmail, // Same email
-//            testPassword);
-//
-//    // Then
-//    IllegalArgumentException exception =
-//        assertThrows(IllegalArgumentException.class, () -> authService.signup(duplicateRequest));
-//    assertEquals("Email unavailable", exception.getMessage());
-//  }
-//
-//  @Test
-//  @DisplayName("Should login successfully with username")
-//  void testLoginWithUsername() {
-//    // Given - Create user
-//    SignupRequestDTO signupRequest =
-//        new SignupRequestDTO("Login Test User", testUsername, testEmail, testPassword);
-//    AuthResponseDTO signupResponse = authService.signup(signupRequest);
-//
-//    // When - Login with username
-//    LoginRequestDTO loginRequest = new LoginRequestDTO(testUsername, testPassword);
-//    AuthResponseDTO loginResponse = authService.login(loginRequest);
-//
-//    // Then
-//    assertNotNull(loginResponse);
-//    assertNotNull(loginResponse.token());
-//    assertEquals(signupResponse.id(), loginResponse.id());
-//    assertEquals(testUsername, loginResponse.username());
-//    assertEquals("Login Test User", loginResponse.name());
-//  }
-//
-//  @Test
-//  @DisplayName("Should login successfully with email")
-//  void testLoginWithEmail() {
-//    // Given - Create user
-//    SignupRequestDTO signupRequest =
-//        new SignupRequestDTO("Email Login User", testUsername, testEmail, testPassword);
-//    AuthResponseDTO signupResponse = authService.signup(signupRequest);
-//
-//    // When - Login with email
-//    LoginRequestDTO loginRequest = new LoginRequestDTO(testEmail, testPassword);
-//    AuthResponseDTO loginResponse = authService.login(loginRequest);
-//
-//    // Then
-//    assertNotNull(loginResponse);
-//    assertNotNull(loginResponse.token());
-//    assertEquals(signupResponse.id(), loginResponse.id());
-//    assertEquals(testUsername, loginResponse.username());
-//    assertEquals("Email Login User", loginResponse.name());
-//  }
-//
-//  @Test
-//  @DisplayName("Should reject login with non-existent username")
-//  void testLoginWithNonExistentUser() {
-//    // Given
-//    LoginRequestDTO loginRequest = new LoginRequestDTO("nonexistent", testPassword);
-//
-//    // When & Then
-//    IllegalArgumentException exception =
-//        assertThrows(IllegalArgumentException.class, () -> authService.login(loginRequest));
-//    assertEquals("Invalid credentials", exception.getMessage());
-//  }
-//
-//  @Test
-//  @DisplayName("Should reject login with wrong password")
-//  void testLoginWithWrongPassword() {
-//    // Given - Create user
-//    SignupRequestDTO signupRequest =
-//        new SignupRequestDTO("Wrong Password User", testUsername, testEmail, testPassword);
-//    authService.signup(signupRequest);
-//
-//    // When - Try to login with wrong password
-//    LoginRequestDTO loginRequest = new LoginRequestDTO(testUsername, "WrongPassword123!");
-//
-//    // Then
-//    IllegalArgumentException exception =
-//        assertThrows(IllegalArgumentException.class, () -> authService.login(loginRequest));
-//    assertEquals("Invalid credentials", exception.getMessage());
-//  }
-//
-//  @Test
-//  @DisplayName("Should generate different tokens for each login")
-//  void testDifferentTokensPerLogin() throws InterruptedException {
-//    // Given - Create user
-//    SignupRequestDTO signupRequest =
-//        new SignupRequestDTO("Token Test User", testUsername, testEmail, testPassword);
-//    authService.signup(signupRequest);
-//
-//    // When - Login twice
-//    LoginRequestDTO loginRequest = new LoginRequestDTO(testUsername, testPassword);
-//    AuthResponseDTO firstLogin = authService.login(loginRequest);
-//
-//    Thread.sleep(1000); // Wait to ensure different timestamp
-//
-//    AuthResponseDTO secondLogin = authService.login(loginRequest);
-//
-//    // Then - Tokens should be different (different iat)
-//    assertNotEquals(firstLogin.token(), secondLogin.token());
-//
-//    // But user data should be the same
-//    assertEquals(firstLogin.id(), secondLogin.id());
-//    assertEquals(firstLogin.username(), secondLogin.username());
-//  }
-// }
+package br.com.oriontask.backend.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import br.com.oriontask.backend.dto.auth.AuthResponseDTO;
+import br.com.oriontask.backend.dto.auth.LoginRequestDTO;
+import br.com.oriontask.backend.dto.auth.SignupRequestDTO;
+import br.com.oriontask.backend.dto.users.UserResponseDTO;
+import br.com.oriontask.backend.mappers.UsersMapper;
+import br.com.oriontask.backend.model.Users;
+import br.com.oriontask.backend.repository.UsersRepository;
+import java.sql.Timestamp;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+
+@ExtendWith(MockitoExtension.class)
+class AuthServiceTest {
+
+  @Mock private UsersRepository usersRepository;
+  @Mock private UsersMapper usersMapper;
+  @Mock private TokenService jwtService;
+
+  @InjectMocks private AuthService authService;
+
+  @Test
+  @DisplayName("Should throw when username already exists on signup")
+  void signupShouldThrowWhenUsernameUnavailable() {
+    SignupRequestDTO request =
+        new SignupRequestDTO("Test User", "taken_user", "test@example.com", "Strong123!");
+
+    when(usersRepository.findByUsername("taken_user"))
+        .thenReturn(Optional.of(Users.builder().id(UUID.randomUUID()).build()));
+
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> authService.signup(request));
+
+    assertEquals("Username unavailable", exception.getMessage());
+    verify(usersRepository, never()).save(any(Users.class));
+  }
+
+  @Test
+  @DisplayName("Should throw when email already exists on signup")
+  void signupShouldThrowWhenEmailUnavailable() {
+    SignupRequestDTO request =
+        new SignupRequestDTO("Test User", "available_user", "used@example.com", "Strong123!");
+
+    when(usersRepository.findByUsername("available_user")).thenReturn(Optional.empty());
+    when(usersRepository.findByEmail("used@example.com"))
+        .thenReturn(Optional.of(Users.builder().id(UUID.randomUUID()).build()));
+
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> authService.signup(request));
+
+    assertEquals("Email unavailable", exception.getMessage());
+    verify(usersRepository, never()).save(any(Users.class));
+  }
+
+  @Test
+  @DisplayName("Should throw when signup email is disposable")
+  void signupShouldThrowWhenEmailIsDisposable() {
+    SignupRequestDTO request =
+        new SignupRequestDTO("Test User", "available_user", "test@mailinator.com", "Strong123!");
+
+    when(usersRepository.findByUsername("available_user")).thenReturn(Optional.empty());
+    when(usersRepository.findByEmail("test@mailinator.com")).thenReturn(Optional.empty());
+
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> authService.signup(request));
+
+    assertEquals("Disposable/temporary emails are not allowed", exception.getMessage());
+    verify(usersRepository, never()).save(any(Users.class));
+  }
+
+  @Test
+  @DisplayName("Should save user with bcrypt hash and return mapped response on signup")
+  void signupShouldHashPasswordAndReturnDTO() {
+    UUID userId = UUID.randomUUID();
+    SignupRequestDTO request =
+        new SignupRequestDTO("Test User", "test_user", "test@example.com", "Strong123!");
+    UserResponseDTO expectedResponse =
+        new UserResponseDTO(
+            userId,
+            "Test User",
+            "test_user",
+            "test@example.com",
+            new Timestamp(1),
+            new Timestamp(2));
+
+    when(usersRepository.findByUsername("test_user")).thenReturn(Optional.empty());
+    when(usersRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+    when(usersRepository.save(any(Users.class)))
+        .thenAnswer(
+            invocation -> {
+              Users user = invocation.getArgument(0);
+              user.setId(userId);
+              return user;
+            });
+    when(usersMapper.toDTO(any(Users.class))).thenReturn(expectedResponse);
+
+    UserResponseDTO result = authService.signup(request);
+
+    assertNotNull(result);
+    assertEquals(userId, result.id());
+    assertEquals("test_user", result.username());
+
+    verify(usersRepository).save(any(Users.class));
+    verify(usersMapper).toDTO(any(Users.class));
+  }
+
+  @Test
+  @DisplayName("Should login with trimmed login and return token")
+  void loginShouldTrimLoginAndReturnToken() {
+    UUID userId = UUID.randomUUID();
+    String rawLogin = "  test_user  ";
+    String password = "Strong123!";
+    String hash = BCrypt.hashpw(password, BCrypt.gensalt());
+
+    Users user =
+        Users.builder()
+            .id(userId)
+            .name("Test User")
+            .username("test_user")
+            .email("test@example.com")
+            .passwordHash(hash)
+            .build();
+
+    when(usersRepository.findByEmailIgnoreCaseOrUsername("test_user", "test_user"))
+        .thenReturn(Optional.of(user));
+    when(jwtService.generateToken(user)).thenReturn("jwt-token");
+
+    AuthResponseDTO result = authService.login(new LoginRequestDTO(rawLogin, password));
+
+    assertEquals("jwt-token", result.token());
+    assertEquals(userId, result.id());
+    assertEquals("test_user", result.username());
+    verify(usersRepository).findByEmailIgnoreCaseOrUsername("test_user", "test_user");
+  }
+
+  @Test
+  @DisplayName("Should throw invalid credentials when login does not exist")
+  void loginShouldThrowWhenUserNotFound() {
+    when(usersRepository.findByEmailIgnoreCaseOrUsername("unknown", "unknown"))
+        .thenReturn(Optional.empty());
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> authService.login(new LoginRequestDTO("unknown", "Strong123!")));
+
+    assertEquals("Invalid credentials", exception.getMessage());
+    verify(jwtService, never()).generateToken(any(Users.class));
+  }
+
+  @Test
+  @DisplayName("Should throw invalid credentials when password is wrong")
+  void loginShouldThrowWhenPasswordIsInvalid() {
+    Users user =
+        Users.builder()
+            .id(UUID.randomUUID())
+            .username("test_user")
+            .email("test@example.com")
+            .passwordHash(BCrypt.hashpw("Strong123!", BCrypt.gensalt()))
+            .build();
+
+    when(usersRepository.findByEmailIgnoreCaseOrUsername("test_user", "test_user"))
+        .thenReturn(Optional.of(user));
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> authService.login(new LoginRequestDTO("test_user", "Wrong123!")));
+
+    assertEquals("Invalid credentials", exception.getMessage());
+    verify(jwtService, never()).generateToken(any(Users.class));
+  }
+
+  @Test
+  @DisplayName("Should persist bcrypt-compatible hash on signup")
+  void signupShouldPersistBcryptHash() {
+    SignupRequestDTO request =
+        new SignupRequestDTO("Test User", "test_user", "test@example.com", "Strong123!");
+
+    when(usersRepository.findByUsername("test_user")).thenReturn(Optional.empty());
+    when(usersRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+    when(usersRepository.save(any(Users.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(usersMapper.toDTO(any(Users.class)))
+        .thenReturn(
+            new UserResponseDTO(
+                UUID.randomUUID(),
+                "Test User",
+                "test_user",
+                "test@example.com",
+                new Timestamp(1),
+                new Timestamp(2)));
+
+    authService.signup(request);
+
+    verify(usersRepository)
+        .save(
+            org.mockito.ArgumentMatchers.argThat(
+                user ->
+                    user.getPasswordHash() != null
+                        && BCrypt.checkpw("Strong123!", user.getPasswordHash())));
+  }
+}

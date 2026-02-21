@@ -21,7 +21,6 @@ public class AuthService {
   private final UsersRepository usersRepository;
   private final UsersMapper usersMapper;
 
-  private final UsersService usersService;
   private final TokenService jwtService;
 
   // minimal disposable email domain list; configurable via property in future
@@ -70,10 +69,8 @@ public class AuthService {
   }
 
   public AuthResponseDTO login(LoginRequestDTO req) {
-    Optional<Users> userOpt =
-        isEmail(req.login())
-            ? usersRepository.findByEmail(req.login())
-            : usersRepository.findByUsername(req.login());
+    String login = req.login().trim();
+    Optional<Users> userOpt = usersRepository.findByEmailIgnoreCaseOrUsername(login, login);
 
     Users user = userOpt.orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
@@ -83,10 +80,6 @@ public class AuthService {
 
     String token = jwtService.generateToken(user);
     return new AuthResponseDTO(token, user.getId(), user.getUsername());
-  }
-
-  private boolean isEmail(String value) {
-    return value.contains("@");
   }
 
   private boolean isDisposableEmail(String email) {

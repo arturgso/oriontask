@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -81,6 +82,27 @@ public class GlobalExceptionHandler {
 
     // Log the full exception for debugging
     log.error("Unexpected error occurred", ex);
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<Map<String, Object>> handleDataIntegrityViolationException(
+      DataIntegrityViolationException ex, HttpServletRequest request) {
+    String cause = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : "";
+
+    String message = "Dados Inválidos";
+    if (cause.contains("uq_users_email") || cause.contains("tab_users_email_key")) {
+      message = "Email unavailable";
+    } else if (cause.contains("tab_users_username_key") || cause.contains("username")) {
+      message = "Username unavailable";
+    }
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("timestamp", Instant.now().toString());
+    response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+    response.put("error", message);
+    response.put("path", request.getRequestURI());
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
   }
