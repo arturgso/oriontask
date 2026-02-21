@@ -1,6 +1,6 @@
 package br.com.oriontask.backend.config;
 
-import br.com.oriontask.backend.service.TokenService;
+import br.com.oriontask.backend.auth.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

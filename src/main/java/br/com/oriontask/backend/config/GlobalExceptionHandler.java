@@ -1,7 +1,7 @@
 package br.com.oriontask.backend.config;
 
-import br.com.oriontask.backend.exceptions.user.UserNotFoundException;
-import br.com.oriontask.backend.exceptions.user.UsernameUnavailableException;
+import br.com.oriontask.backend.users.exception.UserNotFoundException;
+import br.com.oriontask.backend.users.exception.UsernameUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.HashMap;
