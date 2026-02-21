@@ -1,7 +1,6 @@
 package br.com.oriontask.backend.config;
 
 import br.com.oriontask.backend.users.exception.UserNotFoundException;
-import br.com.oriontask.backend.users.exception.UsernameUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(response);
   }
 
-  /** Handle business logic errors (e.g., username taken, invalid credentials) */
+  /** Handle business logic errors (e.g., duplicate email, invalid credentials) */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(
       IllegalArgumentException ex, HttpServletRequest request) {
@@ -96,8 +95,6 @@ public class GlobalExceptionHandler {
     String message = "Dados Inválidos";
     if (cause.contains("uq_users_email") || cause.contains("tab_users_email_key")) {
       message = "Email unavailable";
-    } else if (cause.contains("tab_users_username_key") || cause.contains("username")) {
-      message = "Username unavailable";
     }
 
     Map<String, Object> response = new HashMap<>();
@@ -120,18 +117,5 @@ public class GlobalExceptionHandler {
     response.put("path", request.getRequestURI());
 
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-  }
-
-  @ExceptionHandler(UsernameUnavailableException.class)
-  public ResponseEntity<Map<String, Object>> handleUsernameUnavailableException(
-      UsernameUnavailableException ex, HttpServletRequest request) {
-    Map<String, Object> response = new HashMap<>();
-    response.put("timestamp", Instant.now().toString());
-    response.put("status", HttpStatus.CONFLICT.value());
-    response.put("error", "Conflict");
-    response.put("message", ex.getMessage());
-    response.put("path", request.getRequestURI());
-
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
   }
 }

@@ -37,46 +37,34 @@ public class AuthService {
 
   @Transactional
   public UserResponseDTO signup(SignupRequestDTO req) {
-    log.info("Signup requested for username={}", req.username());
-    usersRepository
-        .findByUsername(req.username())
-        .ifPresent(
-            u -> {
-              log.warn("Signup blocked: username unavailable username={}", req.username());
-              throw new IllegalArgumentException("Username unavailable");
-            });
+    log.info("Signup requested for email={}", req.email());
     usersRepository
         .findByEmail(req.email())
         .ifPresent(
             u -> {
-              log.warn("Signup blocked: email unavailable username={}", req.username());
+              log.warn("Signup blocked: email unavailable email={}", req.email());
               throw new IllegalArgumentException("Email unavailable");
             });
 
     if (isDisposableEmail(req.email())) {
-      log.warn("Signup blocked: disposable email detected username={}", req.username());
+      log.warn("Signup blocked: disposable email detected email={}", req.email());
       throw new IllegalArgumentException("Disposable/temporary emails are not allowed");
     }
 
     String passwordHash = BCrypt.hashpw(req.password(), BCrypt.gensalt());
 
     Users user =
-        Users.builder()
-            .name(req.name())
-            .username(req.username())
-            .email(req.email())
-            .passwordHash(passwordHash)
-            .build();
+        Users.builder().name(req.name()).email(req.email()).passwordHash(passwordHash).build();
 
     user = usersRepository.save(user);
-    log.info("Signup completed userId={} username={}", user.getId(), user.getUsername());
+    log.info("Signup completed userId={} email={}", user.getId(), user.getEmail());
     return usersMapper.toDTO(user);
   }
 
   public AuthResponseDTO login(LoginRequestDTO req) {
-    String login = req.login().trim();
+    String email = req.email().trim();
     log.info("Login requested");
-    Optional<Users> userOpt = usersRepository.findByEmailIgnoreCaseOrUsername(login, login);
+    Optional<Users> userOpt = usersRepository.findByEmailIgnoreCase(email);
 
     Users user =
         userOpt.orElseThrow(
@@ -91,8 +79,8 @@ public class AuthService {
     }
 
     String token = jwtService.generateToken(user);
-    log.info("Login succeeded userId={} username={}", user.getId(), user.getUsername());
-    return new AuthResponseDTO(token, user.getId(), user.getUsername());
+    log.info("Login succeeded userId={}", user.getId());
+    return new AuthResponseDTO(token, user.getId());
   }
 
   private boolean isDisposableEmail(String email) {

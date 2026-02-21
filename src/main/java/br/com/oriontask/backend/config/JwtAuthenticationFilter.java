@@ -38,7 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       try {
         UUID userId = jwtUtils.extractUserId(token);
-        String username = jwtUtils.extractUsername(token);
 
         UsernamePasswordAuthenticationToken authentication =
             new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
@@ -46,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        log.debug("Authenticated user: {} ({})", username, userId);
+        log.debug("Authenticated userId={}", userId);
 
       } catch (Exception e) {
         log.warn("JWT validation failed: {}", e.getMessage());

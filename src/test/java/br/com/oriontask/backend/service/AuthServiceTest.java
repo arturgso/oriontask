@@ -38,28 +38,10 @@ class AuthServiceTest {
   @InjectMocks private AuthService authService;
 
   @Test
-  @DisplayName("Should throw when username already exists on signup")
-  void signupShouldThrowWhenUsernameUnavailable() {
-    SignupRequestDTO request =
-        new SignupRequestDTO("Test User", "taken_user", "test@example.com", "Strong123!");
-
-    when(usersRepository.findByUsername("taken_user"))
-        .thenReturn(Optional.of(Users.builder().id(UUID.randomUUID()).build()));
-
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> authService.signup(request));
-
-    assertEquals("Username unavailable", exception.getMessage());
-    verify(usersRepository, never()).save(any(Users.class));
-  }
-
-  @Test
   @DisplayName("Should throw when email already exists on signup")
   void signupShouldThrowWhenEmailUnavailable() {
-    SignupRequestDTO request =
-        new SignupRequestDTO("Test User", "available_user", "used@example.com", "Strong123!");
+    SignupRequestDTO request = new SignupRequestDTO("Test User", "used@example.com", "Strong123!");
 
-    when(usersRepository.findByUsername("available_user")).thenReturn(Optional.empty());
     when(usersRepository.findByEmail("used@example.com"))
         .thenReturn(Optional.of(Users.builder().id(UUID.randomUUID()).build()));
 
@@ -74,9 +56,8 @@ class AuthServiceTest {
   @DisplayName("Should throw when signup email is disposable")
   void signupShouldThrowWhenEmailIsDisposable() {
     SignupRequestDTO request =
-        new SignupRequestDTO("Test User", "available_user", "test@mailinator.com", "Strong123!");
+        new SignupRequestDTO("Test User", "test@mailinator.com", "Strong123!");
 
-    when(usersRepository.findByUsername("available_user")).thenReturn(Optional.empty());
     when(usersRepository.findByEmail("test@mailinator.com")).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
@@ -90,18 +71,11 @@ class AuthServiceTest {
   @DisplayName("Should save user with bcrypt hash and return mapped response on signup")
   void signupShouldHashPasswordAndReturnDTO() {
     UUID userId = UUID.randomUUID();
-    SignupRequestDTO request =
-        new SignupRequestDTO("Test User", "test_user", "test@example.com", "Strong123!");
+    SignupRequestDTO request = new SignupRequestDTO("Test User", "test@example.com", "Strong123!");
     UserResponseDTO expectedResponse =
         new UserResponseDTO(
-            userId,
-            "Test User",
-            "test_user",
-            "test@example.com",
-            new Timestamp(1),
-            new Timestamp(2));
+            userId, "Test User", "test@example.com", new Timestamp(1), new Timestamp(2));
 
-    when(usersRepository.findByUsername("test_user")).thenReturn(Optional.empty());
     when(usersRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
     when(usersRepository.save(any(Users.class)))
         .thenAnswer(
@@ -116,17 +90,16 @@ class AuthServiceTest {
 
     assertNotNull(result);
     assertEquals(userId, result.id());
-    assertEquals("test_user", result.username());
-
+    assertEquals("test@example.com", result.email());
     verify(usersRepository).save(any(Users.class));
     verify(usersMapper).toDTO(any(Users.class));
   }
 
   @Test
-  @DisplayName("Should login with trimmed login and return token")
-  void loginShouldTrimLoginAndReturnToken() {
+  @DisplayName("Should login with trimmed email and return token")
+  void loginShouldTrimEmailAndReturnToken() {
     UUID userId = UUID.randomUUID();
-    String rawLogin = "  test_user  ";
+    String rawEmail = "  test@example.com  ";
     String password = "Strong123!";
     String hash = BCrypt.hashpw(password, BCrypt.gensalt());
 
@@ -134,33 +107,29 @@ class AuthServiceTest {
         Users.builder()
             .id(userId)
             .name("Test User")
-            .username("test_user")
             .email("test@example.com")
             .passwordHash(hash)
             .build();
 
-    when(usersRepository.findByEmailIgnoreCaseOrUsername("test_user", "test_user"))
-        .thenReturn(Optional.of(user));
+    when(usersRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
     when(jwtService.generateToken(user)).thenReturn("jwt-token");
 
-    AuthResponseDTO result = authService.login(new LoginRequestDTO(rawLogin, password));
+    AuthResponseDTO result = authService.login(new LoginRequestDTO(rawEmail, password));
 
     assertEquals("jwt-token", result.token());
     assertEquals(userId, result.id());
-    assertEquals("test_user", result.username());
-    verify(usersRepository).findByEmailIgnoreCaseOrUsername("test_user", "test_user");
+    verify(usersRepository).findByEmailIgnoreCase("test@example.com");
   }
 
   @Test
-  @DisplayName("Should throw invalid credentials when login does not exist")
+  @DisplayName("Should throw invalid credentials when email does not exist")
   void loginShouldThrowWhenUserNotFound() {
-    when(usersRepository.findByEmailIgnoreCaseOrUsername("unknown", "unknown"))
-        .thenReturn(Optional.empty());
+    when(usersRepository.findByEmailIgnoreCase("unknown@example.com")).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> authService.login(new LoginRequestDTO("unknown", "Strong123!")));
+            () -> authService.login(new LoginRequestDTO("unknown@example.com", "Strong123!")));
 
     assertEquals("Invalid credentials", exception.getMessage());
     verify(jwtService, never()).generateToken(any(Users.class));
@@ -172,18 +141,16 @@ class AuthServiceTest {
     Users user =
         Users.builder()
             .id(UUID.randomUUID())
-            .username("test_user")
             .email("test@example.com")
             .passwordHash(BCrypt.hashpw("Strong123!", BCrypt.gensalt()))
             .build();
 
-    when(usersRepository.findByEmailIgnoreCaseOrUsername("test_user", "test_user"))
-        .thenReturn(Optional.of(user));
+    when(usersRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
 
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> authService.login(new LoginRequestDTO("test_user", "Wrong123!")));
+            () -> authService.login(new LoginRequestDTO("test@example.com", "Wrong123!")));
 
     assertEquals("Invalid credentials", exception.getMessage());
     verify(jwtService, never()).generateToken(any(Users.class));
@@ -192,10 +159,8 @@ class AuthServiceTest {
   @Test
   @DisplayName("Should persist bcrypt-compatible hash on signup")
   void signupShouldPersistBcryptHash() {
-    SignupRequestDTO request =
-        new SignupRequestDTO("Test User", "test_user", "test@example.com", "Strong123!");
+    SignupRequestDTO request = new SignupRequestDTO("Test User", "test@example.com", "Strong123!");
 
-    when(usersRepository.findByUsername("test_user")).thenReturn(Optional.empty());
     when(usersRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
     when(usersRepository.save(any(Users.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
@@ -204,7 +169,6 @@ class AuthServiceTest {
             new UserResponseDTO(
                 UUID.randomUUID(),
                 "Test User",
-                "test_user",
                 "test@example.com",
                 new Timestamp(1),
                 new Timestamp(2)));

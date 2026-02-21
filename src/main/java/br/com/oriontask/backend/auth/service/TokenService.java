@@ -30,7 +30,6 @@ public class TokenService {
     String token =
         JWT.create()
             .withSubject(user.getId().toString())
-            .withClaim("username", user.getUsername())
             .withIssuedAt(java.util.Date.from(now))
             .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
             .sign(alg);
@@ -81,18 +80,6 @@ public class TokenService {
     DecodedJWT decoded = verifyToken(token);
     log.debug("Extracted userId from token");
     return UUID.fromString(decoded.getSubject());
-  }
-
-  /**
-   * Extracts username from JWT token
-   *
-   * @param token JWT token string
-   * @return username from custom claim
-   */
-  public String extractUsername(String token) {
-    DecodedJWT decoded = verifyToken(token);
-    log.debug("Extracted username claim from token");
-    return decoded.getClaim("username").asString();
   }
 
   public String extractTokenFromRequest(HttpServletRequest request) {
