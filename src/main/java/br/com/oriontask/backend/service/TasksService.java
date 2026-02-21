@@ -27,8 +27,6 @@ public class TasksService {
 
   private final TaskStatusTransitionPolicy statusPolicy;
 
-  private static final int MAX_NOW_TASKS = 5;
-
   public TaskDTO create(NewTaskDTO createDTO, Long dharmasId) {
     Dharmas dharmas =
         dharmasRepository
@@ -45,24 +43,16 @@ public class TasksService {
 
   @Transactional
   public TaskDTO updateTask(UpdateTaskDTO editDTO, Long taskId) {
-    Tasks task =
-        repository
-            .findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-
+    Tasks task = getTaskById(taskId);
     statusPolicy.ensureStatusChangeAllowed(task);
 
     task = tasksMapper.partialUpdate(editDTO, task);
-
     return tasksMapper.toDTO(repository.save(task));
   }
 
   @Transactional
   public TaskDTO moveToNow(Long taskId) {
-    Tasks task =
-        repository
-            .findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+    Tasks task = getTaskById(taskId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
     Long currentCount =
@@ -77,10 +67,7 @@ public class TasksService {
 
   @Transactional
   public TaskDTO changeStatus(Long taskId, TaskStatus newStatus) {
-    Tasks task =
-        repository
-            .findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+    Tasks task = getTaskById(taskId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
 
@@ -100,10 +87,7 @@ public class TasksService {
 
   @Transactional
   public TaskDTO markAsDone(Long taskId) {
-    Tasks task =
-        repository
-            .findById(taskId)
-            .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+    Tasks task = getTaskById(taskId);
 
     statusPolicy.markAsDone(task);
     return tasksMapper.toDTO(repository.save(task));
@@ -143,5 +127,11 @@ public class TasksService {
     }
 
     repository.delete(task);
+  }
+
+  private Tasks getTaskById(Long taskId) {
+    return repository
+        .findById(taskId)
+        .orElseThrow(() -> new IllegalArgumentException("Task not found"));
   }
 }
