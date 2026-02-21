@@ -16,11 +16,13 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DharmasService {
   private final DharmasRepository repository;
   private final UserLookupService userLookup;
@@ -32,6 +34,7 @@ public class DharmasService {
   private static final int MAX_DHARMAS_PER_USER = 8;
 
   public DharmasDTO create(NewDharmasDTO createDTO, String userId) {
+    log.info("DharmasService.create requested userId={}", userId);
     Users user = userLookup.getRequiredUse(UUID.fromString(userId));
 
     Long dharmaCount = repository.countByUser(user);
@@ -47,10 +50,15 @@ public class DharmasService {
     }
 
     dharmas = repository.save(dharmas);
+    log.info("DharmasService.create completed dharmasId={} userId={}", dharmas.getId(), userId);
     return dharmasMapper.toDTO(dharmas);
   }
 
   public List<DharmasDTO> getDharmasByUser(String userId, boolean includeHidden) {
+    log.debug(
+        "DharmasService.getDharmasByUser requested userId={} includeHidden={}",
+        userId,
+        includeHidden);
     UUID userUuid = UUID.fromString(userId);
     List<Dharmas> dharmaList;
     if (includeHidden) {
@@ -59,11 +67,15 @@ public class DharmasService {
       dharmaList = repository.findByUserIdAndHiddenFalse(userUuid);
     }
 
-    return dharmasMapper.toDTO(dharmaList);
+    List<DharmasDTO> result = dharmasMapper.toDTO(dharmaList);
+    log.debug(
+        "DharmasService.getDharmasByUser completed userId={} returned={}", userId, result.size());
+    return result;
   }
 
   @Transactional
   public DharmasDTO updateDharmas(UpdateDharmasDTO editDTO, Long dharmasId) {
+    log.info("DharmasService.updateDharmas requested dharmasId={}", dharmasId);
     Dharmas dharmas =
         repository
             .findById(dharmasId)
@@ -72,11 +84,13 @@ public class DharmasService {
     dharmas = dharmasMapper.partialUpdate(editDTO, dharmas);
 
     dharmas = repository.save(dharmas);
+    log.info("DharmasService.updateDharmas completed dharmasId={}", dharmasId);
     return dharmasMapper.toDTO(dharmas);
   }
 
   @Transactional
   public void deleteDharmas(Long dharmasId) {
+    log.info("DharmasService.deleteDharmas requested dharmasId={}", dharmasId);
     Dharmas dharmas =
         repository
             .findById(dharmasId)
@@ -89,15 +103,21 @@ public class DharmasService {
             .count();
 
     if (activeTasksCount > 0) {
+      log.warn(
+          "DharmasService.deleteDharmas blocked dharmasId={} activeTasksCount={}",
+          dharmasId,
+          activeTasksCount);
       throw new IllegalStateException(
           "Cannot delete Dharmas with active tasks. Complete or move tasks first.");
     }
 
     repository.delete(dharmas);
+    log.info("DharmasService.deleteDharmas completed dharmasId={}", dharmasId);
   }
 
   @Transactional
   public void toggleHidden(Long dharmasId) {
+    log.info("DharmasService.toggleHidden requested dharmasId={}", dharmasId);
     Dharmas dharmas =
         repository
             .findById(dharmasId)
@@ -112,5 +132,10 @@ public class DharmasService {
           task.setHidden(dharmas.getHidden());
         });
     tasksRepository.saveAll(tasks);
+    log.info(
+        "DharmasService.toggleHidden completed dharmasId={} hidden={} tasksUpdated={}",
+        dharmasId,
+        dharmas.getHidden(),
+        tasks.getContent().size());
   }
 }

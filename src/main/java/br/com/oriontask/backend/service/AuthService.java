@@ -37,20 +37,24 @@ public class AuthService {
 
   @Transactional
   public UserResponseDTO signup(SignupRequestDTO req) {
+    log.info("Signup requested for username={}", req.username());
     usersRepository
         .findByUsername(req.username())
         .ifPresent(
             u -> {
+              log.warn("Signup blocked: username unavailable username={}", req.username());
               throw new IllegalArgumentException("Username unavailable");
             });
     usersRepository
         .findByEmail(req.email())
         .ifPresent(
             u -> {
+              log.warn("Signup blocked: email unavailable username={}", req.username());
               throw new IllegalArgumentException("Email unavailable");
             });
 
     if (isDisposableEmail(req.email())) {
+      log.warn("Signup blocked: disposable email detected username={}", req.username());
       throw new IllegalArgumentException("Disposable/temporary emails are not allowed");
     }
 
@@ -65,20 +69,29 @@ public class AuthService {
             .build();
 
     user = usersRepository.save(user);
+    log.info("Signup completed userId={} username={}", user.getId(), user.getUsername());
     return usersMapper.toDTO(user);
   }
 
   public AuthResponseDTO login(LoginRequestDTO req) {
     String login = req.login().trim();
+    log.info("Login requested");
     Optional<Users> userOpt = usersRepository.findByEmailIgnoreCaseOrUsername(login, login);
 
-    Users user = userOpt.orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+    Users user =
+        userOpt.orElseThrow(
+            () -> {
+              log.warn("Login failed: user not found");
+              return new IllegalArgumentException("Invalid credentials");
+            });
 
     if (!BCrypt.checkpw(req.password(), user.getPasswordHash())) {
+      log.warn("Login failed: invalid password userId={}", user.getId());
       throw new IllegalArgumentException("Invalid credentials");
     }
 
     String token = jwtService.generateToken(user);
+    log.info("Login succeeded userId={} username={}", user.getId(), user.getUsername());
     return new AuthResponseDTO(token, user.getId(), user.getUsername());
   }
 

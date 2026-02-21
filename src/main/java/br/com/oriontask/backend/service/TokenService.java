@@ -24,30 +24,38 @@ public class TokenService {
   private int expMinutes;
 
   public String generateToken(Users user) {
+    log.debug("Generating token for userId={}", user.getId());
     Algorithm alg = Algorithm.HMAC256(jwtSecret);
     Instant now = Instant.now();
-    return JWT.create()
-        .withSubject(user.getId().toString())
-        .withClaim("username", user.getUsername())
-        .withIssuedAt(java.util.Date.from(now))
-        .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
-        .sign(alg);
+    String token =
+        JWT.create()
+            .withSubject(user.getId().toString())
+            .withClaim("username", user.getUsername())
+            .withIssuedAt(java.util.Date.from(now))
+            .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
+            .sign(alg);
+    log.debug("Token generated for userId={} expMinutes={}", user.getId(), expMinutes);
+    return token;
   }
 
   public Boolean validateToken(HttpServletRequest request) {
     String token = extractTokenFromRequest(request);
-
-    try {
-      if (verifyToken(token) != null) {
-        log.debug("Valid Token");
-        return true;
-      }
-    } catch (JWTVerificationException e) {
-      log.debug("Invalid Token {}", e);
+    if (token == null) {
+      log.debug("Token validation failed: missing bearer token");
       return false;
     }
 
-    log.debug("Invalid Token");
+    try {
+      if (verifyToken(token) != null) {
+        log.debug("Token validated successfully");
+        return true;
+      }
+    } catch (JWTVerificationException e) {
+      log.debug("Token validation failed: {}", e.getMessage());
+      return false;
+    }
+
+    log.debug("Token validation failed: unknown reason");
     return false;
   }
 
@@ -71,6 +79,7 @@ public class TokenService {
    */
   public UUID extractUserId(String token) {
     DecodedJWT decoded = verifyToken(token);
+    log.debug("Extracted userId from token");
     return UUID.fromString(decoded.getSubject());
   }
 
@@ -82,6 +91,7 @@ public class TokenService {
    */
   public String extractUsername(String token) {
     DecodedJWT decoded = verifyToken(token);
+    log.debug("Extracted username claim from token");
     return decoded.getClaim("username").asString();
   }
 

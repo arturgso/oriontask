@@ -27,31 +27,54 @@ public class UsersService {
 
   @Transactional
   public UserResponseDTO create(SignupRequestDTO createDTO) {
+    log.info("UsersService.create requested username={}", createDTO.username());
     repository
         .findByUsername(createDTO.username())
         .ifPresent(
             user -> {
+              log.warn(
+                  "UsersService.create blocked: username unavailable username={}",
+                  createDTO.username());
               throw new UsernameUnavailableException();
             });
 
     Users user = mapper.toEntity(createDTO);
 
     user = repository.save(user);
+    log.info(
+        "UsersService.create completed userId={} username={}", user.getId(), user.getUsername());
 
     return mapper.toDTO(user);
   }
 
   public UserResponseDTO getMe(Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
+    log.debug("UsersService.getMe requested userId={}", userId);
 
-    return mapper.toDTO(repository.findById(userId).orElseThrow(UserNotFoundException::new));
+    return mapper.toDTO(
+        repository
+            .findById(userId)
+            .orElseThrow(
+                () -> {
+                  log.warn("UsersService.getMe user not found userId={}", userId);
+                  return new UserNotFoundException();
+                }));
   }
 
   public UserResponseDTO list(String username, Authentication authentication)
       throws AccessDeniedException {
-    Users user = repository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+    log.debug("UsersService.list requested username={}", username);
+    Users user =
+        repository
+            .findByUsername(username)
+            .orElseThrow(
+                () -> {
+                  log.warn("UsersService.list user not found username={}", username);
+                  return new UserNotFoundException();
+                });
 
     securityUtils.isOwner(user.getId(), authentication);
+    log.debug("UsersService.list authorized userId={}", user.getId());
 
     return mapper.toDTO(user);
   }
@@ -59,16 +82,24 @@ public class UsersService {
   @Transactional
   public UserResponseDTO updateProfile(UpdateUserDTO dto, Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
+    log.info("UsersService.updateProfile requested userId={}", userId);
 
     Users user = getEntity(userId);
 
     user = mapper.partialUpdate(dto, user);
     user = repository.save(user);
+    log.info("UsersService.updateProfile completed userId={}", userId);
 
     return mapper.toDTO(user);
   }
 
   protected Users getEntity(UUID userId) {
-    return repository.findById(userId).orElseThrow(UserNotFoundException::new);
+    return repository
+        .findById(userId)
+        .orElseThrow(
+            () -> {
+              log.warn("UsersService.getEntity user not found userId={}", userId);
+              return new UserNotFoundException();
+            });
   }
 }
