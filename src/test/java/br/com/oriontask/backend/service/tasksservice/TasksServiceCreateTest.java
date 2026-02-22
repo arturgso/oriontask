@@ -91,7 +91,11 @@ class TasksServiceCreateTest {
         task.getHidden(),
         task.getCompletedAt(),
         task.getSnoozedUntil(),
-        task.getCreatedAt() == null ? new Timestamp(System.currentTimeMillis()) : task.getCreatedAt(),
-        task.getUpdatedAt() == null ? new Timestamp(System.currentTimeMillis()) : task.getUpdatedAt());
+        task.getCreatedAt() == null
+            ? new Timestamp(System.currentTimeMillis())
+            : task.getCreatedAt(),
+        task.getUpdatedAt() == null
+            ? new Timestamp(System.currentTimeMillis())
+            : task.getUpdatedAt());
   }
 }

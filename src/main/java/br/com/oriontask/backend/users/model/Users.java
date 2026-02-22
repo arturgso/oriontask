@@ -40,6 +40,14 @@ public class Users {
   @Column(nullable = false)
   private String passwordHash;
 
+  @Builder.Default
+  @Column(nullable = false)
+  private Boolean isConfirmed = false;
+
+  private String confirmationToken;
+
+  private Timestamp confirmationTokenExpiresAt;
+
   @Builder.Default @CreationTimestamp
   private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
 

@@ -83,10 +83,7 @@ public class TasksService {
     Tasks task = getTaskById(taskId, userId);
 
     statusPolicy.ensureStatusChangeAllowed(task);
-    TaskStatus normalizedStatus =
-        newStatus == TaskStatus.NEXT
-            ? TaskStatus.WAITING
-            : newStatus;
+    TaskStatus normalizedStatus = newStatus == TaskStatus.NEXT ? TaskStatus.WAITING : newStatus;
 
     Long currentCount = getCurrentTasksCount(task.getDharmas().getUser().getId());
 

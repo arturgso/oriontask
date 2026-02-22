@@ -60,7 +60,7 @@ class UsersServiceTest {
     Users saved = Users.builder().id(userId).name("Test User").email("test@example.com").build();
     UserResponseDTO response =
         new UserResponseDTO(
-            userId, "Test User", "test@example.com", new Timestamp(1), new Timestamp(2));
+            userId, "Test User", "test@example.com", true, new Timestamp(1), new Timestamp(2));
 
     when(repository.findByEmail("test@example.com")).thenReturn(Optional.empty());
     when(mapper.toEntity(dto)).thenReturn(entity);
@@ -90,7 +90,7 @@ class UsersServiceTest {
     Users user = Users.builder().id(userId).name("Test User").email("test@example.com").build();
     UserResponseDTO response =
         new UserResponseDTO(
-            userId, "Test User", "test@example.com", new Timestamp(1), new Timestamp(2));
+            userId, "Test User", "test@example.com", true, new Timestamp(1), new Timestamp(2));
 
     when(authentication.getName()).thenReturn(userId.toString());
     when(repository.findById(userId)).thenReturn(Optional.of(user));
@@ -126,7 +126,12 @@ class UsersServiceTest {
         Users.builder().id(userId).name("Updated Name").email("updated@example.com").build();
     UserResponseDTO response =
         new UserResponseDTO(
-            userId, "Updated Name", "updated@example.com", new Timestamp(1), new Timestamp(2));
+            userId,
+            "Updated Name",
+            "updated@example.com",
+            true,
+            new Timestamp(1),
+            new Timestamp(2));
 
     when(authentication.getName()).thenReturn(userId.toString());
     when(repository.findById(userId)).thenReturn(Optional.of(existing));
