@@ -1,7 +1,9 @@
 package br.com.oriontask.backend.auth.controller;
 
 import br.com.oriontask.backend.auth.dto.AuthResponseDTO;
+import br.com.oriontask.backend.auth.dto.ForgotPasswordRequestDTO;
 import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
+import br.com.oriontask.backend.auth.dto.ResetPasswordRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.service.AuthService;
 import br.com.oriontask.backend.auth.service.TokenService;
@@ -33,6 +35,18 @@ public class AuthController {
   @PostMapping("confirm-email")
   public ResponseEntity<Void> confirmEmail(@RequestParam String token) {
     authService.confirmEmail(token);
+    return ResponseEntity.ok().build();
+  }
+
+  @PostMapping("forgot-password")
+  public ResponseEntity<Void> forgotPassword(@RequestBody @Validated ForgotPasswordRequestDTO req) {
+    authService.forgotPassword(req.email());
+    return ResponseEntity.ok().build();
+  }
+
+  @PostMapping("reset-password")
+  public ResponseEntity<Void> resetPassword(@RequestBody @Validated ResetPasswordRequestDTO req) {
+    authService.resetPassword(req.token(), req.newPassword());
     return ResponseEntity.ok().build();
   }
 

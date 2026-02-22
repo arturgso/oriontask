@@ -4,6 +4,7 @@ import br.com.oriontask.backend.auth.dto.AuthResponseDTO;
 import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.shared.service.EmailService;
+import br.com.oriontask.backend.shared.service.RedisTokenService;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
@@ -24,8 +25,8 @@ public class AuthService {
   private final UsersRepository usersRepository;
   private final UsersMapper usersMapper;
   private final EmailService emailService;
-
   private final TokenService jwtService;
+  private final RedisTokenService redisTokenService;
 
   // minimal disposable email domain list; configurable via property in future
   private static final Set<String> DISPOSABLE_DOMAINS =
@@ -122,6 +123,40 @@ public class AuthService {
     String token = jwtService.generateToken(user);
     log.info("Login succeeded userId={}", user.getId());
     return new AuthResponseDTO(token, user.getId());
+  }
+
+  @Transactional
+  public void forgotPassword(String email) {
+    log.info("Forgot password requested for email={}", email);
+    Users user =
+        usersRepository
+            .findByEmail(email)
+            .orElseThrow(
+                () -> new IllegalArgumentException("User not found")); // Generic error for security
+
+    String token = redisTokenService.storeToken(user.getId());
+    emailService.sendPasswordResetEmail(user.getEmail(), token);
+    log.info("Password reset email sent for userId={}", user.getId());
+  }
+
+  @Transactional
+  public void resetPassword(String token, String newPassword) {
+    log.info("Password reset requested with token={}", token);
+    UUID userId =
+        redisTokenService
+            .getUserIdFromToken(token)
+            .orElseThrow(
+                () -> new IllegalArgumentException("Invalid or expired password reset token"));
+
+    Users user =
+        usersRepository
+            .findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+    user.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+    usersRepository.save(user);
+    redisTokenService.invalidateToken(token);
+    log.info("Password reset successfully for userId={}", userId);
   }
 
   private boolean isDisposableEmail(String email) {

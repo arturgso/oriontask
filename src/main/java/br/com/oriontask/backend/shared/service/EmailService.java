@@ -29,17 +29,31 @@ public class EmailService {
     SimpleMailMessage message = new SimpleMailMessage();
     message.setFrom(fromEmail);
     message.setTo(to);
-    message.setSubject("Confirm your email - OrionTask");
+    message.setSubject("Confirme seu e-mail - OrionTask");
     message.setText(
-        "Welcome to OrionTask! Please confirm your email by clicking the link below:\n\n"
+        "Bem-vindo(a) ao OrionTask! Por favor, confirme seu e-mail clicando no link abaixo:\n\n"
             + confirmationUrl
-            + "\n\nThis link will expire in 24 hours.");
+            + "\n\nEste link expira em 24 horas.");
 
-    try {
-      mailSender.send(message);
-      log.info("Confirmation email sent to {}", to);
-    } catch (Exception e) {
-      log.error("Failed to send confirmation email to {}", to, e);
-    }
+    mailSender.send(message);
+    log.info("Confirmation email sent to {}", to);
+  }
+
+  @Async
+  public void sendPasswordResetEmail(String to, String token) {
+    log.info("Sending password reset email to {}", to);
+    String resetUrl = frontendUrl + "/reset-password?token=" + token;
+
+    SimpleMailMessage message = new SimpleMailMessage();
+    message.setFrom(fromEmail);
+    message.setTo(to);
+    message.setSubject("Redefinição de Senha - OrionTask");
+    message.setText(
+        "Você solicitou a redefinição de senha para sua conta OrionTask. Clique no link abaixo para criar uma nova senha:\n\n"
+            + resetUrl
+            + "\n\nEste link expira em 2 horas.");
+
+    mailSender.send(message);
+    log.info("Password reset email sent to {}", to);
   }
 }
