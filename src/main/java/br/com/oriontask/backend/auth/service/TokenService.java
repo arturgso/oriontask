@@ -7,7 +7,9 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,15 +25,36 @@ public class TokenService {
   @Value("${jwt.expMinutes:60}")
   private int expMinutes;
 
+  @Value("${jwt.issuer}")
+  private final String TOKEN_ISSUER = new String();
+
   public String generateToken(Users user) {
     log.debug("Generating token for userId={}", user.getId());
     Algorithm alg = Algorithm.HMAC256(jwtSecret);
-    Instant now = Instant.now();
     String token =
         JWT.create()
+            .withIssuer(TOKEN_ISSUER)
+            .withAudience("oriontask-web") // TODO - Trocar caso crie app
             .withSubject(user.getId().toString())
-            .withIssuedAt(java.util.Date.from(now))
-            .withExpiresAt(java.util.Date.from(now.plus(expMinutes, ChronoUnit.MINUTES)))
+            .withJWTId(UUID.randomUUID().toString())
+            .withIssuedAt(Instant.now())
+            .withExpiresAt(Date.from(generateTokenExpiration()))
+            .sign(alg);
+    log.debug("Token generated for userId={} expMinutes={}", user.getId(), expMinutes);
+    return token;
+  }
+
+  public String generateRefreshToken(Users user, Boolean rememberMe) {
+    log.debug("Generating refresh token for userId={}", user.getId());
+    Algorithm alg = Algorithm.HMAC256(jwtSecret);
+    String token =
+        JWT.create()
+            .withIssuer(TOKEN_ISSUER)
+            .withAudience("oriontask-refresh") // TODO - Trocar caso crie app
+            .withSubject(user.getId().toString())
+            .withJWTId(UUID.randomUUID().toString())
+            .withIssuedAt(Instant.now())
+            .withExpiresAt(Date.from((generateRefreshTokenExpiration(rememberMe))))
             .sign(alg);
     log.debug("Token generated for userId={} expMinutes={}", user.getId(), expMinutes);
     return token;
@@ -88,5 +111,15 @@ public class TokenService {
       return authHeader.substring(7);
     }
     return null;
+  }
+
+  private Instant generateTokenExpiration() {
+    return LocalDateTime.now().plusMinutes(expMinutes).toInstant(ZoneOffset.of("-03:00"));
+  }
+
+  private Instant generateRefreshTokenExpiration(Boolean rememberMe) {
+    return rememberMe
+        ? LocalDateTime.now().plusWeeks(4).toInstant(ZoneOffset.of("-03:00"))
+        : LocalDateTime.now().plusDays(2).toInstant(ZoneOffset.of("-03:00"));
   }
 }
