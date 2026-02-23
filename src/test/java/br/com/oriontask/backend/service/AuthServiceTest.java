@@ -283,12 +283,12 @@ class AuthServiceTest {
     String resetToken = "reset-token";
 
     when(usersRepository.findByEmail(email)).thenReturn(Optional.of(user));
-    when(redisTokenService.storeToken(userId)).thenReturn(resetToken);
+    when(redisTokenService.createPasswordResetToken(userId)).thenReturn(resetToken);
 
     authService.forgotPassword(email);
 
     verify(emailService).sendPasswordResetEmail(email, resetToken);
-    verify(redisTokenService).storeToken(userId);
+    verify(redisTokenService).createPasswordResetToken(userId);
   }
 
   @Test
@@ -303,7 +303,7 @@ class AuthServiceTest {
 
     assertEquals("User not found", exception.getMessage());
     verify(emailService, never()).sendPasswordResetEmail(any(), any());
-    verify(redisTokenService, never()).storeToken(any());
+    verify(redisTokenService, never()).createPasswordResetToken(any());
   }
 
   @Test
@@ -320,14 +320,14 @@ class AuthServiceTest {
             .isConfirmed(true)
             .build();
 
-    when(redisTokenService.getUserIdFromToken(token)).thenReturn(Optional.of(userId));
+    when(redisTokenService.getUserIdByResetToken(token)).thenReturn(Optional.of(userId));
     when(usersRepository.findById(userId)).thenReturn(Optional.of(user));
 
     authService.resetPassword(token, newPassword);
 
     verify(usersRepository)
         .save(argThat(savedUser -> BCrypt.checkpw(newPassword, savedUser.getPasswordHash())));
-    verify(redisTokenService).invalidateToken(token);
+    verify(redisTokenService).deletePasswordResetToken(token);
   }
 
   @Test
@@ -336,7 +336,7 @@ class AuthServiceTest {
     String token = "invalid-reset-token";
     String newPassword = "NewStrongPassword123!";
 
-    when(redisTokenService.getUserIdFromToken(token)).thenReturn(Optional.empty());
+    when(redisTokenService.getUserIdByResetToken(token)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
         assertThrows(
@@ -344,7 +344,7 @@ class AuthServiceTest {
 
     assertEquals("Invalid or expired password reset token", exception.getMessage());
     verify(usersRepository, never()).save(any(Users.class));
-    verify(redisTokenService, never()).invalidateToken(any());
+    verify(redisTokenService, never()).deletePasswordResetToken(any());
   }
 
   @Test
@@ -354,7 +354,7 @@ class AuthServiceTest {
     String newPassword = "NewStrongPassword123!";
     UUID userId = UUID.randomUUID();
 
-    when(redisTokenService.getUserIdFromToken(token)).thenReturn(Optional.of(userId));
+    when(redisTokenService.getUserIdByResetToken(token)).thenReturn(Optional.of(userId));
     when(usersRepository.findById(userId)).thenReturn(Optional.empty());
 
     IllegalArgumentException exception =
@@ -363,7 +363,7 @@ class AuthServiceTest {
 
     assertEquals("User not found", exception.getMessage());
     verify(usersRepository, never()).save(any(Users.class));
-    verify(redisTokenService, never()).invalidateToken(any());
+    verify(redisTokenService, never()).deletePasswordResetToken(any());
   }
 
   @Test

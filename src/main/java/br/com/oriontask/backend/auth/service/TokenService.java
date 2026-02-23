@@ -90,7 +90,11 @@ public class TokenService {
    */
   public DecodedJWT verifyToken(String token) {
     Algorithm alg = Algorithm.HMAC256(jwtSecret);
-    return JWT.require(alg).build().verify(token);
+    return JWT.require(alg)
+        .withIssuer(TOKEN_ISSUER)
+        .withAudience("oriontask-web")
+        .build()
+        .verify(token);
   }
 
   /**

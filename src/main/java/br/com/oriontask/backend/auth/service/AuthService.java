@@ -134,7 +134,7 @@ public class AuthService {
             .orElseThrow(
                 () -> new IllegalArgumentException("User not found")); // Generic error for security
 
-    String token = redisTokenService.storeToken(user.getId());
+    String token = redisTokenService.createPasswordResetToken(user.getId());
     emailService.sendPasswordResetEmail(user.getEmail(), token);
     log.info("Password reset email sent for userId={}", user.getId());
   }
@@ -144,7 +144,7 @@ public class AuthService {
     log.info("Password reset requested with token={}", token);
     UUID userId =
         redisTokenService
-            .getUserIdFromToken(token)
+            .getUserIdByResetToken(token)
             .orElseThrow(
                 () -> new IllegalArgumentException("Invalid or expired password reset token"));
 
@@ -155,8 +155,13 @@ public class AuthService {
 
     user.setPasswordHash(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
     usersRepository.save(user);
-    redisTokenService.invalidateToken(token);
+    redisTokenService.deletePasswordResetToken(token);
     log.info("Password reset successfully for userId={}", userId);
+  }
+
+  public void logout(String token) {
+    log.info("Logout requested");
+    redisTokenService.blacklistToken(token);
   }
 
   private boolean isDisposableEmail(String email) {

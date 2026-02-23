@@ -1,6 +1,7 @@
 package br.com.oriontask.backend.config;
 
 import br.com.oriontask.backend.auth.service.TokenService;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import java.util.Collections;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +25,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final TokenService jwtUtils;
+  private final RedisTemplate<Object, Object> redisTemplate;
+
+  private static final String BLACKLIST_TOKEN_PREFIX = "blacklisted_token:";
 
   @Override
   protected void doFilterInternal(
@@ -31,13 +36,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
 
-    String authHeader = request.getHeader("Authorization");
-
-    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-      String token = authHeader.substring(7);
+    String token = jwtUtils.extractTokenFromRequest(request);
+    if (token != null) {
 
       try {
-        UUID userId = jwtUtils.extractUserId(token);
+        DecodedJWT decodedJWT = jwtUtils.verifyToken(token);
+
+        String jti = decodedJWT.getId();
+
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_TOKEN_PREFIX + jti))) {
+          throw new RuntimeException("Token invalidated");
+        }
+
+        UUID userId = UUID.fromString(decodedJWT.getSubject());
 
         UsernamePasswordAuthenticationToken authentication =
             new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
@@ -49,6 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       } catch (Exception e) {
         log.warn("JWT validation failed: {}", e.getMessage());
+        SecurityContextHolder.clearContext();
       }
     }
 

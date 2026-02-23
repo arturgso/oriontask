@@ -58,12 +58,11 @@ public class AuthController {
 
   @PostMapping("logout")
   public ResponseEntity<Void> logout(HttpServletRequest request) {
-    ResponseCookie uid = buildCookie("uid", "", request, true);
-    ResponseCookie uname = buildCookie("uname", "", request, true);
-    return ResponseEntity.ok()
-        .header("Set-Cookie", uid.toString())
-        .header("Set-Cookie", uname.toString())
-        .build();
+    tokenService.validateToken(request);
+    String token = tokenService.extractTokenFromRequest(request);
+    authService.logout(token);
+
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("validate")
