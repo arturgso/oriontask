@@ -24,7 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private final TokenService jwtUtils;
+  private final TokenService tokenService;
   private final RedisTemplate<Object, Object> redisTemplate;
 
   private static final String BLACKLIST_TOKEN_PREFIX = "blacklisted_token:";
@@ -36,11 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
 
-    String token = jwtUtils.extractTokenFromRequest(request);
+    String token = tokenService.extractTokenFromRequest(request);
     if (token != null) {
 
       try {
-        DecodedJWT decodedJWT = jwtUtils.verifyToken(token);
+        DecodedJWT decodedJWT = tokenService.validateAccessToken(token);
 
         String jti = decodedJWT.getId();
 

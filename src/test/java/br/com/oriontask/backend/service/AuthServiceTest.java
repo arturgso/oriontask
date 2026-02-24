@@ -12,7 +12,7 @@ import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.policy.AuthPolicy;
 import br.com.oriontask.backend.auth.service.AuthService;
-import br.com.oriontask.backend.auth.service.TokenService;
+import br.com.oriontask.backend.auth.service.TokenServiceImpl;
 import br.com.oriontask.backend.refreshtoken.service.RefreshTokenService;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
@@ -39,7 +39,7 @@ class AuthServiceTest {
 
   @Mock private UsersRepository usersRepository;
   @Mock private UsersMapper usersMapper;
-  @Mock private TokenService jwtService;
+  @Mock private TokenServiceImpl jwtService;
   @Mock private RefreshTokenService refreshTokenService;
   @Mock private EmailService emailService;
   @Mock private RedisTokenService redisTokenService;

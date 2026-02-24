@@ -7,7 +7,9 @@ import br.com.oriontask.backend.auth.dto.ResetPasswordRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.service.AuthService;
 import br.com.oriontask.backend.auth.service.TokenService;
+import br.com.oriontask.backend.auth.utils.CookieUtils;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
@@ -77,8 +79,8 @@ public class AuthController {
 
   @PostMapping("logout")
   public ResponseEntity<Void> logout(HttpServletRequest request) {
-    tokenService.validateToken(request);
     String token = tokenService.extractTokenFromRequest(request);
+    tokenService.validateAccessToken(token);
     authService.logout(token);
 
     return ResponseEntity.noContent().build();
@@ -86,22 +88,14 @@ public class AuthController {
 
   @PostMapping("validate")
   public ResponseEntity<Void> validate(HttpServletRequest request) {
-    Boolean result = tokenService.validateToken(request);
+    String refreshToken = CookieUtils.getRefreshToken(request);
+    String accessToken = tokenService.extractTokenFromRequest(request);
+    DecodedJWT result = tokenService.validateAccessToken(accessToken);
 
-    if (result) {
+    if (result != null) {
       return ResponseEntity.noContent().build();
     } else {
       return ResponseEntity.status(401).build();
     }
-  }
-
-  private static ResponseCookie buildCookie(
-      String name, String value, HttpServletRequest request, boolean clear) {
-    ResponseCookie.ResponseCookieBuilder builder =
-        ResponseCookie.from(name, value).sameSite("None").path("/").secure(true);
-    if (clear) {
-      builder.maxAge(0);
-    }
-    return builder.build();
   }
 }

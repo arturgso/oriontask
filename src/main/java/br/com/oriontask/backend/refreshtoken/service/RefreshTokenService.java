@@ -1,6 +1,5 @@
 package br.com.oriontask.backend.refreshtoken.service;
 
-import br.com.oriontask.backend.auth.service.TokenService;
 import br.com.oriontask.backend.refreshtoken.models.RefreshToken;
 import br.com.oriontask.backend.refreshtoken.repository.RefreshTokenRepository;
 import br.com.oriontask.backend.refreshtoken.utils.HashUtils;
@@ -16,11 +15,8 @@ import org.springframework.stereotype.Service;
 public class RefreshTokenService {
 
   private final RefreshTokenRepository refreshTokenRepository;
-  private final TokenService tokenService;
 
-  public String createRefreshToken(Users user) {
-    String refresh = tokenService.generateRefreshToken(user);
-
+  public String createRefreshToken(String refresh, Users user) {
     RefreshToken refreshToken =
         RefreshToken.builder()
             .user(user)
@@ -32,6 +28,4 @@ public class RefreshTokenService {
     refreshTokenRepository.save(refreshToken);
     return refresh;
   }
-
-  public void validateRefreshToken(String refreshToken) {}
 }

@@ -27,7 +27,7 @@ public class AuthService {
   private final UsersRepository usersRepository;
   private final UsersMapper usersMapper;
   private final EmailService emailService;
-  private final TokenService jwtService;
+  private final TokenService tokenService;
   private final RefreshTokenService refreshTokenService;
   private final RedisTokenService redisTokenService;
   private final AuthPolicy authPolicy;
@@ -113,8 +113,11 @@ public class AuthService {
     authPolicy.verifyPasswordHash(req.password(), user.getPasswordHash());
     authPolicy.isEmailConfirmed(user.getIsConfirmed());
 
-    String token = jwtService.generateToken(user);
-    String refreshToken = refreshTokenService.createRefreshToken(user);
+    String token = tokenService.generateAccessToken(user);
+    String refreshToken = tokenService.generateRefreshToken(user);
+
+    refreshTokenService.createRefreshToken(refreshToken, user);
+
     log.info("Login succeeded userId={}", user.getId());
 
     Map<String, String> res = new HashMap<>();
