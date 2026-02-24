@@ -4,5 +4,9 @@ import br.com.oriontask.backend.users.model.Users;
 import java.util.UUID;
 
 public interface UserLookupService {
-  Users getRequiredUse(UUID userId);
+  Users getRequiredUser(UUID userId);
+
+  Users getByEmail(String email);
+
+  boolean existsByEmail(String email);
 }

@@ -16,14 +16,36 @@ public class UserLookupServiceImpl implements UserLookupService {
   private final UsersRepository usersRepository;
 
   @Override
-  public Users getRequiredUse(UUID userId) {
-    log.debug("UserLookupService.getRequiredUse requested userId={}", userId);
+  public Users getRequiredUser(UUID userId) {
+    log.debug("UserLookupService.getRequiredUser requested userId={}", userId);
     return usersRepository
         .findById(userId)
         .orElseThrow(
             () -> {
-              log.warn("UserLookupService.getRequiredUse user not found userId={}", userId);
+              log.warn("UserLookupService.getRequiredUser user not found userId={}", userId);
               return new UserLookupExceptionImpl();
             });
+  }
+
+  @Override
+  public Users getByEmail(String email) {
+    log.debug("UserLookupService.getByEmail requested email={}", email);
+    return usersRepository
+        .findByEmail(email)
+        .orElseThrow(
+            () -> {
+              log.warn("UserLookupService.getByEmail user not found email={}", email);
+              return new UserLookupExceptionImpl();
+            });
+  }
+
+  @Override
+  public boolean existsByEmail(String email) {
+    log.debug("UserLookupService.existsByEmail requested email={}", email);
+    boolean exists = usersRepository.existsByEmail(email);
+    if (!exists) {
+      log.warn("UserLookupService.existsByEmail user not found email={}", email);
+    }
+    return exists;
   }
 }
