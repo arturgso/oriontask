@@ -1,6 +1,6 @@
 package br.com.oriontask.backend.shared.service;
 
-import br.com.oriontask.backend.auth.service.TokenServiceImpl;
+import br.com.oriontask.backend.auth.service.TokenService;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.time.Duration;
 import java.util.Optional;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class RedisTokenService {
 
-  private final TokenServiceImpl tokenServiceImpl;
+  private final TokenService tokenService;
 
   private static final String PASSWORD_RESET_PREFIX = "password_reset:";
   private static final String BLACKLIST_TOKEN_PREFIX = "blacklisted_token:";
@@ -38,7 +38,7 @@ public class RedisTokenService {
   }
 
   public void blacklistToken(String token) {
-    DecodedJWT decodedJWT = tokenServiceImpl.verifyToken(token);
+    DecodedJWT decodedJWT = tokenService.validateAccessToken(token);
 
     String jti = decodedJWT.getId();
     long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();

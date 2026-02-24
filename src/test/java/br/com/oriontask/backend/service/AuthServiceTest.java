@@ -12,7 +12,7 @@ import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.policy.AuthPolicy;
 import br.com.oriontask.backend.auth.service.AuthService;
-import br.com.oriontask.backend.auth.service.TokenServiceImpl;
+import br.com.oriontask.backend.auth.service.TokenService;
 import br.com.oriontask.backend.refreshtoken.service.RefreshTokenService;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
@@ -39,7 +39,7 @@ class AuthServiceTest {
 
   @Mock private UsersRepository usersRepository;
   @Mock private UsersMapper usersMapper;
-  @Mock private TokenServiceImpl jwtService;
+  @Mock private TokenService tokenService;
   @Mock private RefreshTokenService refreshTokenService;
   @Mock private EmailService emailService;
   @Mock private RedisTokenService redisTokenService;
@@ -156,8 +156,10 @@ class AuthServiceTest {
     String rawEmail = "  " + testEmail + "  ";
 
     when(userLookupService.getByEmail(testEmail)).thenReturn(testUser);
-    when(jwtService.generateToken(testUser)).thenReturn("jwt-token");
-    when(refreshTokenService.createRefreshToken(testUser)).thenReturn("refresh-token");
+    when(tokenService.generateAccessToken(testUser)).thenReturn("jwt-token");
+    when(tokenService.generateRefreshToken(testUser)).thenReturn("refresh-token");
+    when(refreshTokenService.createRefreshToken(eq("refresh-token"), eq(testUser)))
+        .thenReturn("refresh-token");
 
     java.util.Map<String, String> result =
         authService.login(new LoginRequestDTO(rawEmail, testPassword));
@@ -179,7 +181,7 @@ class AuthServiceTest {
             () -> authService.login(new LoginRequestDTO("unknown@example.com", "Strong123!")));
 
     assertEquals("Invalid credentials", exception.getMessage());
-    verify(jwtService, never()).generateToken(any(Users.class));
+    verify(tokenService, never()).generateAccessToken(any(Users.class));
   }
 
   @Test
@@ -203,7 +205,7 @@ class AuthServiceTest {
             () -> authService.login(new LoginRequestDTO(testEmail, "Wrong123!")));
 
     assertEquals("Invalid credentials", exception.getMessage());
-    verify(jwtService, never()).generateToken(any(Users.class));
+    verify(tokenService, never()).generateAccessToken(any(Users.class));
   }
 
   @Test
@@ -228,7 +230,7 @@ class AuthServiceTest {
             () -> authService.login(new LoginRequestDTO(testEmail, testPassword)));
 
     assertEquals("Please confirm your email before logging in.", exception.getMessage());
-    verify(jwtService, never()).generateToken(any(Users.class));
+    verify(tokenService, never()).generateAccessToken(any(Users.class));
   }
 
   @Test
