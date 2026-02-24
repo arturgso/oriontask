@@ -3,15 +3,15 @@ services:
     image: postgres:16-alpine
     container_name: oriontask-postgres
     environment:
-      POSTGRES_DB: orion
-      POSTGRES_USER: orion
-      POSTGRES_PASSWORD: orionpass
+      POSTGRES_DB: ${DB_NAME:-orion}
+      POSTGRES_USER: ${DB_USER:-orion}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-orionpass}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U orion -d orion"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-orion} -d ${DB_NAME:-orion}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,14 +45,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       JAVA_OPTS: ""
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: orion
-      DB_SCHEMA: public
-      DB_USER: orion
-      DB_PASSWORD: orionpass
+      DB_NAME: ${DB_NAME:-orion}
+      DB_SCHEMA: ${DB_SCHEMA:-public}
+      DB_USER: ${DB_USER:-orion}
+      DB_PASSWORD: ${DB_PASSWORD:-orionpass}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-orionredispass}
