@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "tab_refresh_tokens")
@@ -27,4 +28,5 @@ public class RefreshToken {
   private Timestamp expirationAt;
 
   @CreationTimestamp private Timestamp createdAt;
+  @UpdateTimestamp private Timestamp updatedAt;
 }

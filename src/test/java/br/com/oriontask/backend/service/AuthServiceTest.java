@@ -157,9 +157,7 @@ class AuthServiceTest {
 
     when(userLookupService.getByEmail(testEmail)).thenReturn(testUser);
     when(tokenService.generateAccessToken(testUser)).thenReturn("jwt-token");
-    when(tokenService.generateRefreshToken(testUser)).thenReturn("refresh-token");
-    when(refreshTokenService.createRefreshToken(eq("refresh-token"), eq(testUser)))
-        .thenReturn("refresh-token");
+    when(refreshTokenService.createRefreshToken(eq(testUser))).thenReturn("refresh-token");
 
     java.util.Map<String, String> result =
         authService.login(new LoginRequestDTO(rawEmail, testPassword));

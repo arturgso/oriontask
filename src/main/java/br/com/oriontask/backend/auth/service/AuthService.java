@@ -1,6 +1,8 @@
 package br.com.oriontask.backend.auth.service;
 
+import br.com.oriontask.backend.auth.dto.AuthResult;
 import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
+import br.com.oriontask.backend.auth.dto.SessionValidationResult;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.policy.AuthPolicy;
 import br.com.oriontask.backend.refreshtoken.service.RefreshTokenService;
@@ -11,6 +13,7 @@ import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
 import br.com.oriontask.backend.users.repository.UsersRepository;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.transaction.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -33,7 +36,6 @@ public class AuthService {
   private final AuthPolicy authPolicy;
   private final UserLookupService userLookupService;
 
-  // minimal disposable email domain list; configurable via property in future
   private static final Set<String> DISPOSABLE_DOMAINS =
       new HashSet<>(
           Arrays.asList(
@@ -114,9 +116,7 @@ public class AuthService {
     authPolicy.isEmailConfirmed(user.getIsConfirmed());
 
     String token = tokenService.generateAccessToken(user);
-    String refreshToken = tokenService.generateRefreshToken(user);
-
-    refreshTokenService.createRefreshToken(refreshToken, user);
+    String refreshToken = refreshTokenService.createRefreshToken(user);
 
     log.info("Login succeeded userId={}", user.getId());
 
@@ -134,8 +134,7 @@ public class AuthService {
     Users user =
         usersRepository
             .findByEmail(email)
-            .orElseThrow(
-                () -> new IllegalArgumentException("User not found")); // Generic error for security
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
     String token = redisTokenService.createPasswordResetToken(user.getId());
     emailService.sendPasswordResetEmail(user.getEmail(), token);
@@ -165,6 +164,23 @@ public class AuthService {
   public void logout(String token) {
     log.info("Logout requested");
     redisTokenService.blacklistToken(token);
+  }
+
+  public AuthResult refreshSession(String rawRefreshToken) {
+    DecodedJWT decodedRefreshToken = refreshTokenService.validateRefreshToken(rawRefreshToken);
+    UUID userId = UUID.fromString(decodedRefreshToken.getSubject());
+
+    Users user = userLookupService.getRequiredUser(userId);
+
+    String newAccessToken = tokenService.generateAccessToken(user);
+    String newRefreshToken = refreshTokenService.createRefreshToken(user);
+
+    return new AuthResult(newAccessToken, newRefreshToken, user.getId());
+  }
+
+  public SessionValidationResult validateSessionAndRefresh(
+      String accessToken, String refreshToken) {
+    return authPolicy.applySessionValidationAndRefresh(accessToken, refreshToken);
   }
 
   private boolean isDisposableEmail(String email) {
