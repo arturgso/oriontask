@@ -46,15 +46,17 @@ public class AuthService {
 
   @Transactional
   public UserResponseDTO signup(SignupRequestDTO req) {
-    log.info("Signup requested for email={}", req.email());
+    String email = req.email().toLowerCase();
 
-    if (isDisposableEmail(req.email())) {
-      log.warn("Signup blocked: disposable email detected email={}", req.email());
+    log.info("Signup requested for email={}", email);
+
+    if (isDisposableEmail(email)) {
+      log.warn("Signup blocked: disposable email detected email={}", email);
       throw new IllegalArgumentException("Disposable/temporary emails are not allowed");
     }
 
-    if (userLookupService.existsByEmail(req.email())) {
-      log.warn("Signup blocked: email unavailable email={}", req.email());
+    if (userLookupService.existsByEmail(email)) {
+      log.warn("Signup blocked: email unavailable email={}", email);
       throw new IllegalArgumentException("Email unavailable");
     }
 
