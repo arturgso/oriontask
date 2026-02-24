@@ -3,6 +3,7 @@ package br.com.oriontask.backend.auth.service;
 import br.com.oriontask.backend.auth.dto.AuthResponseDTO;
 import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
+import br.com.oriontask.backend.auth.policy.AuthPolicy;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
@@ -27,6 +28,7 @@ public class AuthService {
   private final EmailService emailService;
   private final TokenService jwtService;
   private final RedisTokenService redisTokenService;
+  private final AuthPolicy authPolicy;
 
   // minimal disposable email domain list; configurable via property in future
   private static final Set<String> DISPOSABLE_DOMAINS =
@@ -61,15 +63,12 @@ public class AuthService {
     String confirmationToken = UUID.randomUUID().toString();
     Timestamp expiresAt = Timestamp.valueOf(LocalDateTime.now().plusHours(24));
 
-    Users user =
-        Users.builder()
-            .name(req.name())
-            .email(req.email())
-            .passwordHash(passwordHash)
-            .confirmationToken(confirmationToken)
-            .confirmationTokenExpiresAt(expiresAt)
-            .isConfirmed(false)
-            .build();
+    Users user = usersMapper.toEntity(req);
+
+    user.setPasswordHash(passwordHash);
+    user.setConfirmationToken(confirmationToken);
+    user.setIsConfirmed(false);
+    user.setConfirmationTokenExpiresAt(expiresAt);
 
     user = usersRepository.save(user);
     emailService.sendConfirmationEmail(user.getEmail(), confirmationToken);
@@ -101,24 +100,18 @@ public class AuthService {
   public AuthResponseDTO login(LoginRequestDTO req) {
     String email = req.email().trim();
     log.info("Login requested");
-    Optional<Users> userOpt = usersRepository.findByEmailIgnoreCase(email);
 
     Users user =
-        userOpt.orElseThrow(
-            () -> {
-              log.warn("Login failed: user not found");
-              return new IllegalArgumentException("Invalid credentials");
-            });
+        usersRepository
+            .findByEmailIgnoreCase(email)
+            .orElseThrow(
+                () -> {
+                  log.warn("Login failed: user not found");
+                  return new IllegalArgumentException("Invalid credentials");
+                });
 
-    if (!BCrypt.checkpw(req.password(), user.getPasswordHash())) {
-      log.warn("Login failed: invalid password userId={}", user.getId());
-      throw new IllegalArgumentException("Invalid credentials");
-    }
-
-    if (!user.getIsConfirmed()) {
-      log.warn("Login blocked: email not confirmed userId={}", user.getId());
-      throw new IllegalArgumentException("Please confirm your email before logging in.");
-    }
+    authPolicy.verifyPasswordHash(req.password(), user.getPasswordHash());
+    authPolicy.isEmailConfirmed(user.getIsConfirmed());
 
     String token = jwtService.generateToken(user);
     log.info("Login succeeded userId={}", user.getId());
