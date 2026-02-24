@@ -16,6 +16,7 @@ import br.com.oriontask.backend.auth.service.AuthService;
 import br.com.oriontask.backend.auth.service.TokenService;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
+import br.com.oriontask.backend.shared.utils.UserLookupService;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
@@ -42,6 +43,7 @@ class AuthServiceTest {
   @Mock private EmailService emailService;
   @Mock private RedisTokenService redisTokenService;
   @Mock private AuthPolicy authPolicy;
+  @Mock private UserLookupService userLookupService;
 
   @InjectMocks private AuthService authService;
 
@@ -74,8 +76,7 @@ class AuthServiceTest {
   void signupShouldThrowWhenEmailUnavailable() {
     SignupRequestDTO request = new SignupRequestDTO("Test User", "used@example.com", "Strong123!");
 
-    when(usersRepository.findByEmail("used@example.com"))
-        .thenReturn(Optional.of(Users.builder().id(UUID.randomUUID()).build()));
+    when(userLookupService.existsByEmail("used@example.com")).thenReturn(true);
 
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> authService.signup(request));
@@ -89,13 +90,12 @@ class AuthServiceTest {
   void signupShouldThrowWhenEmailIsDisposable() {
     SignupRequestDTO request = new SignupRequestDTO(testName, "test@mailinator.com", testPassword);
 
-    when(usersRepository.findByEmail("test@mailinator.com")).thenReturn(Optional.empty());
-
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> authService.signup(request));
 
     assertEquals("Disposable/temporary emails are not allowed", exception.getMessage());
     verify(usersRepository, never()).save(any(Users.class));
+    verify(userLookupService, never()).getByEmail("test@mailinator.com");
   }
 
   @Test
@@ -105,7 +105,7 @@ class AuthServiceTest {
         new UserResponseDTO(
             testUserId, testName, testEmail, false, new Timestamp(1), new Timestamp(2));
 
-    when(usersRepository.findByEmail(testEmail)).thenReturn(Optional.empty());
+    when(userLookupService.existsByEmail(testEmail)).thenReturn(false);
     when(usersMapper.toEntity(any(SignupRequestDTO.class)))
         .thenReturn(Users.builder().email(testEmail).build());
     when(usersRepository.save(any(Users.class)))
@@ -129,7 +129,7 @@ class AuthServiceTest {
   @Test
   @DisplayName("Should send confirmation email on signup")
   void signupShouldSendConfirmationEmail() {
-    when(usersRepository.findByEmail(testEmail)).thenReturn(Optional.empty());
+    when(userLookupService.existsByEmail(testEmail)).thenReturn(false);
     when(usersMapper.toEntity(any(SignupRequestDTO.class)))
         .thenReturn(Users.builder().email(testEmail).build());
     when(usersRepository.save(any(Users.class)))
@@ -154,20 +154,20 @@ class AuthServiceTest {
   void loginShouldTrimEmailAndReturnToken() {
     String rawEmail = "  " + testEmail + "  ";
 
-    when(usersRepository.findByEmailIgnoreCase(testEmail)).thenReturn(Optional.of(testUser));
+    when(userLookupService.getByEmail(testEmail)).thenReturn(testUser);
     when(jwtService.generateToken(testUser)).thenReturn("jwt-token");
 
     AuthResponseDTO result = authService.login(new LoginRequestDTO(rawEmail, testPassword));
 
     assertEquals("jwt-token", result.token());
     assertEquals(testUserId, result.id());
-    verify(usersRepository).findByEmailIgnoreCase(testEmail);
+    verify(userLookupService).getByEmail(testEmail);
   }
 
   @Test
   @DisplayName("Should throw invalid credentials when email does not exist")
   void loginShouldThrowWhenUserNotFound() {
-    when(usersRepository.findByEmailIgnoreCase("unknown@example.com")).thenReturn(Optional.empty());
+    when(userLookupService.getByEmail("unknown@example.com")).thenReturn(null);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -188,7 +188,7 @@ class AuthServiceTest {
             .passwordHash("$2a$12$NRtXVb4W/KTxsG.tgmE4Iu4V83JuMbO/LgOo221bCpiPSoK5Qh/jG")
             .build();
 
-    when(usersRepository.findByEmailIgnoreCase(testEmail)).thenReturn(Optional.of(user));
+    when(userLookupService.getByEmail(testEmail)).thenReturn(user);
     doThrow(new IllegalArgumentException("Invalid credentials"))
         .when(authPolicy)
         .verifyPasswordHash(eq("Wrong123!"), anyString());
@@ -213,7 +213,7 @@ class AuthServiceTest {
             .isConfirmed(false)
             .build();
 
-    when(usersRepository.findByEmailIgnoreCase(testEmail)).thenReturn(Optional.of(user));
+    when(userLookupService.getByEmail(testEmail)).thenReturn(user);
     doThrow(new IllegalArgumentException("Please confirm your email before logging in."))
         .when(authPolicy)
         .isEmailConfirmed(user.getIsConfirmed());
@@ -374,7 +374,6 @@ class AuthServiceTest {
   @Test
   @DisplayName("Should persist bcrypt-compatible hash on signup")
   void signupShouldPersistBcryptHash() {
-    when(usersRepository.findByEmail(testEmail)).thenReturn(Optional.empty());
     when(usersMapper.toEntity(any(SignupRequestDTO.class)))
         .thenReturn(Users.builder().email(testEmail).build());
     when(usersRepository.save(any(Users.class)))

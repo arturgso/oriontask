@@ -6,6 +6,7 @@ import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.policy.AuthPolicy;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
+import br.com.oriontask.backend.shared.utils.UserLookupService;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.mapper.UsersMapper;
 import br.com.oriontask.backend.users.model.Users;
@@ -29,6 +30,7 @@ public class AuthService {
   private final TokenService jwtService;
   private final RedisTokenService redisTokenService;
   private final AuthPolicy authPolicy;
+  private final UserLookupService userLookupService;
 
   // minimal disposable email domain list; configurable via property in future
   private static final Set<String> DISPOSABLE_DOMAINS =
@@ -45,17 +47,15 @@ public class AuthService {
   @Transactional
   public UserResponseDTO signup(SignupRequestDTO req) {
     log.info("Signup requested for email={}", req.email());
-    usersRepository
-        .findByEmail(req.email())
-        .ifPresent(
-            u -> {
-              log.warn("Signup blocked: email unavailable email={}", req.email());
-              throw new IllegalArgumentException("Email unavailable");
-            });
 
     if (isDisposableEmail(req.email())) {
       log.warn("Signup blocked: disposable email detected email={}", req.email());
       throw new IllegalArgumentException("Disposable/temporary emails are not allowed");
+    }
+
+    if (userLookupService.existsByEmail(req.email())) {
+      log.warn("Signup blocked: email unavailable email={}", req.email());
+      throw new IllegalArgumentException("Email unavailable");
     }
 
     String passwordHash = BCrypt.hashpw(req.password(), BCrypt.gensalt());
@@ -101,14 +101,11 @@ public class AuthService {
     String email = req.email().trim();
     log.info("Login requested");
 
-    Users user =
-        usersRepository
-            .findByEmailIgnoreCase(email)
-            .orElseThrow(
-                () -> {
-                  log.warn("Login failed: user not found");
-                  return new IllegalArgumentException("Invalid credentials");
-                });
+    Users user = userLookupService.getByEmail(email);
+    if (user == null) {
+      log.warn("Login failed: user not found");
+      throw new IllegalArgumentException("Invalid credentials");
+    }
 
     authPolicy.verifyPasswordHash(req.password(), user.getPasswordHash());
     authPolicy.isEmailConfirmed(user.getIsConfirmed());
