@@ -1,9 +1,9 @@
 package br.com.oriontask.backend.auth.service;
 
-import br.com.oriontask.backend.auth.dto.AuthResponseDTO;
 import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.policy.AuthPolicy;
+import br.com.oriontask.backend.refreshtoken.service.RefreshTokenService;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
 import br.com.oriontask.backend.shared.utils.UserLookupService;
@@ -28,6 +28,7 @@ public class AuthService {
   private final UsersMapper usersMapper;
   private final EmailService emailService;
   private final TokenService jwtService;
+  private final RefreshTokenService refreshTokenService;
   private final RedisTokenService redisTokenService;
   private final AuthPolicy authPolicy;
   private final UserLookupService userLookupService;
@@ -99,7 +100,7 @@ public class AuthService {
     log.info("Email confirmed for userId={}", user.getId());
   }
 
-  public AuthResponseDTO login(LoginRequestDTO req) {
+  public Map<String, String> login(LoginRequestDTO req) {
     String email = req.email().trim();
     log.info("Login requested");
 
@@ -113,8 +114,15 @@ public class AuthService {
     authPolicy.isEmailConfirmed(user.getIsConfirmed());
 
     String token = jwtService.generateToken(user);
+    String refreshToken = refreshTokenService.createRefreshToken(user);
     log.info("Login succeeded userId={}", user.getId());
-    return new AuthResponseDTO(token, user.getId());
+
+    Map<String, String> res = new HashMap<>();
+    res.put("token", token);
+    res.put("id", user.getId().toString());
+    res.put("refresh_token", refreshToken);
+
+    return res;
   }
 
   @Transactional

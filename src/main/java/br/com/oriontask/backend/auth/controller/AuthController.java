@@ -9,7 +9,12 @@ import br.com.oriontask.backend.auth.service.AuthService;
 import br.com.oriontask.backend.auth.service.TokenService;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -51,9 +56,23 @@ public class AuthController {
   }
 
   @PostMapping("login")
-  public ResponseEntity<AuthResponseDTO> login(@RequestBody @Validated LoginRequestDTO req) {
-    AuthResponseDTO resp = authService.login(req);
-    return ResponseEntity.ok().body(resp);
+  public ResponseEntity<AuthResponseDTO> login(
+      @RequestBody @Validated LoginRequestDTO req, HttpServletResponse response) {
+    Map<String, String> resp = authService.login(req);
+
+    AuthResponseDTO responseDTO =
+        new AuthResponseDTO(resp.get("token"), UUID.fromString(resp.get("id")));
+
+    ResponseCookie cookie =
+        ResponseCookie.from("refresh_token", resp.get("refresh_token"))
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .maxAge(Duration.ofDays(7))
+            .sameSite("Lax")
+            .build();
+
+    return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(responseDTO);
   }
 
   @PostMapping("logout")

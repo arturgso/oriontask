@@ -44,7 +44,7 @@ public class TokenService {
     return token;
   }
 
-  public String generateRefreshToken(Users user, Boolean rememberMe) {
+  public String generateRefreshToken(Users user) {
     log.debug("Generating refresh token for userId={}", user.getId());
     Algorithm alg = Algorithm.HMAC256(jwtSecret);
     String token =
@@ -54,7 +54,7 @@ public class TokenService {
             .withSubject(user.getId().toString())
             .withJWTId(UUID.randomUUID().toString())
             .withIssuedAt(Instant.now())
-            .withExpiresAt(Date.from((generateRefreshTokenExpiration(rememberMe))))
+            .withExpiresAt(Date.from((generateRefreshTokenExpiration())))
             .sign(alg);
     log.debug("Token generated for userId={} expMinutes={}", user.getId(), expMinutes);
     return token;
@@ -121,9 +121,7 @@ public class TokenService {
     return LocalDateTime.now().plusMinutes(expMinutes).toInstant(ZoneOffset.of("-03:00"));
   }
 
-  private Instant generateRefreshTokenExpiration(Boolean rememberMe) {
-    return rememberMe
-        ? LocalDateTime.now().plusWeeks(4).toInstant(ZoneOffset.of("-03:00"))
-        : LocalDateTime.now().plusDays(2).toInstant(ZoneOffset.of("-03:00"));
+  private Instant generateRefreshTokenExpiration() {
+    return LocalDateTime.now().plusDays(7).toInstant(ZoneOffset.of("-03:00"));
   }
 }
