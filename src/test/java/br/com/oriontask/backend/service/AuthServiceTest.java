@@ -8,12 +8,12 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import br.com.oriontask.backend.auth.dto.AuthResponseDTO;
 import br.com.oriontask.backend.auth.dto.LoginRequestDTO;
 import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.auth.policy.AuthPolicy;
 import br.com.oriontask.backend.auth.service.AuthService;
 import br.com.oriontask.backend.auth.service.TokenService;
+import br.com.oriontask.backend.refreshtoken.service.RefreshTokenService;
 import br.com.oriontask.backend.shared.service.EmailService;
 import br.com.oriontask.backend.shared.service.RedisTokenService;
 import br.com.oriontask.backend.shared.utils.UserLookupService;
@@ -40,6 +40,7 @@ class AuthServiceTest {
   @Mock private UsersRepository usersRepository;
   @Mock private UsersMapper usersMapper;
   @Mock private TokenService jwtService;
+  @Mock private RefreshTokenService refreshTokenService;
   @Mock private EmailService emailService;
   @Mock private RedisTokenService redisTokenService;
   @Mock private AuthPolicy authPolicy;
@@ -156,11 +157,14 @@ class AuthServiceTest {
 
     when(userLookupService.getByEmail(testEmail)).thenReturn(testUser);
     when(jwtService.generateToken(testUser)).thenReturn("jwt-token");
+    when(refreshTokenService.createRefreshToken(testUser)).thenReturn("refresh-token");
 
-    AuthResponseDTO result = authService.login(new LoginRequestDTO(rawEmail, testPassword));
+    java.util.Map<String, String> result =
+        authService.login(new LoginRequestDTO(rawEmail, testPassword));
 
-    assertEquals("jwt-token", result.token());
-    assertEquals(testUserId, result.id());
+    assertEquals("jwt-token", result.get("token"));
+    assertEquals(testUserId.toString(), result.get("id"));
+    assertEquals("refresh-token", result.get("refresh_token"));
     verify(userLookupService).getByEmail(testEmail);
   }
 
