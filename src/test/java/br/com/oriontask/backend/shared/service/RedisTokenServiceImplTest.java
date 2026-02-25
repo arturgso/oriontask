@@ -19,7 +19,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 @ExtendWith(MockitoExtension.class)
-class RedisTokenServiceTest {
+class RedisTokenServiceImplTest {
 
   @Mock private StringRedisTemplate redisTemplate;
   @Mock private ValueOperations<String, String> valueOperations;
@@ -54,10 +54,10 @@ class RedisTokenServiceTest {
 
   @Test
   @DisplayName("Should store token and return it")
-  void storeToken_shouldStoreAndReturnToken() {
+  void createPasswordResetToken_shouldStoreAndReturnToken() {
     when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     UUID userId = UUID.randomUUID();
-    String storedToken = redisTokenService.storeToken(userId);
+    String storedToken = redisTokenService.createPasswordResetToken(userId);
 
     assertFalse(storedToken.isEmpty());
     verify(valueOperations, times(1))
@@ -69,7 +69,7 @@ class RedisTokenServiceTest {
 
   @Test
   @DisplayName("Should retrieve userId from token")
-  void getUserIdFromToken_shouldRetrieveUserId() {
+  void getUserIdByResetToken_shouldRetrieveUserId() {
     when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     UUID userId = UUID.randomUUID();
     String token = "test-token";
@@ -77,7 +77,7 @@ class RedisTokenServiceTest {
 
     when(valueOperations.get(key)).thenReturn(userId.toString());
 
-    Optional<UUID> result = redisTokenService.getUserIdFromToken(token);
+    Optional<UUID> result = redisTokenService.getUserIdByResetToken(token);
 
     assertTrue(result.isPresent());
     assertEquals(userId, result.get());
@@ -86,14 +86,14 @@ class RedisTokenServiceTest {
 
   @Test
   @DisplayName("Should return empty when token not found")
-  void getUserIdFromToken_shouldReturnEmptyWhenTokenNotFound() {
+  void getUserIdByResetToken_shouldReturnEmptyWhenTokenNotFound() {
     when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     String token = "non-existent-token";
     String key = "password_reset:" + token;
 
     when(valueOperations.get(key)).thenReturn(null);
 
-    Optional<UUID> result = redisTokenService.getUserIdFromToken(token);
+    Optional<UUID> result = redisTokenService.getUserIdByResetToken(token);
 
     assertFalse(result.isPresent());
     verify(valueOperations, times(1)).get(key);
@@ -101,11 +101,11 @@ class RedisTokenServiceTest {
 
   @Test
   @DisplayName("Should invalidate token")
-  void invalidateToken_shouldDeleteToken() {
+  void deletePasswordResetToken_shouldDeleteToken() {
     String token = "token-to-invalidate";
     String key = "password_reset:" + token;
 
-    redisTokenService.invalidateToken(token);
+    redisTokenService.deletePasswordResetToken(token);
 
     verify(redisTemplate, times(1)).delete(key);
   }

@@ -18,7 +18,7 @@ API backend do OrionTask, um gerenciador de tarefas orientado a propósito (Dhar
 - Docker e Docker Compose (opcional, para subir a stack em containers)
 
 ## Executar localmente (Gradle)
-1. Configure as variáveis de ambiente de banco (pode usar `.env.exemple` como referência).
+1. Configure as variáveis de ambiente de banco (pode usar `.env.example` como referência).
 2. Suba o PostgreSQL localmente.
 3. Inicie a aplicação:
 

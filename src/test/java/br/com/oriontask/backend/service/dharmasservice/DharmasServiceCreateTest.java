@@ -44,7 +44,7 @@ class DharmasServiceCreateTest {
   @DisplayName("Should throw when user does not exist")
   void createShouldThrowWhenUserNotFound() {
     UUID userId = UUID.randomUUID();
-    when(userLookup.getRequiredUse(userId)).thenThrow(new UserLookupExceptionImpl());
+    when(userLookup.getRequiredUser(userId)).thenThrow(new UserLookupExceptionImpl());
 
     IllegalArgumentException exception =
         assertThrows(
@@ -61,7 +61,7 @@ class DharmasServiceCreateTest {
     UUID userId = UUID.randomUUID();
     Users user = Users.builder().id(userId).build();
 
-    when(userLookup.getRequiredUse(userId)).thenReturn(user);
+    when(userLookup.getRequiredUser(userId)).thenReturn(user);
     when(repository.countByUser(user)).thenReturn(8L);
     doThrow(new IllegalStateException("Maximum number of dharmas reached for this user"))
         .when(dharmasPolicy)
@@ -84,7 +84,7 @@ class DharmasServiceCreateTest {
     NewDharmasDTO dto = new NewDharmasDTO("Health", "#abcdef");
     Dharmas entity = Dharmas.builder().name("Health").color("#abcdef").build();
 
-    when(userLookup.getRequiredUse(userId)).thenReturn(user);
+    when(userLookup.getRequiredUser(userId)).thenReturn(user);
     when(repository.countByUser(user)).thenReturn(2L);
     when(dharmasMapper.toEntity(dto)).thenReturn(entity);
     when(repository.save(entity)).thenReturn(entity);
@@ -109,7 +109,7 @@ class DharmasServiceCreateTest {
     NewDharmasDTO dto = new NewDharmasDTO("Work", null);
     Dharmas entity = Dharmas.builder().name("Work").color(null).build();
 
-    when(userLookup.getRequiredUse(userId)).thenReturn(user);
+    when(userLookup.getRequiredUser(userId)).thenReturn(user);
     when(repository.countByUser(user)).thenReturn(1L);
     when(dharmasMapper.toEntity(dto)).thenReturn(entity);
     when(repository.save(entity)).thenAnswer(invocation -> invocation.getArgument(0));

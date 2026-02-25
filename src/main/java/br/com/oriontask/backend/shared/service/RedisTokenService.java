@@ -1,8 +1,11 @@
 package br.com.oriontask.backend.shared.service;
 
+import br.com.oriontask.backend.auth.service.TokenService;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisCallback;
@@ -14,7 +17,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class RedisTokenService {
 
+  private final TokenService tokenService;
+
   private static final String PASSWORD_RESET_PREFIX = "password_reset:";
+  private static final String BLACKLIST_TOKEN_PREFIX = "blacklisted_token:";
   private static final Duration TOKEN_VALIDITY = Duration.ofHours(2);
 
   private final StringRedisTemplate redisTemplate;
@@ -31,7 +37,27 @@ public class RedisTokenService {
     return healthy;
   }
 
-  public String storeToken(UUID userId) {
+  public void blacklistToken(String token) {
+    DecodedJWT decodedJWT = tokenService.validateAccessToken(token);
+
+    String jti = decodedJWT.getId();
+    long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();
+
+    if (remainingTime <= 0) {
+      log.warn(
+          "Token with jti={} is already expired or has no remaining lifetime; skipping blacklist",
+    String jti = decodedJWT.getId();
+    String userId = decodedJWT.getSubject();
+    long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();
+
+    redisTemplate
+        .opsForValue()
+        .set(BLACKLIST_TOKEN_PREFIX + jti, "true", remainingTime, TimeUnit.MILLISECONDS);
+
+    log.info("Blacklisted token with jti={} for userId={}", jti, userId);
+  }
+
+  public String createPasswordResetToken(UUID userId) {
     String token = UUID.randomUUID().toString();
     String key = PASSWORD_RESET_PREFIX + token;
     redisTemplate.opsForValue().set(key, userId.toString(), TOKEN_VALIDITY);
@@ -39,7 +65,7 @@ public class RedisTokenService {
     return token;
   }
 
-  public Optional<UUID> getUserIdFromToken(String token) {
+  public Optional<UUID> getUserIdByResetToken(String token) {
     String key = PASSWORD_RESET_PREFIX + token;
     String userIdString = redisTemplate.opsForValue().get(key);
     if (userIdString != null) {
@@ -50,7 +76,7 @@ public class RedisTokenService {
     return Optional.empty();
   }
 
-  public void invalidateToken(String token) {
+  public void deletePasswordResetToken(String token) {
     String key = PASSWORD_RESET_PREFIX + token;
     redisTemplate.delete(key);
     log.info("Invalidated password reset token key={}", key);

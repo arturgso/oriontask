@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UsersRepository extends JpaRepository<Users, UUID> {
   Optional<Users> findByEmail(String email);
 
-  Optional<Users> findByEmailIgnoreCase(String email);
-
   Optional<Users> findByConfirmationToken(String token);
+
+  boolean existsByEmail(String email);
 }

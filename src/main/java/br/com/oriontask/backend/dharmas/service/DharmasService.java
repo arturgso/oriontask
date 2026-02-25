@@ -33,7 +33,7 @@ public class DharmasService {
 
   public DharmasDTO create(NewDharmasDTO createDTO, UUID userId) {
     log.info("DharmasService.create requested userId={}", userId);
-    Users user = userLookup.getRequiredUse(userId);
+    Users user = userLookup.getRequiredUser(userId);
 
     Long dharmaCount = repository.countByUser(user);
 

@@ -1,6 +1,5 @@
 package br.com.oriontask.backend.users.service;
 
-import br.com.oriontask.backend.auth.dto.SignupRequestDTO;
 import br.com.oriontask.backend.users.dto.UpdateUserDTO;
 import br.com.oriontask.backend.users.dto.UserResponseDTO;
 import br.com.oriontask.backend.users.exception.UserNotFoundException;
@@ -20,26 +19,6 @@ import org.springframework.stereotype.Service;
 public class UsersService {
   private final UsersRepository repository;
   private final UsersMapper mapper;
-
-  @Transactional
-  public UserResponseDTO create(SignupRequestDTO createDTO) {
-    log.info("UsersService.create requested email={}", createDTO.email());
-    repository
-        .findByEmail(createDTO.email())
-        .ifPresent(
-            user -> {
-              log.warn(
-                  "UsersService.create blocked: email unavailable email={}", createDTO.email());
-              throw new IllegalArgumentException("Email unavailable");
-            });
-
-    Users user = mapper.toEntity(createDTO);
-
-    user = repository.save(user);
-    log.info("UsersService.create completed userId={} email={}", user.getId(), user.getEmail());
-
-    return mapper.toDTO(user);
-  }
 
   public UserResponseDTO getMe(Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
