@@ -46,12 +46,15 @@ public class RedisTokenService {
     if (remainingTime <= 0) {
       log.warn(
           "Token with jti={} is already expired or has no remaining lifetime; skipping blacklist",
-          jti);
-      return;
-    }
+    String jti = decodedJWT.getId();
+    String userId = decodedJWT.getSubject();
+    long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();
+
     redisTemplate
         .opsForValue()
         .set(BLACKLIST_TOKEN_PREFIX + jti, "true", remainingTime, TimeUnit.MILLISECONDS);
+
+    log.info("Blacklisted token with jti={} for userId={}", jti, userId);
   }
 
   public String createPasswordResetToken(UUID userId) {
