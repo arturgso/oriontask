@@ -41,14 +41,15 @@ public class RedisTokenService {
     DecodedJWT decodedJWT = tokenService.validateAccessToken(token);
 
     String jti = decodedJWT.getId();
+    String userId = decodedJWT.getSubject();
     long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();
 
     if (remainingTime <= 0) {
       log.warn(
           "Token with jti={} is already expired or has no remaining lifetime; skipping blacklist",
-    String jti = decodedJWT.getId();
-    String userId = decodedJWT.getSubject();
-    long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();
+          jti);
+      return;
+    }
 
     redisTemplate
         .opsForValue()
