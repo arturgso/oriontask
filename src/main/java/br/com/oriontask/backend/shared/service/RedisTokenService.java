@@ -43,6 +43,12 @@ public class RedisTokenService {
     String jti = decodedJWT.getId();
     long remainingTime = decodedJWT.getExpiresAt().getTime() - System.currentTimeMillis();
 
+    if (remainingTime <= 0) {
+      log.warn(
+          "Token with jti={} is already expired or has no remaining lifetime; skipping blacklist",
+          jti);
+      return;
+    }
     redisTemplate
         .opsForValue()
         .set(BLACKLIST_TOKEN_PREFIX + jti, "true", remainingTime, TimeUnit.MILLISECONDS);
