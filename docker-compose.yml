@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: oriontask-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-orion}
-      POSTGRES_USER: ${DB_USER:-orion}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-orionpass}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -23,7 +23,7 @@ services:
     image: redis:7-alpine
     container_name: oriontask-redis
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-orionredispass}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     command:
       ["sh", "-c", "redis-server --appendonly yes --requirepass \"$REDIS_PASSWORD\""]
     ports:
@@ -51,13 +51,13 @@ services:
       JAVA_OPTS: ""
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-orion}
-      DB_SCHEMA: ${DB_SCHEMA:-public}
-      DB_USER: ${DB_USER:-orion}
-      DB_PASSWORD: ${DB_PASSWORD:-orionpass}
+      DB_NAME: ${DB_NAME}
+      DB_SCHEMA: ${DB_SCHEMA}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-orionredispass}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
