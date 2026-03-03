@@ -56,5 +56,8 @@ dist-ssr
 *.sw?
 
 .env
+.env.production
 frontend-prototype.html
 app.jar
+
+docker-compose-production.yml
