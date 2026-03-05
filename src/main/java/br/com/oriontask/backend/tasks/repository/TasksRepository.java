@@ -15,6 +15,8 @@ public interface TasksRepository extends JpaRepository<Tasks, Long> {
 
   Optional<Tasks> findByIdAndUserId(Long id, UUID userId);
 
+  List<Tasks> findAllByDharmasId(Long dharmasId);
+
   Page<Tasks> findByDharmasId(Long dharmasId, Pageable pageable);
 
   Page<Tasks> findByUserId(UUID userId, Pageable pageable);

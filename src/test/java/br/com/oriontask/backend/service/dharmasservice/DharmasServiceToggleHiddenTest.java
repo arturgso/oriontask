@@ -1,9 +1,9 @@
 package br.com.oriontask.backend.service.dharmasservice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import br.com.oriontask.backend.dharmas.mapper.DharmasMapper;
@@ -12,9 +12,7 @@ import br.com.oriontask.backend.dharmas.policy.DharmasPolicy;
 import br.com.oriontask.backend.dharmas.repository.DharmasRepository;
 import br.com.oriontask.backend.dharmas.service.DharmasService;
 import br.com.oriontask.backend.shared.utils.UserLookupService;
-import br.com.oriontask.backend.tasks.model.Tasks;
 import br.com.oriontask.backend.tasks.repository.TasksRepository;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +21,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class DharmasServiceToggleHiddenTest {
@@ -51,22 +47,16 @@ class DharmasServiceToggleHiddenTest {
   }
 
   @Test
-  @DisplayName("Should toggle hidden and propagate value to all tasks")
-  void toggleHiddenShouldPropagateToTasks() {
+  @DisplayName("Should toggle hidden in dharmas")
+  void toggleHiddenShouldToggleDharmasHiddenFlag() {
     UUID userId = UUID.randomUUID();
     Dharmas dharmas = Dharmas.builder().id(71L).hidden(false).build();
-    Tasks task1 = Tasks.builder().id(1L).hidden(false).build();
-    Tasks task2 = Tasks.builder().id(2L).hidden(false).build();
 
     when(repository.findByIdAndUserId(71L, userId)).thenReturn(Optional.of(dharmas));
-    when(tasksRepository.findByDharmasId(71L, Pageable.unpaged()))
-        .thenReturn(new PageImpl<>(List.of(task1, task2)));
 
     dharmasService.toggleHidden(71L, userId);
 
-    assertEquals(true, dharmas.getHidden());
-    assertEquals(true, task1.getHidden());
-    assertEquals(true, task2.getHidden());
-    verify(tasksRepository).saveAll(any(Iterable.class));
+    assertTrue(dharmas.getHidden());
+    verifyNoInteractions(tasksRepository);
   }
 }

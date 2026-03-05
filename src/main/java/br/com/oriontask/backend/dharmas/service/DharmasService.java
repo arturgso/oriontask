@@ -94,6 +94,7 @@ public class DharmasService {
             .orElseThrow(() -> new IllegalArgumentException("Dharmas not found"));
 
     // Check for active (non-completed) tasks before deleting
+    // TODO - abstract into another class
     long activeTasksCount =
         tasksRepository.findByDharmasId(dharmasId, Pageable.unpaged()).stream()
             .filter(task -> task.getStatus() != TaskStatus.DONE)
@@ -122,18 +123,9 @@ public class DharmasService {
 
     dharmas.setHidden(!dharmas.getHidden());
 
-    // TODO - Move to service to method HideAllTasks
-    // Update all tasks of the dharmas to inherit the hidden state
-    var tasks = tasksRepository.findByDharmasId(dharmasId, Pageable.unpaged());
-    tasks.forEach(
-        task -> {
-          task.setHidden(dharmas.getHidden());
-        });
-    tasksRepository.saveAll(tasks);
     log.info(
-        "DharmasService.toggleHidden completed dharmasId={} hidden={} tasksUpdated={}",
+        "DharmasService.toggleHidden completed dharmasId={} hidden={}",
         dharmasId,
-        dharmas.getHidden(),
-        tasks.getContent().size());
+        dharmas.getHidden());
   }
 }

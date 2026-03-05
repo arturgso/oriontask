@@ -11,6 +11,8 @@ import br.com.oriontask.backend.tasks.model.Tasks;
 import br.com.oriontask.backend.tasks.policy.TaskStatusTransitionPolicy;
 import br.com.oriontask.backend.tasks.repository.TasksRepository;
 import jakarta.transaction.Transactional;
+
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
