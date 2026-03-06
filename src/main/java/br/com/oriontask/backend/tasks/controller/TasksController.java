@@ -33,12 +33,13 @@ public class TasksController {
   public ResponseEntity<Page<TaskDTO>> list(
       @RequestParam(required = false) TaskStatus status,
       @RequestParam(required = false) Long dharmaId,
+      @RequestParam(required = false) Boolean includeHidden,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
       Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
     Page<TaskDTO> tasks =
-        tasksService.listTasks(userId, dharmaId, status, PageRequest.of(page, size));
+        tasksService.listTasks(userId, dharmaId, includeHidden, status, PageRequest.of(page, size));
     return ResponseEntity.ok(tasks);
   }
 

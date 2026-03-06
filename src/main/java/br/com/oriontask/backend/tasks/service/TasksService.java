@@ -10,14 +10,14 @@ import br.com.oriontask.backend.tasks.mapper.TasksMapper;
 import br.com.oriontask.backend.tasks.model.Tasks;
 import br.com.oriontask.backend.tasks.policy.TaskStatusTransitionPolicy;
 import br.com.oriontask.backend.tasks.repository.TasksRepository;
+import br.com.oriontask.backend.tasks.specifications.TaskSpecifications;
 import jakarta.transaction.Transactional;
-
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -126,34 +126,40 @@ public class TasksService {
   }
 
   public Page<TaskDTO> listTasks(
-      UUID userId, Long dharmasId, TaskStatus status, Pageable pageable) {
+      UUID userId, Long dharmasId, Boolean includeHidden, TaskStatus status, Pageable pageable) {
     log.debug(
         "TasksService.listTasks requested userId={} dharmasId={} status={} page={} size={}",
         userId,
         dharmasId,
+        includeHidden,
         status,
         pageable.getPageNumber(),
         pageable.getPageSize());
 
-    Page<Tasks> page;
+    Specification<Tasks> spec = Specification.where(TaskSpecifications.byUser(userId));
 
-    if (dharmasId != null && status != null) {
-      page = repository.findByUserIdAndDharmasIdAndStatus(userId, dharmasId, status, pageable);
-    } else if (dharmasId != null) {
-      page = repository.findByUserIdAndDharmasId(userId, dharmasId, pageable);
-    } else if (status != null) {
-      page = repository.findByUserIdAndStatus(userId, status, pageable);
-    } else {
-      page = repository.findByUserId(userId, pageable);
+    if (dharmasId != null) {
+      spec = spec.and(TaskSpecifications.byDharma(dharmasId));
     }
 
+    if (status != null) {
+      spec = spec.and(TaskSpecifications.byStatus(status));
+    }
+
+    if (includeHidden != null) {
+      spec = spec.and(TaskSpecifications.includeHidden(includeHidden));
+    }
+
+    Page<Tasks> page = repository.findAll(spec, pageable);
     Page<TaskDTO> result = page.map(tasksMapper::toDTO);
+
     log.debug(
         "TasksService.listTasks completed userId={} dharmasId={} status={} returned={}",
         userId,
         dharmasId,
         status,
         result.getNumberOfElements());
+
     return result;
   }
 

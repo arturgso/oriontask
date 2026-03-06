@@ -8,27 +8,16 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
-public interface TasksRepository extends JpaRepository<Tasks, Long> {
+public interface TasksRepository
+    extends JpaRepository<Tasks, Long>, JpaSpecificationExecutor<Tasks> {
   Optional<Tasks> findById(Long id);
 
   Optional<Tasks> findByIdAndUserId(Long id, UUID userId);
 
-  List<Tasks> findAllByDharmasId(Long dharmasId);
-
   Page<Tasks> findByDharmasId(Long dharmasId, Pageable pageable);
-
-  Page<Tasks> findByUserId(UUID userId, Pageable pageable);
-
-  Page<Tasks> findByUserIdAndDharmasId(UUID userId, Long dharmasId, Pageable pageable);
-
-  Page<Tasks> findByUserIdAndStatus(UUID userId, TaskStatus status, Pageable pageable);
-
-  Page<Tasks> findByUserIdAndDharmasIdAndStatus(
-      UUID userId, Long dharmasId, TaskStatus status, Pageable pageable);
-
-  Long countByDharmasId(Long dharmasId);
 
   Long countByDharmasUserIdAndStatus(java.util.UUID userId, TaskStatus status);
 
