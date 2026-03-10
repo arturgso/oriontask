@@ -1,0 +1,45 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia PATCH /tasks/{taskId}"]
+    b["Service busca task por taskId e userId"]
+    c{"Task existe para o usuario?"}
+    d["Retorna erro: Task not found"]
+    e["Policy verifica se task pode mudar"]
+    f{"Status atual eh DONE?"}
+    g["Retorna erro: Completed tasks cannot change status"]
+    h["MapStruct aplica partialUpdate ignorando campos nulos"]
+    i["Persiste task atualizada"]
+    j["Retorna TaskDTO"]
+
+    k["Cliente autenticado envia DELETE /tasks/{taskId}"]
+    l["Service busca task por taskId e userId"]
+    m{"Task existe para o usuario?"}
+    n["Retorna erro: Task not found"]
+    o["Policy valida exclusao com flag isDeleteOperation=true"]
+    p{"Task esta DONE?"}
+    q["Retorna erro: Completed tasks cannot be deleted (history)"]
+    r["Exclui task"]
+    s["Retorna HTTP 204"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Nao" --> d --> End
+    c -- "Sim" --> e --> f
+    f -- "Sim" --> g --> End
+    f -- "Nao" --> h --> i --> j --> k --> l --> m
+    m -- "Nao" --> n --> End
+    m -- "Sim" --> o --> p
+    p -- "Sim" --> q --> End
+    p -- "Nao" --> r --> s --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,e,j,k,l,o,s flowClass;
+    class h,i,r actionClass;
+    class c,f,m,p decisionClass;
+    class d,g,n,q actionClass;
+    class Start,End endClass;

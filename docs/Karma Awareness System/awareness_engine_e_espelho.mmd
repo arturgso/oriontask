@@ -1,0 +1,43 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente envia GET /karma/summary"]
+    b["KarmaService.getRollingSummary(userId)"]
+    c["Busca tarefas DONE dos ultimos 7 dias"]
+    d{"Existem tarefas?"}
+    e["Define current_state = NEUTRAL e rolling_distribution zerada"]
+    f["Soma pesos por ACTION, PEOPLE e THINKING"]
+    g["Calcula total geral e percentuais"]
+    h{"ACTION > 50%?"}
+    i["current_state = THE_STRIVER"]
+    j{"PEOPLE > 50%?"}
+    k["current_state = THE_CONNECTOR"]
+    l{"THINKING > 50%?"}
+    m["current_state = THE_SEER"]
+    n["current_state = THE_BALANCED"]
+    o["Obtem legacy_totals do usuario"]
+    p["Monta KarmaSummaryDTO com rolling_distribution, state e legacy_totals"]
+    q["Retorna DTO com HTTP 200"]
+    End([Fim])
+
+    Start --> a --> b --> c --> d
+    d -- "Nao" --> e --> o
+    d -- "Sim" --> f --> g --> h
+    h -- "Sim" --> i --> o
+    h -- "Nao" --> j
+    j -- "Sim" --> k --> o
+    j -- "Nao" --> l
+    l -- "Sim" --> m --> o
+    l -- "Nao" --> n --> o
+    o --> p --> q --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,p,q flowClass;
+    class c,f,g,e,o actionClass;
+    class d,h,j,l decisionClass;
+    class i,k,m,n actionClass;
+    class Start,End endClass;

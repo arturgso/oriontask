@@ -1,0 +1,38 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia POST /dharmas com name e color opcional"]
+    b["Controller extrai userId do Authentication"]
+    c["UserLookupService busca usuario obrigatorio"]
+    d{"Usuario existe?"}
+    e["Retorna erro: User not found"]
+    f["Repository conta quantos dharmas o usuario ja possui"]
+    g{"Atingiu limite de 8 dharmas?"}
+    h["Retorna erro: Maximum number of dharmas reached for this user"]
+    i["Mapper converte NewDharmasDTO para entidade Dharmas"]
+    j["Associa dharma ao usuario autenticado"]
+    k{"Color foi informada?"}
+    l["Gera cor aleatoria com ColorGenerator"]
+    m["Persiste dharma"]
+    n["Retorna DharmasDTO com HTTP 201"]
+    End([Fim])
+
+    Start --> a --> b --> c --> d
+    d -- "Nao" --> e --> End
+    d -- "Sim" --> f --> g
+    g -- "Sim" --> h --> End
+    g -- "Nao" --> i --> j --> k
+    k -- "Nao" --> l --> m
+    k -- "Sim" --> m
+    l --> m --> n --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,c,f,i,n flowClass;
+    class j,l,m actionClass;
+    class d,g,k decisionClass;
+    class e,h actionClass;
+    class Start,End endClass;

@@ -1,0 +1,46 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente envia PATCH /tasks/{taskId}/change-status?status=..."]
+    b["Service busca task por taskId e userId"]
+    c{"Task existe?"}
+    d["Retorna erro: Task not found"]
+    e["Policy bloqueia transicao se task estiver DONE"]
+    f{"Task atual eh DONE?"}
+    g["Retorna erro: Completed tasks cannot change status"]
+    h{"Status solicitado eh NEXT?"}
+    i["Normaliza NEXT para WAITING"]
+    j["Conta quantas tasks do usuario estao em NOW"]
+    k{"Novo status efetivo eh NOW e limite 5 foi atingido?"}
+    l["Retorna erro: Maximum of 5 tasks in NOW reached"]
+    m{"Novo status eh SNOOZED?"}
+    n["Retorna erro: To snooze a task, use the snoozeTask method from the policy"]
+    o["Aplica novo status"]
+    p["Limpa snoozedUntil"]
+    q["Persiste task"]
+    r["Retorna TaskDTO"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Nao" --> d --> End
+    c -- "Sim" --> e --> f
+    f -- "Sim" --> g --> End
+    f -- "Nao" --> h
+    h -- "Sim" --> i --> j
+    h -- "Nao" --> j
+    j --> k
+    k -- "Sim" --> l --> End
+    k -- "Nao" --> m
+    m -- "Sim" --> n --> End
+    m -- "Nao" --> o --> p --> q --> r --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,e,j,r flowClass;
+    class i,o,p,q actionClass;
+    class c,f,h,k,m decisionClass;
+    class d,g,l,n actionClass;
+    class Start,End endClass;

@@ -1,0 +1,44 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia PATCH /projects/{projectId}"]
+    b["Service busca projeto por id e userId"]
+    c{"Projeto existe?"}
+    d["Retorna erro: Project not found"]
+    e{"Novo dharmaId foi informado?"}
+    f["DharmaLookupService valida o novo dharma"]
+    g{"Dharma valido?"}
+    h["Retorna erro: Dharma not found"]
+    i["MapStruct aplica partialUpdate"]
+    j["Persiste alteracoes no repository"]
+    k["Retorna ProjectDTO atualizado"]
+
+    l["Cliente autenticado envia PATCH /projects/{projectId}/archive"]
+    m["Busca projeto por id e userId"]
+    n{"Projeto existe?"}
+    o["Retorna erro: Project not found"]
+    p["Define archived=true"]
+    q["Persiste estado arquivado"]
+    r["Retorna HTTP 204"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Nao" --> d --> End
+    c -- "Sim" --> e
+    e -- "Sim" --> f --> g
+    g -- "Nao" --> h --> End
+    g -- "Sim" --> i
+    e -- "Nao" --> i --> j --> k --> l --> m --> n
+    n -- "Nao" --> o --> End
+    n -- "Sim" --> p --> q --> r --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,f,k,l,m,r flowClass;
+    class i,j,p,q actionClass;
+    class c,e,g,n decisionClass;
+    class d,h,o actionClass;
+    class Start,End endClass;

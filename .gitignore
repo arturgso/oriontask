@@ -61,3 +61,6 @@ frontend-prototype.html
 app.jar
 
 docker-compose-production.yml
+
+# Mermaid render outputs
+docs/**/*.svg

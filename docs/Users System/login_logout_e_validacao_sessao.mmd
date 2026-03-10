@@ -1,0 +1,56 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente envia POST /auth/login com email e senha"]
+    b["AuthService aplica trim no email"]
+    c["Busca usuario por email"]
+    d{"Usuario existe?"}
+    e["Retorna erro: Invalid credentials"]
+    f["AuthPolicy valida senha"]
+    g{"Senha valida?"}
+    h["Retorna erro: Invalid credentials"]
+    i["AuthPolicy verifica se email foi confirmado"]
+    j{"Email confirmado?"}
+    k["Retorna erro: Please confirm your email before logging in."]
+    l["Gera access token JWT"]
+    m["Gera refresh token e salva hash no banco"]
+    n["Controller grava refresh token em cookie HTTP-only"]
+    o["Retorna AuthResponseDTO com token e userId"]
+
+    p["Cliente envia POST /auth/validate"]
+    q["Extrai access token do request e refresh token do cookie"]
+    r{"Access token valido?"}
+    s["Retorna status VALID com token atual"]
+    t{"Refresh token valido?"}
+    u["Gera novo access token e novo refresh token"]
+    v["Atualiza cookie e retorna status REFRESHED"]
+    w["Limpa cookie e retorna 401 UNAUTHORIZED"]
+
+    x["Cliente envia POST /auth/logout"]
+    y["Se access token valido, adiciona token na blacklist do Redis"]
+    z["Sempre limpa cookie de refresh token"]
+    End([Fim])
+
+    Start --> a --> b --> c --> d
+    d -- "Nao" --> e --> End
+    d -- "Sim" --> f --> g
+    g -- "Nao" --> h --> End
+    g -- "Sim" --> i --> j
+    j -- "Nao" --> k --> End
+    j -- "Sim" --> l --> m --> n --> o --> p --> q --> r
+    r -- "Sim" --> s --> x
+    r -- "Nao" --> t
+    t -- "Sim" --> u --> v --> x
+    t -- "Nao" --> w --> x
+    x --> y --> z --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,c,o,p,q,x flowClass;
+    class f,i,l,m,n,s,u,v,y,z actionClass;
+    class d,g,j,r,t decisionClass;
+    class e,h,k,w actionClass;
+    class Start,End endClass;

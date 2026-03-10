@@ -1,0 +1,36 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia POST /projects/{projectId}/milestones com title"]
+    b["Service valida se o projeto pertence ao usuario"]
+    c{"Projeto existe?"}
+    d["Retorna erro: Project not found"]
+    e["Mapper converte NewMilestoneDTO para Milestones"]
+    f["Persiste milestone no MilestoneRepository"]
+    g["Retorna MilestoneDTO com HTTP 201"]
+
+    h["Cliente autenticado envia PATCH /milestones/{milestoneId}/complete"]
+    i["Service busca milestone por id e verifica dono do projeto"]
+    j{"Milestone existe?"}
+    k["Retorna erro: Milestone not found"]
+    l["Define isCompleted=true e completedAt=now()"]
+    m["Persiste alteracoes"]
+    n["Retorna HTTP 204"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Nao" --> d --> End
+    c -- "Sim" --> e --> f --> g --> h --> i --> j
+    j -- "Nao" --> k --> End
+    j -- "Sim" --> l --> m --> n --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,g,h,i,n flowClass;
+    class e,f,l,m actionClass;
+    class c,j decisionClass;
+    class d,k actionClass;
+    class Start,End endClass;

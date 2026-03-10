@@ -1,0 +1,56 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia POST /tasks"]
+    b["Service le dharmasId do NewTaskDTO"]
+    c["DharmaLookupService busca dharma do usuario"]
+    d{"Dharma existe para o usuario?"}
+    e["Retorna erro de dharma nao encontrado"]
+    f["Mapper converte NewTaskDTO para entidade Tasks"]
+    g["Associa task ao dharma e ao usuario"]
+    h["Replica hidden do dharma para a task"]
+    i["Conta quantas tasks do usuario estao em NOW"]
+    j{"NOW atual menor que 5?"}
+    k["Define status inicial como NOW"]
+    l["Define status inicial como WAITING"]
+    m["Persiste task"]
+    n["Retorna TaskDTO com HTTP 200"]
+
+    o["Cliente autenticado envia GET /tasks"]
+    p["Controller recebe filtros: status, dharmaId, includeHidden, page e size"]
+    q["Service monta Specification por userId"]
+    r{"dharmaId foi informado?"}
+    s["Adiciona filtro por dharma"]
+    t{"status foi informado?"}
+    u["Adiciona filtro por status"]
+    v{"includeHidden foi informado?"}
+    w["Adiciona filtro de hidden"]
+    x["Executa busca paginada"]
+    y["Mapeia Page<Tasks> para Page<TaskDTO>"]
+    z["Retorna pagina com HTTP 200"]
+    End([Fim])
+
+    Start --> a --> b --> c --> d
+    d -- "Nao" --> e --> End
+    d -- "Sim" --> f --> g --> h --> i --> j
+    j -- "Sim" --> k --> m
+    j -- "Nao" --> l --> m
+    m --> n --> o --> p --> q --> r
+    r -- "Sim" --> s --> t
+    r -- "Nao" --> t
+    t -- "Sim" --> u --> v
+    t -- "Nao" --> v
+    v -- "Sim" --> w --> x
+    v -- "Nao" --> x
+    x --> y --> z --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,c,n,o,p,q,x,y,z flowClass;
+    class f,g,h,i,k,l,m,s,u,w actionClass;
+    class d,j,r,t,v decisionClass;
+    class e actionClass;
+    class Start,End endClass;

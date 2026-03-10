@@ -1,0 +1,38 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado acessa /users/me"]
+    b["SecurityContext fornece Authentication com userId no name"]
+    c["UsersService converte authentication.getName para UUID"]
+    d["Busca usuario no repository"]
+    e{"Usuario encontrado?"}
+    f["Retorna UserResponseDTO"]
+    g["Lanca UserNotFoundException"]
+
+    h["Cliente autenticado envia PATCH /users/me"]
+    i["Recebe UpdateUserDTO com name e ou email"]
+    j["Busca entidade atual pelo userId autenticado"]
+    k{"Usuario encontrado?"}
+    l["MapStruct aplica partialUpdate ignorando campos nulos"]
+    m["Salva alteracoes no repository"]
+    n["Retorna UserResponseDTO atualizado"]
+    o["Lanca UserNotFoundException"]
+    End([Fim])
+
+    Start --> a --> b --> c --> d --> e
+    e -- "Sim" --> f --> h
+    e -- "Nao" --> g --> End
+    h --> i --> j --> k
+    k -- "Sim" --> l --> m --> n --> End
+    k -- "Nao" --> o --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,c,d,f,h,i,j,n flowClass;
+    class l,m actionClass;
+    class e,k decisionClass;
+    class g,o actionClass;
+    class Start,End endClass;

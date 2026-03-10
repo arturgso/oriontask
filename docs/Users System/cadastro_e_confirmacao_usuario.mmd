@@ -1,0 +1,46 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente envia POST /auth/signup com nome, email e senha"]
+    b["AuthService normaliza email para minusculas"]
+    c{"Email descartavel?"}
+    d["Retorna erro: Disposable/temporary emails are not allowed"]
+    e{"Email ja cadastrado?"}
+    f["Retorna erro: Email unavailable"]
+    g["Gera hash BCrypt da senha"]
+    h["Gera confirmationToken com expiracao de 24h"]
+    i["Mapeia SignupRequestDTO para Users"]
+    j["Persiste usuario com isConfirmed=false"]
+    k["Envia email de confirmacao"]
+    l["Retorna UserResponseDTO com HTTP 201"]
+
+    m["Cliente envia POST /auth/confirm-email com token"]
+    n{"Token existe?"}
+    o["Retorna erro: Invalid confirmation token"]
+    p{"Token expirou?"}
+    q["Retorna erro: Confirmation token has expired"]
+    r["Marca usuario como confirmado"]
+    s["Limpa token e expiracao"]
+    t["Salva usuario atualizado"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Sim" --> d --> End
+    c -- "Nao" --> e
+    e -- "Sim" --> f --> End
+    e -- "Nao" --> g --> h --> i --> j --> k --> l --> m --> n
+    n -- "Nao" --> o --> End
+    n -- "Sim" --> p
+    p -- "Sim" --> q --> End
+    p -- "Nao" --> r --> s --> t --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,i,l,m flowClass;
+    class g,h,j,k,r,s,t actionClass;
+    class c,e,n,p decisionClass;
+    class d,f,o,q actionClass;
+    class Start,End endClass;

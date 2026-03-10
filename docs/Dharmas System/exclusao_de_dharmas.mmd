@@ -1,0 +1,32 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia DELETE /dharmas/{dharmasId}"]
+    b["Controller extrai userId e dharmasId"]
+    c["Service busca dharma por id e userId"]
+    d{"Dharmas existe para este usuario?"}
+    e["Retorna erro: Dharmas not found"]
+    f["Busca tasks associadas ao dharma"]
+    g["Filtra tasks com status diferente de DONE"]
+    h{"Existem tasks ativas?"}
+    i["Retorna erro: Cannot delete Dharmas with active tasks. Complete or move tasks first."]
+    j["Exclui dharma no repository"]
+    k["Retorna HTTP 204"]
+    End([Fim])
+
+    Start --> a --> b --> c --> d
+    d -- "Nao" --> e --> End
+    d -- "Sim" --> f --> g --> h
+    h -- "Sim" --> i --> End
+    h -- "Nao" --> j --> k --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,c,f,g,k flowClass;
+    class j actionClass;
+    class d,h decisionClass;
+    class e,i actionClass;
+    class Start,End endClass;

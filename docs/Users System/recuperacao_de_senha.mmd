@@ -1,0 +1,40 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente envia POST /auth/forgot-password com email"]
+    b["Busca usuario por email"]
+    c{"Usuario existe?"}
+    d["Retorna erro: User not found"]
+    e["RedisTokenService gera token de reset com TTL de 2h"]
+    f["EmailService envia email com token de redefinicao"]
+
+    g["Cliente envia POST /auth/reset-password com token e nova senha"]
+    h["Busca userId no Redis a partir do token"]
+    i{"Token valido e nao expirado?"}
+    j["Retorna erro: Invalid or expired password reset token"]
+    k["Busca usuario por id"]
+    l{"Usuario existe?"}
+    m["Retorna erro: User not found"]
+    n["Gera novo hash BCrypt para a senha"]
+    o["Salva usuario com nova senha"]
+    p["Invalida token de reset no Redis"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Nao" --> d --> End
+    c -- "Sim" --> e --> f --> g --> h --> i
+    i -- "Nao" --> j --> End
+    i -- "Sim" --> k --> l
+    l -- "Nao" --> m --> End
+    l -- "Sim" --> n --> o --> p --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,g,h,k flowClass;
+    class e,f,n,o,p actionClass;
+    class c,i,l decisionClass;
+    class d,j,m actionClass;
+    class Start,End endClass;

@@ -1,0 +1,38 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente autenticado envia GET /projects com includeArchived default false"]
+    b["Controller le query param e extrai userId"]
+    c{"includeArchived=true?"}
+    d["Busca todos os projetos do usuario"]
+    e["Busca apenas projetos com archived=false"]
+    f["Mapper converte lista para ProjectDTO"]
+    g["Retorna lista com HTTP 200"]
+
+    h["Cliente autenticado envia GET /projects/{projectId}"]
+    i["Service busca projeto por id e userId"]
+    j{"Projeto encontrado?"}
+    k["Retorna erro: Project not found"]
+    l["Busca tasks associadas ao projeto"]
+    m["Busca milestones do projeto"]
+    n["Mapeia para ProjectDetailsDTO"]
+    o["Retorna detalhes com HTTP 200"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Sim" --> d --> f
+    c -- "Nao" --> e --> f
+    f --> g --> h --> i --> j
+    j -- "Nao" --> k --> End
+    j -- "Sim" --> l --> m --> n --> o --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,f,g,h,i,n,o flowClass;
+    class d,e,l,m actionClass;
+    class c,j decisionClass;
+    class k actionClass;
+    class Start,End endClass;

@@ -1,0 +1,67 @@
+flowchart TD
+    Start([Inicio])
+
+    a["Cliente envia PATCH /tasks/{taskId}/now"]
+    b["Service busca task por taskId e userId"]
+    c{"Task existe?"}
+    d["Retorna erro: Task not found"]
+    e["Policy bloqueia se status atual for DONE"]
+    f{"Task atual eh DONE?"}
+    g["Retorna erro: Completed tasks cannot change status"]
+    h["Conta tasks atuais em NOW"]
+    i{"Limite de 5 em NOW foi atingido?"}
+    j["Retorna erro: Maximum of 5 tasks in NOW reached"]
+    k["Policy marca task como NOW"]
+    l["Limpa snoozedUntil"]
+    m["Persiste task"]
+    n["Retorna TaskDTO"]
+
+    o["Cliente envia PATCH /tasks/{taskId}/snooze"]
+    p["Busca task por taskId e userId"]
+    q{"Task existe?"}
+    r["Retorna erro: Task not found"]
+    s["Policy bloqueia se status atual for DONE"]
+    t{"Task atual eh DONE?"}
+    u["Retorna erro: Completed tasks cannot change status"]
+    v["Policy define status SNOOZED por 2 horas"]
+    w["Persiste task snoozed"]
+    x["Retorna TaskDTO"]
+
+    y["Cliente envia PATCH /tasks/{taskId}/done"]
+    z["Busca task por taskId e userId"]
+    aa{"Task existe?"}
+    ab["Retorna erro: Task not found"]
+    ac{"Task ja esta DONE?"}
+    ad["Retorna erro: Task is already completed"]
+    ae["Policy marca status DONE"]
+    af["Define completedAt e limpa snoozedUntil"]
+    ag["Persiste task concluida"]
+    ah["Retorna TaskDTO"]
+    End([Fim])
+
+    Start --> a --> b --> c
+    c -- "Nao" --> d --> End
+    c -- "Sim" --> e --> f
+    f -- "Sim" --> g --> End
+    f -- "Nao" --> h --> i
+    i -- "Sim" --> j --> End
+    i -- "Nao" --> k --> l --> m --> n --> o --> p --> q
+    q -- "Nao" --> r --> End
+    q -- "Sim" --> s --> t
+    t -- "Sim" --> u --> End
+    t -- "Nao" --> v --> w --> x --> y --> z --> aa
+    aa -- "Nao" --> ab --> End
+    aa -- "Sim" --> ac
+    ac -- "Sim" --> ad --> End
+    ac -- "Nao" --> ae --> af --> ag --> ah --> End
+
+    classDef flowClass fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef actionClass fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20;
+    classDef decisionClass fill:#fff8e1,stroke:#f9a825,stroke-width:1.5px,color:#7f6000;
+    classDef endClass fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+
+    class a,b,e,h,n,o,p,s,x,y,z,ah flowClass;
+    class k,l,m,v,w,ae,af,ag actionClass;
+    class c,f,i,q,t,aa,ac decisionClass;
+    class d,g,j,r,u,ab,ad actionClass;
+    class Start,End endClass;
